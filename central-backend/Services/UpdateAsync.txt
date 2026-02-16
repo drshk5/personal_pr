@@ -1,0 +1,126 @@
+        public async Task<UserResponseDto> UpdateAsync(Guid guid, UserUpdateDto updateDto, Guid updatedByGUID)
+        {
+            try 
+            {
+                var user = await _context.MstUsers.FindAsync(guid);
+                if (user == null)
+                {
+                    throw new BusinessException("User not found");
+                }
+
+                // Check for duplicate email
+                var emailUser = await _context.MstUsers
+                    .FirstOrDefaultAsync(u => u.strEmailId.ToLower() == updateDto.strEmailId.ToLower() && u.strUserGUID != guid);
+                if (emailUser != null)
+                {
+                    throw new BusinessException("Email address already exists");
+                }
+
+                // Check for duplicate mobile
+                if (!string.IsNullOrEmpty(updateDto.strMobileNo))
+                {
+                    var mobileUser = await _context.MstUsers
+                        .FirstOrDefaultAsync(u => u.strMobileNo == updateDto.strMobileNo && u.strUserGUID != guid);
+                    if (mobileUser != null)
+                    {
+                        throw new BusinessException("Mobile number already exists");
+                    }
+                }
+
+                // Handle profile image
+                if (updateDto.ProfileImgFile != null && updateDto.ProfileImgFile.Length > 0)
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(user.strProfileImg))
+                        {
+                            _fileStorageService.DeleteFile(user.strProfileImg);
+                        }
+                        updateDto.strProfileImg = await _fileStorageService.SaveFileAsync(updateDto.ProfileImgFile, "ProfileImages");
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new BusinessException($"Failed to upload profile image: {ex.Message}");
+                    }
+                }
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                return await strategy.ExecuteAsync(async () =>
+                {
+                    using var transaction = await _context.Database.BeginTransactionAsync();
+                    try
+                    {
+                        var oldValues = System.Text.Json.JsonSerializer.Serialize(new 
+                        {
+                            name = user.strName,
+                            email = user.strEmailId,
+                            mobile = user.strMobileNo,
+                            isActive = user.bolIsActive,
+                            birthDate = user.dtBirthDate,
+                            workingStartTime = user.dtWorkingStartTime?.ToString(),
+                            workingEndTime = user.dtWorkingEndTime?.ToString()
+                        });
+
+                        user.strName = updateDto.strName;
+                        user.strMobileNo = updateDto.strMobileNo;
+                        user.strEmailId = updateDto.strEmailId;
+                        user.bolIsActive = updateDto.bolIsActive;
+                        user.dtBirthDate = updateDto.dtBirthDate.HasValue ? 
+                            new DateTime(updateDto.dtBirthDate.Value.Year, updateDto.dtBirthDate.Value.Month, updateDto.dtBirthDate.Value.Day, 0, 0, 0, DateTimeKind.Utc) : 
+                            null;
+                        user.dtWorkingStartTime = updateDto.dtWorkingStartTime;
+                        user.dtWorkingEndTime = updateDto.dtWorkingEndTime;
+                        user.strUpdatedByGUID = updatedByGUID;
+                        user.dtUpdatedOn = CurrentDateTime;
+
+                        if (updateDto.strProfileImg != null)
+                        {
+                            user.strProfileImg = updateDto.strProfileImg;
+                        }
+
+                        await _context.SaveChangesAsync();
+
+                        var newLog = new MstUserActivityLog
+                        {
+                            UserGUID = updatedByGUID,
+                            GroupGUID = user.strGroupGUID ?? Guid.Empty,
+                            ActivityType = "UPDATE_USER",
+                            Details = $"Updated user {user.strName}",
+                            EntityType = "User",
+                            EntityGUID = user.strUserGUID,
+                            OldValue = oldValues,
+                            NewValue = System.Text.Json.JsonSerializer.Serialize(new
+                            {
+                                name = user.strName,
+                                email = user.strEmailId,
+                                mobile = user.strMobileNo,
+                                isActive = user.bolIsActive,
+                                birthDate = user.dtBirthDate,
+                                workingStartTime = user.dtWorkingStartTime?.ToString(),
+                                workingEndTime = user.dtWorkingEndTime?.ToString()
+                            })
+                        };
+
+                        _context.MstUserActivityLogs.Add(newLog);
+                        await _context.SaveChangesAsync();
+
+                        await transaction.CommitAsync();
+
+                        var response = _mapper.Map<UserResponseDto>(user);
+                        await EnrichWithUserNames(response);
+                        return response;
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        _logger.LogError(ex, "Error during user update transaction");
+                        throw new BusinessException($"Failed to update user: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user");
+                throw new BusinessException($"Failed to update user: {ex.Message}");
+            }
+        }

@@ -1,0 +1,438 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Edit, Save, Trash2 } from "lucide-react";
+
+import type { Department } from "@/types/central/department";
+
+import { ModuleBase, useCanEdit, useCanSave } from "@/lib/permissions";
+
+import {
+  useCreateDepartment,
+  useDeleteDepartment,
+  useDepartments,
+  useUpdateDepartment,
+} from "@/hooks/api/central/use-departments";
+import { useTableLayout } from "@/hooks/common";
+
+import { Button } from "@/components/ui/button";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
+import { Input } from "@/components/ui/input";
+import { ModalDialog } from "@/components/ui/modal-dialog";
+import { Switch } from "@/components/ui/switch";
+
+import {
+  DataTable,
+  type DataTableColumn,
+} from "@/components/data-display/data-tables/DataTable";
+import { Separator } from "@/components/ui/separator";
+import { TableSkeleton } from "@/components/data-display/skeleton/table-skeleton";
+
+const departmentFormSchema = z.object({
+  strDepartmentName: z.string().min(1, "Department name is required"),
+  bolsActive: z.boolean(),
+});
+
+type DepartmentFormValues = z.infer<typeof departmentFormSchema>;
+
+interface DepartmentModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const DepartmentModal: React.FC<DepartmentModalProps> = ({
+  open,
+  onOpenChange,
+}) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [pagination, setPagination] = useState({
+    pageNumber: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0,
+  });
+
+  const defaultColumnOrder = useMemo(() => ["actions", "name", "status"], []);
+
+  const canEdit = useCanEdit(ModuleBase.DEPARTMENT);
+  const canSave = useCanSave(ModuleBase.DEPARTMENT);
+
+  const { columnWidths, setColumnWidths } = useTableLayout(
+    "departmentModal",
+    defaultColumnOrder,
+    []
+  );
+
+  useEffect(() => {
+    if (open && !canEdit && !canSave) {
+      toast.error("You don't have permission to access this module");
+      onOpenChange(false);
+    }
+  }, [open, canEdit, canSave, onOpenChange]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const { data: departmentsResponse, isLoading } = useDepartments(
+    {
+      pageNumber: pagination.pageNumber,
+      pageSize: pagination.pageSize,
+      search: debouncedSearch || undefined,
+    },
+    open
+  );
+
+  const departments = departmentsResponse?.data?.items || [];
+
+  const { mutate: createDepartment, isPending: isCreating } =
+    useCreateDepartment();
+  const { mutate: updateDepartment, isPending: isUpdating } =
+    useUpdateDepartment();
+  const { mutate: deleteDepartment, isPending: isDeleting } =
+    useDeleteDepartment();
+
+  const form = useForm<DepartmentFormValues>({
+    resolver: zodResolver(departmentFormSchema),
+    defaultValues: {
+      strDepartmentName: "",
+      bolsActive: true,
+    },
+  });
+
+  const isSubmitting = isCreating || isUpdating;
+
+  const handleEdit = useCallback(
+    (department: {
+      strDepartmentGUID: string;
+      strDepartmentName: string;
+      bolsActive: boolean;
+    }) => {
+      setEditingId(department.strDepartmentGUID);
+      form.setValue("strDepartmentName", department.strDepartmentName);
+      form.setValue("bolsActive", department.bolsActive);
+    },
+    [form]
+  );
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingId(null);
+    form.reset();
+  }, [form]);
+
+  useEffect(() => {
+    if (departmentsResponse?.data) {
+      setPagination({
+        pageNumber: departmentsResponse.data.pageNumber,
+        pageSize: departmentsResponse.data.pageSize,
+        totalCount: departmentsResponse.data.totalCount,
+        totalPages: departmentsResponse.data.totalPages,
+      });
+    }
+  }, [departmentsResponse]);
+
+  useEffect(() => {
+    setPagination((prev) => ({
+      ...prev,
+      pageNumber: 1,
+    }));
+  }, [debouncedSearch]);
+
+  const goToPage = (pageNumber: number) => {
+    setPagination((prev) => ({
+      ...prev,
+      pageNumber,
+    }));
+  };
+
+  const changePageSize = (pageSize: number) => {
+    setPagination({
+      pageNumber: 1,
+      pageSize,
+      totalCount: pagination.totalCount,
+      totalPages: Math.ceil(pagination.totalCount / pageSize),
+    });
+  };
+
+  const columns = useMemo<DataTableColumn<Department>[]>(() => {
+    const baseColumns: DataTableColumn<Department>[] = [];
+
+    baseColumns.push({
+      key: "actions",
+      header: "Actions",
+      width: "100px",
+      cell: (department) => (
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleEdit(department)}
+            disabled={isSubmitting || !canEdit}
+            title={
+              !canEdit ? "You don't have edit permission" : "Edit department"
+            }
+            className="h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-900"
+          >
+            <Edit className="h-3 w-3" />
+          </Button>
+        </div>
+      ),
+    });
+
+    baseColumns.push({
+      key: "name",
+      header: "Department Name",
+      width: "250px",
+      cell: (department) => (
+        <div className="font-medium">{department.strDepartmentName}</div>
+      ),
+    });
+
+    baseColumns.push({
+      key: "status",
+      header: "Status",
+      width: "120px",
+      cell: (department) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            department.bolsActive
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {department.bolsActive ? "Active" : "Inactive"}
+        </span>
+      ),
+    });
+
+    return baseColumns;
+  }, [isSubmitting, handleEdit, canEdit]);
+
+  const orderedColumns = useMemo(() => {
+    const columnMap = new Map(columns.map((col) => [col.key, col]));
+    return defaultColumnOrder
+      .map((key: string) => columnMap.get(key))
+      .filter(
+        (
+          col: DataTableColumn<Department> | undefined
+        ): col is DataTableColumn<Department> => col !== undefined
+      );
+  }, [columns, defaultColumnOrder]);
+
+  const onSubmit = (data: DepartmentFormValues) => {
+    if (editingId) {
+      updateDepartment(
+        {
+          guid: editingId,
+          data: {
+            strDepartmentName: data.strDepartmentName,
+            bolsActive: data.bolsActive,
+          },
+        },
+        {
+          onSuccess: () => {
+            form.reset();
+            setEditingId(null);
+          },
+        }
+      );
+    } else {
+      createDepartment(
+        {
+          strDepartmentName: data.strDepartmentName,
+          bolsActive: data.bolsActive,
+        },
+        {
+          onSuccess: () => {
+            form.reset();
+          },
+        }
+      );
+    }
+  };
+
+  const handleDelete = () => {
+    if (!deleteConfirmId) return;
+
+    deleteDepartment(deleteConfirmId, {
+      onSuccess: () => {
+        setDeleteConfirmId(null);
+        toast.success("Department deleted successfully");
+      },
+    });
+  };
+
+  return (
+    <>
+      <ModalDialog
+        open={open}
+        className="bg-card"
+        onOpenChange={onOpenChange}
+        title={editingId ? "Edit Department" : "Create Department"}
+        description={
+          editingId
+            ? "Update the department details below"
+            : "Add a new department to your organization"
+        }
+        maxWidth="900px"
+        fullHeight={false}
+        showCloseButton={true}
+      >
+        <div className="flex flex-col h-130 px-4 sm:px-6 space-y-4 overflow-hidden">
+          <div className="shrink-0 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
+              <div className="flex-1 sm:max-w-100">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Department Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={form.watch("strDepartmentName")}
+                  onChange={(e) =>
+                    form.setValue("strDepartmentName", e.target.value)
+                  }
+                  placeholder="Enter department name"
+                  disabled={isSubmitting}
+                  className="mt-2"
+                />
+                {form.formState.errors.strDepartmentName && (
+                  <p className="text-sm font-medium text-destructive mt-1">
+                    {form.formState.errors.strDepartmentName.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 pb-0 sm:pb-2">
+                <label className="text-sm font-medium leading-none">
+                  Active
+                </label>
+                <Switch
+                  checked={form.watch("bolsActive")}
+                  onCheckedChange={(checked) =>
+                    form.setValue("bolsActive", checked)
+                  }
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-between gap-3">
+              {editingId && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setDeleteConfirmId(editingId)}
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
+              )}
+              <div
+                className={`flex flex-col-reverse sm:flex-row gap-2 w-full sm:w-auto ${
+                  !editingId ? "sm:ml-auto" : ""
+                }`}
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (editingId) {
+                      handleCancelEdit();
+                    } else {
+                      onOpenChange(false);
+                    }
+                  }}
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={form.handleSubmit(onSubmit)}
+                  disabled={isSubmitting || (editingId ? !canEdit : !canSave)}
+                  className="w-full sm:w-auto"
+                  title={
+                    editingId
+                      ? !canEdit
+                        ? "You don't have edit permission"
+                        : undefined
+                      : !canSave
+                        ? "You don't have save permission"
+                        : undefined
+                  }
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  {editingId ? "Update" : "Create"}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="my-3" />
+
+          <div className="shrink-0 flex gap-2 items-center">
+            <Input
+              placeholder="Search departments..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+
+          <div className="flex-1 min-h-0">
+            {isLoading ? (
+              <TableSkeleton
+                columns={orderedColumns.map((column) => ({
+                  header: String(column.header),
+                  width: column.width,
+                }))}
+                pageSize={pagination.pageSize}
+              />
+            ) : (
+              <DataTable
+                data={departments}
+                columns={orderedColumns}
+                keyExtractor={(department) =>
+                  department.strDepartmentGUID || Math.random().toString()
+                }
+                maxHeight="220px"
+                columnWidths={columnWidths}
+                onColumnWidthsChange={setColumnWidths}
+                emptyState={<>No departments found.</>}
+                pagination={{
+                  pageNumber: pagination.pageNumber,
+                  pageSize: pagination.pageSize,
+                  totalCount: pagination.totalCount || 0,
+                  totalPages: pagination.totalPages || 0,
+                  onPageChange: goToPage,
+                  onPageSizeChange: changePageSize,
+                }}
+                pageSizeOptions={[5, 10, 20, 50]}
+              />
+            )}
+          </div>
+        </div>
+      </ModalDialog>
+
+      <DeleteConfirmationDialog
+        open={!!deleteConfirmId}
+        onOpenChange={(open) => !open && setDeleteConfirmId(null)}
+        onConfirm={handleDelete}
+        title="Delete Department"
+        description="Are you sure you want to delete this department? This action cannot be undone."
+        confirmLabel="Delete"
+        isLoading={isDeleting}
+      />
+    </>
+  );
+};

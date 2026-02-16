@@ -1,0 +1,19 @@
+### Create Group Test
+POST http://localhost:5001/api/Group
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "strName": "Next Gen",
+  "strLicenseNo": "LIC96259884",
+  "strPAN": "NSHWTGD345",
+  "strTAN": "MUMA123452",
+  "strCIN": "U12345MH2025PTC128965",
+  "dtLicenseIssueDate": "2025-07-16",
+  "dtLicenseExpired": "2025-07-31",
+  "strLogo": "https://i.pinimg.com/1200x/86/0c/87/860c87633f4de3aae800d9c948cbebdd.jpg",
+  "strAdminName": "Karan",
+  "strAdminMobileNo": "7492745982",
+  "strAdminEmailId": "karan@moneycareindia.com",
+  "strAdminPassword": "password"
+}

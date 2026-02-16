@@ -1,0 +1,47 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=YOUR_SERVER;Database=YOUR_DB;User Id=YOUR_USER;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
+  },
+  "Jwt": {
+    "Key": "GENERATE_SECURE_KEY_AT_LEAST_32_CHARS",
+    "EncryptionKey": "GENERATE_SECURE_ENCRYPTION_KEY_32_CHARS",
+    "Issuer": "EasyAudit",
+    "Audience": "EasyAuditUsers",
+    "ExpiryInHours": 24,
+    "AccessTokenExpirationMinutes": 30,
+    "RefreshTokenExpirationDays": 7,
+    "SessionExpirationMinutes": 30
+  },
+  "Email": {
+    "SmtpHost": "smtp.gmail.com",
+    "SmtpPort": 587,
+    "SmtpUsername": "YOUR_EMAIL@example.com",
+    "SmtpPassword": "YOUR_APP_PASSWORD",
+    "FromEmail": "YOUR_EMAIL@example.com",
+    "FromName": "Audit Software"
+  },
+  "ApiGateway": {
+    "TaskServiceBaseUrl": "https://localhost:5006",
+    "HrmServiceBaseUrl": "https://localhost:5003",
+    "AuditServiceBaseUrl": "https://localhost:5001",
+    "AccountingServiceBaseUrl": "https://localhost:7089"
+  },
+  "ThirdPartyApis": {
+    "ExchangeRate": {
+      "BaseUrl": "https://open.er-api.com/v6/latest/"
+    }
+  },
+  "Cors": {
+    "AllowedOrigins": [
+      "http://localhost:5173",
+      "https://localhost:5173"
+    ]
+  }
+}

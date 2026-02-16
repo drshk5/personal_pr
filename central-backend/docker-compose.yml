@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  central-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: central-backend
+    ports:
+      - '5001:8080'
+      - '5002:8081'
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # Database connection - Update with your SQL Server details
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal\\SQLEXPRESS;Database=MasterDB;User Id=sa;Password=De$$ktop;TrustServerCertificate=True;
+      # JWT Settings
+      - Jwt__Key=YourSuperSecretKey123!@#$$%^&*()_+QWERTY987654321
+      - Jwt__Issuer=EasyAudit
+      - Jwt__Audience=EasyAuditUsers
+      # API Gateway URLs - Update these if needed
+      - ApiGateway__TaskServiceBaseUrl=http://task-backend:8080
+      - ApiGateway__AccountingServiceBaseUrl=http://accounting-backend:8080
+    volumes:
+      # Persist uploaded files
+      - ./Uploads:/app/Uploads
+      # Persist logs if needed
+      - ./Logs:/app/Logs
+    networks:
+      - easyaudit-network
+    restart: unless-stopped
+    depends_on:
+      - sqlserver
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  # Optional: Include SQL Server container if you want to run it in Docker
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+    ports:
+      - '1433:1433'
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - easyaudit-network
+    restart: unless-stopped
+
+networks:
+  easyaudit-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:

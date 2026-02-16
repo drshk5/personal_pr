@@ -1,0 +1,95 @@
+/* Custom styles to move the sonner close button from left to right */
+[data-sonner-toast] [data-close-button] {
+  position: absolute !important;
+  right: 10px !important;
+  left: auto !important;
+  top: 10px !important;
+  background: transparent !important; /* Remove circular background */
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  width: 16px !important;
+  height: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #555 !important; /* Default X color */
+  opacity: 1 !important; /* Make it visible by default */
+}
+
+/* Style for the X icon itself */
+[data-sonner-toast] [data-close-button] svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Change color on hover for better visibility */
+[data-sonner-toast] [data-close-button]:hover {
+  color: #000 !important; /* Darker on hover */
+  background: transparent !important; /* Maintain no background on hover */
+}
+
+/* Dark mode adjustments */
+.dark [data-sonner-toast] [data-close-button] {
+  color: #8b8b8b !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.dark [data-sonner-toast] [data-close-button]:hover {
+  color: #fff !important;
+  background: transparent !important;
+}
+
+/* Adjust padding to prevent content from being overlapped by the close button */
+[data-sonner-toast] {
+  padding-right: 32px !important;
+}
+
+/* Ensure proper border color using CSS variable */
+[data-sonner-toast] {
+  border: 1px solid hsl(var(--border-color)) !important;
+}
+
+/* Toast description color for light mode - variant based */
+[data-sonner-toast][data-type="success"] [data-description] {
+  color: rgba(22, 163, 74, 0.7) !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-description] {
+  color: rgba(220, 38, 38, 0.7) !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-description] {
+  color: rgba(217, 119, 6, 0.7) !important;
+}
+
+[data-sonner-toast][data-type="info"] [data-description] {
+  color: rgba(37, 99, 235, 0.7) !important;
+}
+
+[data-sonner-toast] [data-description] {
+  color: rgba(102, 102, 102, 0.7) !important;
+}
+
+/* Toast description color for dark mode - variant based, close to white */
+.dark [data-sonner-toast][data-type="success"] [data-description] {
+  color: rgba(187, 247, 208, 0.85) !important;
+}
+
+.dark [data-sonner-toast][data-type="error"] [data-description] {
+  color: rgba(254, 202, 202, 0.85) !important;
+}
+
+.dark [data-sonner-toast][data-type="warning"] [data-description] {
+  color: rgba(254, 240, 138, 0.85) !important;
+}
+
+.dark [data-sonner-toast][data-type="info"] [data-description] {
+  color: rgba(191, 219, 254, 0.85) !important;
+}
+
+.dark [data-sonner-toast] [data-description] {
+  color: rgba(245, 245, 245, 0.85) !important;
+}

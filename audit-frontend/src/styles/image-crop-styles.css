@@ -1,0 +1,36 @@
+/* Custom styles for circular crop */
+.ReactCrop__crop-selection {
+  border-radius: 50% !important;
+  border: 2px solid white !important;
+  box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Override the default corner handles with circular ones */
+.ReactCrop__drag-handle {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  background-color: white !important;
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Make crop area cleaner by hiding unnecessary handles */
+.ReactCrop__drag-handle:before {
+  display: none !important;
+}
+
+/* Force square selection for circular crops */
+.ReactCrop--circular-crop {
+  margin: 0 auto;
+}
+
+/* Style the drag bar */
+.ReactCrop__drag-bar {
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Improve container appearance */
+.ReactCrop__child-wrapper {
+  display: flex;
+  justify-content: center;
+}

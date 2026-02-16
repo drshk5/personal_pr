@@ -1,0 +1,253 @@
+# User Context Update Endpoints Reference
+# Last updated: August 26, 2025
+
+This document catalogs all the API endpoints that modify the user context tracking fields
+`strLastOrganizationGUID` and `strLastYearGUID` in the MstUser table.
+
+## Authentication Related Endpoints
+
+### 1. POST /api/Auth/login
+**Controller:** AuthController
+**Method:** Login
+**Service Method:** AuthService.LoginAsync
+
+**Description:**
+When a user logs in successfully, their last organization and year GUIDs are updated based on their 
+most recent user details. This ensures that when returning users log in, they're placed back into their 
+last working context.
+
+**Code References:**
+- AuthController.cs: Lines ~30-70
+- AuthService.cs: Lines ~121 and ~250 (setting strLastYearGUID)
+- AuthService.cs: Lines ~120 and ~249 (setting strLastOrganizationGUID)
+
+**Sample Request:**
+```json
+{
+  "strEmailId": "user@example.com",
+  "strPassword": "password"
+}
+```
+
+### 2. POST /api/Auth/refresh-token
+**Controller:** AuthController
+**Method:** RefreshToken
+**Service Method:** AuthService.RefreshTokenAsync
+
+**Description:**
+When refreshing an authentication token, the user's context information is maintained. While this
+endpoint doesn't explicitly update the fields, it ensures that context is preserved across token refreshes.
+
+**Code References:**
+- AuthController.cs: Lines ~70-120
+
+## User Management Endpoints
+
+### 3. POST /api/User
+**Controller:** UserController
+**Method:** Create
+**Service Method:** UserService.CreateAsync
+
+**Description:**
+When creating a new user, their initial strLastOrganizationGUID and strLastYearGUID values are set 
+based on the values from the current user's token (the user creating the new account).
+
+**Code References:**
+- UserController.cs: Lines ~40-95
+- UserService.cs: Line ~61 (setting strLastYearGUID)
+- UserService.cs: Line ~62 (setting strLastOrganizationGUID - implied from grep search)
+
+**Authorization Required:** 
+- Permission: "user_form"
+- Type: CanSave
+- Module: "User"
+
+**Sample Request:**
+```json
+{
+  "strName": "New User",
+  "strEmailId": "newuser@example.com",
+  "strMobileNo": "9876543210",
+  "strPassword": "password"
+  // other user fields...
+}
+```
+
+## User Details Management
+
+### 4. POST /api/UserDetails
+**Controller:** UserDetailsController
+**Method:** Create
+**Service Method:** UserDetailsService.UpsertAsync
+
+**Description:**
+When user details are created or updated, the associated user's strLastOrganizationGUID and 
+strLastYearGUID fields are updated to reflect the organization and year in the user details.
+This happens when a user is assigned to a new organization or year.
+
+**Code References:**
+- UserDetailsController.cs: Lines ~30-100
+- UserDetailsService.cs: Lines ~94 (setting strLastYearGUID)
+- UserDetailsService.cs: Lines ~93 (setting strLastOrganizationGUID - implied from context)
+- UserDetailsService.cs: Lines ~306 (updating strLastYearGUID with latestUserDetail)
+- UserDetailsService.cs: Lines ~305 (updating strLastOrganizationGUID with latestUserDetail - implied)
+
+**Sample Request:**
+```json
+{
+  "strUserGUID": "user-guid",
+  "strUserRoleGUID": "role-guid",
+  "strOrganizationGUID": "org-guid",
+  "strYearGUID": "year-guid"
+  // other fields...
+}
+```
+
+## Organization Related Endpoints
+
+### 5. POST /api/Organization
+**Controller:** OrganizationController
+**Method:** Create
+**Service Method:** OrganizationService.CreateOrganizationAsync
+
+**Description:**
+When creating a new organization, the admin user's strLastOrganizationGUID is updated to point to 
+the newly created organization. If a year is also created as part of this process, the strLastYearGUID
+is updated too.
+
+**Code References:**
+- OrganizationController.cs: Lines ~180-190
+- OrganizationService.cs: Lines ~971 (setting strLastYearGUID in Copy version)
+- OrganizationService.cs: Lines ~970 (setting strLastOrganizationGUID - implied from context)
+
+**Authorization Required:**
+- Permission: "organization_form"
+- Type: CanSave
+- Module: "Organization"
+
+**Sample Request:**
+```json
+{
+  "strName": "New Organization",
+  "strCode": "NEWORG",
+  // other organization fields...
+}
+```
+
+## Year Related Endpoints
+
+### 6. POST /api/Year
+**Controller:** YearController
+**Method:** Create
+**Service Method:** YearService.CreateAsync
+
+**Description:**
+When creating a new year, the user's strLastYearGUID is updated to the newly created year.
+This allows immediate access to the new year context after creation.
+
+**Code References:**
+- YearController.cs: Lines ~30-65
+- YearService.cs: Lines ~120, ~1276 (setting strLastYearGUID)
+
+**Authorization Required:**
+- Permission: "year_form"
+- Type: CanSave
+- Module: "Year"
+
+**Sample Request:**
+```json
+{
+  "strYearName": "2025-2026",
+  "dtStartDate": "2025-04-01",
+  "dtEndDate": "2026-03-31",
+  // other year fields...
+}
+```
+
+## Group Related Endpoints
+
+### 7. POST /api/Group
+**Controller:** GroupController
+**Method:** Create
+**Service Method:** GroupService.CreateGroupAsync
+
+**Description:**
+When creating a new group, if a new organization and year are created for the group, 
+the admin user's strLastOrganizationGUID and strLastYearGUID are updated to point to these
+newly created entities.
+
+**Code References:**
+- GroupController.cs: Lines ~60-70
+- GroupService.cs: Lines ~462 (setting strLastYearGUID)
+- GroupService.cs: Lines ~461 (setting strLastOrganizationGUID - implied from context)
+
+**Authorization Required:**
+- Permission: "group_form"
+- Type: CanSave
+- Module: "Group"
+
+**Sample Request:**
+```json
+{
+  "strGroupName": "New Group",
+  "strGroupCode": "NEWGRP",
+  // other group fields...
+}
+```
+
+## Context Switching Endpoints
+
+### 8. Various Auth Service Methods
+**Service Method:** AuthService.SetUserContext (and similar methods)
+
+**Description:**
+This method is used throughout the application to update a user's current organization and year context.
+It's called from multiple controllers/endpoints when switching context, but not always directly exposed
+as an API endpoint. This functionality may be embedded within other operations.
+
+**Code References:**
+- AuthService.cs: Lines ~720 (setting strLastYearGUID)
+- AuthService.cs: Lines ~719 (setting strLastOrganizationGUID - implied from context)
+
+## Implementation Notes for New MstUserInfo Table
+
+As you've created a new MstUserInfo table to store user context information including:
+- strUserGUID
+- strModuleGUID
+- strLastOrganizationGUID
+- strLastYearGUID
+
+And added strLastModuleGUID to the existing MstUser table, you should consider updating the
+endpoints above to also track the strLastModuleGUID and update the MstUserInfo table alongside
+the MstUser table whenever context changes.
+
+Key areas to implement these changes:
+1. AuthService login and refresh token methods
+2. Context switching functionality
+3. Initial context setup during entity creation
+
+## Additional Technical Details
+
+1. Most context changes are performed in service layer methods rather than directly in controllers.
+
+2. The context updates generally happen during:
+   - User login
+   - Creation of new entities (users, organizations, years)
+   - Explicit context switching operations
+
+3. Context changes often require updating both the database and the authentication token to keep
+   them in sync.
+
+4. Many of these operations are part of complex workflows where multiple context values are set
+   together when a user's environment changes.
+
+5. Authorization checks and permission validation occur before most context changes.
+
+## Migration Recommendations
+
+When fully implementing the MstUserInfo table, consider:
+
+1. Creating a migration service that can populate MstUserInfo from existing MstUser data
+2. Updating all relevant service methods to maintain both tables
+3. Eventually transitioning to using primarily the MstUserInfo table for context tracking
+4. Adding proper API endpoints to manage the module context specifically

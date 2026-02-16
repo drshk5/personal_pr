@@ -1,0 +1,65 @@
+### Variables
+@baseUrl = http://localhost:5001
+@token = your_auth_token_here
+
+### Login to get token
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "strEmailId": "admin@example.com",
+  "strPassword": "password123"
+}
+
+### Get all schedules
+GET {{baseUrl}}/api/schedule
+Authorization: Bearer {{login.response.body.token}}
+
+### Get schedule by ID
+GET {{baseUrl}}/api/schedule/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{login.response.body.token}}
+
+### Create a new schedule
+POST {{baseUrl}}/api/schedule
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "code": 1001,
+  "strScheduleCode": "SCH001",
+  "dblRefNo": 1.0,
+  "strScheduleName": "Test Schedule",
+  "strRemplateName": "Default Template",
+  "strUnderCode": "MAIN",
+  "strParentScheduleGUID": null,
+  "dblChartType": 1.0,
+  "strDefaultAccountTypeGUID": null,
+  "bolIsActive": true,
+  "bolIsEditable": true,
+  "strGroupGUID": "00000000-0000-0000-0000-000000000001"
+}
+
+### Update a schedule
+PUT {{baseUrl}}/api/schedule/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "strScheduleGUID": "00000000-0000-0000-0000-000000000000",
+  "code": 1001,
+  "strScheduleCode": "SCH001",
+  "dblRefNo": 1.0,
+  "strScheduleName": "Updated Test Schedule",
+  "strRemplateName": "Default Template",
+  "strUnderCode": "MAIN",
+  "strParentScheduleGUID": null,
+  "dblChartType": 1.0,
+  "strDefaultAccountTypeGUID": null,
+  "bolIsActive": true,
+  "bolIsEditable": true
+}
+
+### Delete a schedule
+DELETE {{baseUrl}}/api/schedule/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{login.response.body.token}}

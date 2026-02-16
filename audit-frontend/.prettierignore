@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist
+build
+out
+.next
+
+# Cache directories
+.cache
+.parcel-cache
+.vite
+
+# Test coverage
+coverage
+.nyc_output
+
+# Playwright
+test-results
+playwright-report
+playwright/.cache
+
+# Editor directories
+.vscode
+.idea
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated files
+*.min.js
+*.min.css
+components.json

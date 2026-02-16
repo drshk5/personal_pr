@@ -1,0 +1,61 @@
+/* Driver.js theme integration */
+.driver-popover {
+  background: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.driver-popover-title {
+  color: var(--popover-foreground) !important;
+  font-weight: 600 !important;
+}
+
+.driver-popover-description {
+  color: var(--foreground) !important;
+  opacity: 0.8 !important;
+}
+
+.driver-popover-next-btn,
+.driver-popover-prev-btn {
+  background: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  padding: 6px 14px !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease !important;
+  text-shadow: none !important;
+}
+
+.driver-popover-close-btn {
+  display: none !important;
+}
+
+.driver-popover-next-btn:hover,
+.driver-popover-prev-btn:hover {
+  background: var(--accent) !important;
+  opacity: 0.9 !important;
+  transform: translateY(-1px) !important;
+}
+
+.driver-popover-close-btn:hover {
+  background: var(--muted) !important;
+  color: var(--foreground) !important;
+}
+
+.driver-popover-progress {
+  background: var(--muted) !important;
+}
+
+.driver-popover-progress-bar {
+  background: var(--accent) !important;
+}
+
+.driver-overlay {
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 9998 !important;
+}

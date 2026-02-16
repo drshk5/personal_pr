@@ -1,0 +1,442 @@
+[
+  {
+    "code": "AF",
+    "dialCode": "+93",
+    "name": "Afghanistan",
+    "minLength": 9,
+    "maxLength": 9
+  },
+  {
+    "code": "AL",
+    "dialCode": "+355",
+    "name": "Albania",
+    "minLength": 3,
+    "maxLength": 9
+  },
+  {
+    "code": "DZ",
+    "dialCode": "+213",
+    "name": "Algeria",
+    "minLength": 8,
+    "maxLength": 9
+  },
+  {
+    "code": "AD",
+    "dialCode": "+376",
+    "name": "Andorra",
+    "minLength": 6,
+    "maxLength": 9
+  },
+  {
+    "code": "AO",
+    "dialCode": "+244",
+    "name": "Angola",
+    "minLength": 9,
+    "maxLength": 9
+  },
+  {
+    "code": "AR",
+    "dialCode": "+54",
+    "name": "Argentina",
+    "minLength": 10,
+    "maxLength": 10
+  },
+  {
+    "code": "AM",
+    "dialCode": "+374",
+    "name": "Armenia",
+    "minLength": 8,
+    "maxLength": 8
+  },
+  {
+    "code": "AU",
+    "dialCode": "+61",
+    "name": "Australia",
+    "minLength": 5,
+    "maxLength": 15
+  },
+  {
+    "code": "AT",
+    "dialCode": "+43",
+    "name": "Austria",
+    "minLength": 4,
+    "maxLength": 13
+  },
+  {
+    "code": "AZ",
+    "dialCode": "+994",
+    "name": "Azerbaijan",
+    "minLength": 8,
+    "maxLength": 9
+  },
+
+  {
+    "code": "BD",
+    "dialCode": "+880",
+    "name": "Bangladesh",
+    "minLength": 6,
+    "maxLength": 10
+  },
+  {
+    "code": "BE",
+    "dialCode": "+32",
+    "name": "Belgium",
+    "minLength": 8,
+    "maxLength": 9
+  },
+  {
+    "code": "BR",
+    "dialCode": "+55",
+    "name": "Brazil",
+    "minLength": 10,
+    "maxLength": 10
+  },
+  {
+    "code": "CA",
+    "dialCode": "+1",
+    "name": "Canada",
+    "minLength": 10,
+    "maxLength": 10
+  },
+  {
+    "code": "CN",
+    "dialCode": "+86",
+    "name": "China",
+    "minLength": 5,
+    "maxLength": 12
+  },
+  {
+    "code": "DK",
+    "dialCode": "+45",
+    "name": "Denmark",
+    "minLength": 8,
+    "maxLength": 8
+  },
+  {
+    "code": "EG",
+    "dialCode": "+20",
+    "name": "Egypt",
+    "minLength": 7,
+    "maxLength": 9
+  },
+  {
+    "code": "FI",
+    "dialCode": "+358",
+    "name": "Finland",
+    "minLength": 5,
+    "maxLength": 12
+  },
+  {
+    "code": "FR",
+    "dialCode": "+33",
+    "name": "France",
+    "minLength": 9,
+    "maxLength": 9
+  },
+  {
+    "code": "DE",
+    "dialCode": "+49",
+    "name": "Germany",
+    "minLength": 6,
+    "maxLength": 13
+  },
+
+  {
+    "code": "GR",
+    "dialCode": "+30",
+    "name": "Greece",
+    "minLength": 10,
+    "maxLength": 10
+  },
+  {
+    "code": "HK",
+    "dialCode": "+852",
+    "name": "Hong Kong",
+    "minLength": 4,
+    "maxLength": 9
+  },
+  {
+    "code": "IN",
+    "dialCode": "+91",
+    "name": "India",
+    "minLength": 10,
+    "maxLength": 10
+  },
+  {
+    "code": "ID",
+    "dialCode": "+62",
+    "name": "Indonesia",
+    "minLength": 5,
+    "maxLength": 10
+  },
+  {
+    "code": "IR",
+    "dialCode": "+98",
+    "name": "Iran",
+    "minLength": 6,
+    "maxLength": 10
+  },
+  {
+    "code": "IQ",
+    "dialCode": "+964",
+    "name": "Iraq",
+    "minLength": 8,
+    "maxLength": 10
+  },
+  {
+    "code": "IE",
+    "dialCode": "+353",
+    "name": "Ireland",
+    "minLength": 7,
+    "maxLength": 11
+  },
+  {
+    "code": "IL",
+    "dialCode": "+972",
+    "name": "Israel",
+    "minLength": 8,
+    "maxLength": 9
+  },
+  {
+    "code": "IT",
+    "dialCode": "+39",
+    "name": "Italy",
+    "minLength": 6,
+    "maxLength": 11
+  },
+  {
+    "code": "JP",
+    "dialCode": "+81",
+    "name": "Japan",
+    "minLength": 5,
+    "maxLength": 13
+  },
+
+  {
+    "code": "KE",
+    "dialCode": "+254",
+    "name": "Kenya",
+    "minLength": 6,
+    "maxLength": 10
+  },
+  {
+    "code": "KW",
+    "dialCode": "+965",
+    "name": "Kuwait",
+    "minLength": 7,
+    "maxLength": 8
+  },
+  {
+    "code": "MY",
+    "dialCode": "+60",
+    "name": "Malaysia",
+    "minLength": 7,
+    "maxLength": 9
+  },
+  {
+    "code": "MV",
+    "dialCode": "+960",
+    "name": "Maldives",
+    "minLength": 7,
+    "maxLength": 7
+  },
+  {
+    "code": "MX",
+    "dialCode": "+52",
+    "name": "Mexico",
+    "minLength": 10,
+    "maxLength": 10
+  },
+  {
+    "code": "NP",
+    "dialCode": "+977",
+    "name": "Nepal",
+    "minLength": 8,
+    "maxLength": 9
+  },
+  {
+    "code": "NL",
+    "dialCode": "+31",
+    "name": "Netherlands",
+    "minLength": 9,
+    "maxLength": 9
+  },
+  {
+    "code": "NZ",
+    "dialCode": "+64",
+    "name": "New Zealand",
+    "minLength": 3,
+    "maxLength": 10
+  },
+  {
+    "code": "NG",
+    "dialCode": "+234",
+    "name": "Nigeria",
+    "minLength": 7,
+    "maxLength": 10
+  },
+  {
+    "code": "NO",
+    "dialCode": "+47",
+    "name": "Norway",
+    "minLength": 5,
+    "maxLength": 8
+  },
+
+  {
+    "code": "PK",
+    "dialCode": "+92",
+    "name": "Pakistan",
+    "minLength": 8,
+    "maxLength": 11
+  },
+  {
+    "code": "PH",
+    "dialCode": "+63",
+    "name": "Philippines",
+    "minLength": 8,
+    "maxLength": 10
+  },
+  {
+    "code": "PL",
+    "dialCode": "+48",
+    "name": "Poland",
+    "minLength": 6,
+    "maxLength": 9
+  },
+  {
+    "code": "PT",
+    "dialCode": "+351",
+    "name": "Portugal",
+    "minLength": 9,
+    "maxLength": 11
+  },
+  {
+    "code": "QA",
+    "dialCode": "+974",
+    "name": "Qatar",
+    "minLength": 3,
+    "maxLength": 8
+  },
+  {
+    "code": "RO",
+    "dialCode": "+40",
+    "name": "Romania",
+    "minLength": 9,
+    "maxLength": 9
+  },
+  {
+    "code": "RU",
+    "dialCode": "+7",
+    "name": "Russia",
+    "minLength": 10,
+    "maxLength": 10
+  },
+  {
+    "code": "SA",
+    "dialCode": "+966",
+    "name": "Saudi Arabia",
+    "minLength": 8,
+    "maxLength": 9
+  },
+  {
+    "code": "SG",
+    "dialCode": "+65",
+    "name": "Singapore",
+    "minLength": 8,
+    "maxLength": 12
+  },
+  {
+    "code": "ZA",
+    "dialCode": "+27",
+    "name": "South Africa",
+    "minLength": 9,
+    "maxLength": 9
+  },
+
+  {
+    "code": "KR",
+    "dialCode": "+82",
+    "name": "South Korea",
+    "minLength": 8,
+    "maxLength": 11
+  },
+  {
+    "code": "ES",
+    "dialCode": "+34",
+    "name": "Spain",
+    "minLength": 9,
+    "maxLength": 9
+  },
+  {
+    "code": "LK",
+    "dialCode": "+94",
+    "name": "Sri Lanka",
+    "minLength": 9,
+    "maxLength": 9
+  },
+  {
+    "code": "SE",
+    "dialCode": "+46",
+    "name": "Sweden",
+    "minLength": 7,
+    "maxLength": 13
+  },
+  {
+    "code": "CH",
+    "dialCode": "+41",
+    "name": "Switzerland",
+    "minLength": 4,
+    "maxLength": 12
+  },
+  {
+    "code": "TW",
+    "dialCode": "+886",
+    "name": "Taiwan",
+    "minLength": 8,
+    "maxLength": 9
+  },
+  {
+    "code": "TH",
+    "dialCode": "+66",
+    "name": "Thailand",
+    "minLength": 8,
+    "maxLength": 9
+  },
+  {
+    "code": "TR",
+    "dialCode": "+90",
+    "name": "Turkey",
+    "minLength": 10,
+    "maxLength": 10
+  },
+  {
+    "code": "AE",
+    "dialCode": "+971",
+    "name": "United Arab Emirates",
+    "minLength": 8,
+    "maxLength": 9
+  },
+  {
+    "code": "GB",
+    "dialCode": "+44",
+    "name": "United Kingdom",
+    "minLength": 7,
+    "maxLength": 10
+  },
+
+  {
+    "code": "US",
+    "dialCode": "+1",
+    "name": "United States",
+    "minLength": 10,
+    "maxLength": 10
+  },
+  {
+    "code": "VN",
+    "dialCode": "+84",
+    "name": "Vietnam",
+    "minLength": 7,
+    "maxLength": 10
+  }
+]
