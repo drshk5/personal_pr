@@ -1,0 +1,4 @@
+strAccountName,strIndustry,strWebsite,strPhone,strEmail,intEmployeeCount,dblAnnualRevenue,strAddress,strCity,strState,strCountry,strPostalCode,strDescription,strAssignedToGUID
+Acme Inc,Technology,https://acme.example.com,+1-555-0301,info@acme.example.com,120,2500000.00,"12 Market St",San Francisco,CA,USA,94105,"Mid-market SaaS company",
+Northwind LLC,Healthcare,https://northwind.example.com,+1-555-0302,contact@northwind.example.com,80,1400000.00,"45 Lake Ave",Chicago,IL,USA,60601,"Regional healthcare provider",
+Contoso Ltd,Manufacturing,https://contoso.example.com,+1-555-0303,hello@contoso.example.com,300,9800000.00,"88 King Rd",Austin,TX,USA,73301,"Industrial equipment manufacturer",

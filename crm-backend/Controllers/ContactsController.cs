@@ -12,13 +12,16 @@ namespace crm_backend.Controllers;
 public class ContactsController : BaseController
 {
     private readonly IMstContactApplicationService _contactAppService;
+    private readonly IMstImportExportApplicationService _importExportAppService;
     private readonly ILogger<ContactsController> _logger;
 
     public ContactsController(
         IMstContactApplicationService contactAppService,
+        IMstImportExportApplicationService importExportAppService,
         ILogger<ContactsController> logger)
     {
         _contactAppService = contactAppService;
+        _importExportAppService = importExportAppService;
         _logger = logger;
     }
 
@@ -107,5 +110,79 @@ public class ContactsController : BaseController
     {
         var result = await _contactAppService.BulkRestoreAsync(dto);
         return OkResponse(result, "Contacts restored successfully");
+    }
+
+    /// <summary>
+    /// Import contacts from CSV
+    /// </summary>
+    [HttpPost("import")]
+    [AuthorizePermission("CRM_Contacts", "Create")]
+    public async Task<ActionResult<ApiResponse<ImportJobListDto>>> ImportContacts(
+        IFormFile file,
+        [FromForm] string strDuplicateHandling,
+        [FromForm] string columnMappingJson)
+    {
+        if (file == null || file.Length == 0)
+            return ErrorResponse<ImportJobListDto>(400, "CSV file is required");
+
+        if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            return ErrorResponse<ImportJobListDto>(400, "Only CSV files are allowed");
+
+        var settings = new ImportStartDto
+        {
+            strDuplicateHandling = strDuplicateHandling ?? "Skip",
+            ColumnMapping = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(
+                columnMappingJson ?? "{}") ?? new Dictionary<string, string>()
+        };
+
+        if (settings.ColumnMapping.Count == 0)
+            return ErrorResponse<ImportJobListDto>(400, "Column mapping is required");
+
+        using var stream = file.OpenReadStream();
+        var result = await _importExportAppService.StartContactImportAsync(stream, file.FileName, settings);
+
+        return CreatedResponse(result, "Contact import completed");
+    }
+
+    /// <summary>
+    /// Suggest contact field mapping for CSV headers
+    /// </summary>
+    [HttpPost("import/suggest-mapping")]
+    [AuthorizePermission("CRM_Contacts", "View")]
+    public async Task<ActionResult<ApiResponse<ImportSuggestMappingResultDto>>> SuggestContactMapping(
+        IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return ErrorResponse<ImportSuggestMappingResultDto>(400, "CSV file is required");
+
+        if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            return ErrorResponse<ImportSuggestMappingResultDto>(400, "Only CSV files are allowed");
+
+        using var stream = file.OpenReadStream();
+        var result = await _importExportAppService.SuggestContactMappingAsync(stream);
+
+        return OkResponse(result);
+    }
+
+    /// <summary>
+    /// Export contacts to CSV
+    /// </summary>
+    [HttpPost("export")]
+    [AuthorizePermission("CRM_Contacts", "View")]
+    public async Task<IActionResult> ExportContacts([FromBody] ContactFilterParams filter)
+    {
+        var bytes = await _importExportAppService.ExportContactsAsync(filter);
+        return File(bytes, "text/csv", $"contacts-export-{DateTime.UtcNow:yyyyMMdd}.csv");
+    }
+
+    /// <summary>
+    /// Export contacts to CSV (GET compatibility route)
+    /// </summary>
+    [HttpGet("export")]
+    [AuthorizePermission("CRM_Contacts", "View")]
+    public async Task<IActionResult> ExportContactsGet([FromQuery] ContactFilterParams filter)
+    {
+        var bytes = await _importExportAppService.ExportContactsAsync(filter);
+        return File(bytes, "text/csv", $"contacts-export-{DateTime.UtcNow:yyyyMMdd}.csv");
     }
 }

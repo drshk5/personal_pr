@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OPPORTUNITY_STATUSES, OPPORTUNITY_CURRENCIES } from "@/types/CRM/opportunity";
+import { OPPORTUNITY_CURRENCIES } from "@/types/CRM/opportunity";
 
 // ── Opportunity Create/Edit Form ────────────────────────────
 
@@ -39,7 +39,7 @@ export const opportunitySchema = z.object({
     .optional(),
 });
 
-export type OpportunityFormValues = z.infer<typeof opportunitySchema>;
+export type OpportunityFormValues = z.input<typeof opportunitySchema>;
 
 // ── Close Opportunity ────────────────────────────────────────
 

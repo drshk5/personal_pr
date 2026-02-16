@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { environment } from "./src/config/environment";
+import { testRuntime } from "./tests/config/runtime-env";
 
 /**
  * Playwright Configuration for Audit Software Frontend
@@ -22,14 +22,14 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: environment.test.baseUrl,
+    baseURL: testRuntime.baseUrl,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
 
     // Increase timeout for SignalR connections
-    actionTimeout: environment.test.timeout.medium,
-    navigationTimeout: environment.test.timeout.long,
+    actionTimeout: testRuntime.timeout.medium,
+    navigationTimeout: testRuntime.timeout.long,
 
     // Ignore SSL errors for local development
     ignoreHTTPSErrors: true,
@@ -71,8 +71,8 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: {
     command: "npm run dev",
-    url: environment.test.baseUrl,
+    url: testRuntime.baseUrl,
     reuseExistingServer: true,
-    timeout: environment.test.timeout.long * 4,
+    timeout: testRuntime.timeout.long * 4,
   },
 });

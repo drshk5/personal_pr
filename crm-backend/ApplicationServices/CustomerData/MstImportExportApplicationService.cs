@@ -159,4 +159,60 @@ public class MstImportExportApplicationService : ApplicationServiceBase, IMstImp
 
         return bytes;
     }
+
+    public async Task<ImportJobListDto> StartContactImportAsync(Stream csvStream, string fileName, ImportStartDto settings)
+    {
+        var tenantId = GetTenantId();
+        var userId = GetCurrentUserId();
+
+        var result = await _importExportService.StartContactImportAsync(csvStream, fileName, settings, tenantId, userId);
+
+        await _auditLogService.LogAsync(
+            Constants.EntityTypeConstants.ImportJob,
+            result.strImportJobGUID,
+            "Create",
+            $"Contact import started: {fileName} ({result.intTotalRows} rows, {result.intSuccessRows} success, {result.intErrorRows} errors)",
+            userId);
+
+        return result;
+    }
+
+    public async Task<ImportSuggestMappingResultDto> SuggestContactMappingAsync(Stream csvStream)
+    {
+        return await _importExportService.SuggestContactMappingAsync(csvStream);
+    }
+
+    public async Task<byte[]> ExportContactsAsync(ContactFilterParams filter)
+    {
+        var tenantId = GetTenantId();
+        return await _importExportService.ExportContactsAsync(filter, tenantId);
+    }
+
+    public async Task<ImportJobListDto> StartAccountImportAsync(Stream csvStream, string fileName, ImportStartDto settings)
+    {
+        var tenantId = GetTenantId();
+        var userId = GetCurrentUserId();
+
+        var result = await _importExportService.StartAccountImportAsync(csvStream, fileName, settings, tenantId, userId);
+
+        await _auditLogService.LogAsync(
+            Constants.EntityTypeConstants.ImportJob,
+            result.strImportJobGUID,
+            "Create",
+            $"Account import started: {fileName} ({result.intTotalRows} rows, {result.intSuccessRows} success, {result.intErrorRows} errors)",
+            userId);
+
+        return result;
+    }
+
+    public async Task<ImportSuggestMappingResultDto> SuggestAccountMappingAsync(Stream csvStream)
+    {
+        return await _importExportService.SuggestAccountMappingAsync(csvStream);
+    }
+
+    public async Task<byte[]> ExportAccountsAsync(AccountFilterParams filter)
+    {
+        var tenantId = GetTenantId();
+        return await _importExportService.ExportAccountsAsync(filter, tenantId);
+    }
 }

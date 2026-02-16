@@ -13,4 +13,6 @@ public interface IMstLeadApplicationService : IApplicationService
     Task<LeadDetailDto> ChangeStatusAsync(Guid id, string newStatus);
     Task<bool> BulkArchiveAsync(LeadBulkArchiveDto dto);
     Task<bool> BulkRestoreAsync(LeadBulkArchiveDto dto);
+    Task<LeadListDto> GetConversionPreviewAsync(Guid id);
+    Task<LeadConversionResultDto> ConvertLeadAsync(ConvertLeadDto dto);
 }

@@ -253,10 +253,11 @@ export const useAutoAssignLeads = () => {
   });
 };
 
-export const useAssignmentRules = () => {
+export const useAssignmentRules = (enabled = true) => {
   return useQuery({
     queryKey: assignmentRuleKeys.all,
     queryFn: () => leadService.getAssignmentRules(),
+    enabled,
   });
 };
 

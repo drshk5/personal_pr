@@ -165,7 +165,7 @@ const ActivityTimelineItem: React.FC<ActivityTimelineItemProps> = memo(
         <div className="flex-1 min-w-0 pb-4">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-sm font-medium leading-tight truncate">
+              <p className="text-sm font-medium text-foreground leading-tight truncate">
                 {activity.strSubject}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">

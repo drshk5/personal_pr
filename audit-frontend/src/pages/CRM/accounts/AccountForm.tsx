@@ -806,7 +806,7 @@ const AccountForm: React.FC = () => {
                                 <Icon className="h-3 w-3 text-muted-foreground" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium truncate">
+                                <p className="text-xs font-medium text-foreground truncate">
                                   {activity.strSubject}
                                 </p>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">

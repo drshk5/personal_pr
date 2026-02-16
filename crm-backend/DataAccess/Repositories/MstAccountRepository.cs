@@ -19,6 +19,7 @@ public class MstAccountRepository : IMstAccountRepository
     public IQueryable<MstAccount> Query() => _context.MstAccounts.AsQueryable();
     public IQueryable<MstAccount> QueryIncludingDeleted() => _context.MstAccounts.IgnoreQueryFilters().AsQueryable();
     public async Task AddAsync(MstAccount entity) => await _context.MstAccounts.AddAsync(entity);
+    public async Task AddRangeAsync(IEnumerable<MstAccount> entities) => await _context.MstAccounts.AddRangeAsync(entities);
     public void Update(MstAccount entity) => _context.MstAccounts.Update(entity);
     public void Delete(MstAccount entity) => _context.MstAccounts.Remove(entity);
 }

@@ -52,30 +52,30 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
       draggable
       onDragStart={(e) => onDragStart(e, opportunity.strOpportunityGUID)}
       onClick={() => onClick(opportunity.strOpportunityGUID)}
-      className="bg-background border rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow group"
+      className="bg-background border border-border rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow group text-foreground"
     >
       <div className="flex items-start justify-between gap-2">
-        <h4 className="text-sm font-medium truncate flex-1 group-hover:text-primary">
+        <h4 className="text-sm font-medium text-foreground truncate flex-1 group-hover:text-primary">
           {opportunity.strOpportunityName}
         </h4>
         <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-grab flex-shrink-0" />
       </div>
 
       {opportunity.strAccountName && (
-        <p className="text-xs text-muted-foreground mt-1 truncate">
+        <p className="text-xs text-foreground/80 mt-1 truncate">
           {opportunity.strAccountName}
         </p>
       )}
 
       <div className="flex items-center justify-between mt-2">
         {opportunity.dblAmount != null ? (
-          <span className="text-xs font-semibold flex items-center gap-1">
+          <span className="text-xs font-semibold text-foreground flex items-center gap-1">
             <DollarSign className="h-3 w-3" />
             {opportunity.strCurrency}{" "}
             {opportunity.dblAmount.toLocaleString()}
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground">No amount</span>
+          <span className="text-xs text-foreground/70">No amount</span>
         )}
 
         {opportunity.bolIsRotting && (
@@ -86,7 +86,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
         )}
       </div>
 
-      <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+      <div className="flex items-center justify-between mt-2 text-xs text-foreground/80">
         <span>{opportunity.intProbability}%</span>
         {opportunity.dtExpectedCloseDate && (
           <span>
@@ -102,7 +102,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
               {opportunity.strAssignedToName.charAt(0).toUpperCase()}
             </span>
           </div>
-          <span className="text-xs text-muted-foreground truncate">
+          <span className="text-xs text-foreground/80 truncate">
             {opportunity.strAssignedToName}
           </span>
         </div>
@@ -136,26 +136,26 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
 
   return (
     <div
-      className="flex-shrink-0 w-72 flex flex-col bg-muted/30 rounded-lg border"
+      className="flex-shrink-0 w-72 flex flex-col bg-muted/30 rounded-lg border border-border"
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, stage.strStageGUID)}
     >
       {/* Column Header */}
-      <div className="p-3 border-b bg-muted/50 rounded-t-lg">
+      <div className="p-3 border-b border-border bg-muted/50 rounded-t-lg text-foreground">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold truncate">
+          <h3 className="text-sm font-semibold text-foreground truncate">
             {stage.strStageName}
           </h3>
-          <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-background text-xs font-medium">
+          <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-background text-foreground text-xs font-medium">
             {stage.intCount}
           </span>
         </div>
         <div className="flex items-center justify-between mt-1">
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-foreground/80">
             {stage.intProbabilityPercent}% probability
           </span>
           {stage.dblTotalValue > 0 && (
-            <span className="text-xs font-medium">
+            <span className="text-xs font-medium text-foreground">
               {formatCurrency(stage.dblTotalValue)}
             </span>
           )}
@@ -173,7 +173,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
           />
         ))}
         {stage.opportunities.length === 0 && (
-          <div className="flex items-center justify-center h-20 text-xs text-muted-foreground">
+          <div className="flex items-center justify-center h-20 text-xs text-foreground/70">
             No deals in this stage
           </div>
         )}

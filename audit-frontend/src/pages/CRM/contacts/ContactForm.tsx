@@ -60,7 +60,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select/select";
+import { PreloadedSelect } from "@/components/ui/select/preloaded-select";
 import NotFound from "@/components/error-boundaries/entity-not-found";
+import type { AccountListDto } from "@/types/CRM/account";
+import { useAccounts } from "@/hooks/api/CRM/use-accounts";
+import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 
 import ContactFormSkeleton from "./ContactFormSkeleton";
 import ContactLifecycleBadge from "./components/ContactLifecycleBadge";
@@ -88,6 +92,13 @@ const ContactForm: React.FC = () => {
   const { mutate: createContact, isPending: isCreating } = useCreateContact();
   const { mutate: updateContact, isPending: isUpdating } = useUpdateContact();
   const { mutate: deleteContact, isPending: isDeleting } = useDeleteContact();
+  const { data: accountsResponse, isLoading: isLoadingAccounts } = useAccounts({
+    pageNumber: 1,
+    pageSize: 1000,
+    bolIsActive: true,
+    sortBy: "strAccountName",
+    ascending: true,
+  });
 
   // Form
   const form = useForm<ContactFormValues>({
@@ -111,6 +122,23 @@ const ContactForm: React.FC = () => {
       strAssignedToGUID: "",
     },
   });
+
+  const accountOptions = React.useMemo(
+    () =>
+      mapToStandardPagedResponse<AccountListDto>(
+        accountsResponse?.data ?? accountsResponse
+      ).items,
+    [accountsResponse]
+  );
+
+  const accountSelectOptions = React.useMemo(
+    () =>
+      accountOptions.map((account) => ({
+        value: account.strAccountGUID,
+        label: account.strAccountName,
+      })),
+    [accountOptions]
+  );
 
   const isLoading = isEditMode && isFetchingContact;
   const isSaving = isCreating || isUpdating;
@@ -359,6 +387,28 @@ const ContactForm: React.FC = () => {
                         Professional Information
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="strAccountGUID"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Account</FormLabel>
+                              <FormControl>
+                                <PreloadedSelect
+                                  placeholder="No account"
+                                  selectedValue={field.value || ""}
+                                  onChange={field.onChange}
+                                  options={accountSelectOptions}
+                                  allowNone
+                                  noneLabel="No account"
+                                  isLoading={isLoadingAccounts}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
                         <FormField
                           control={form.control}
                           name="strJobTitle"
@@ -711,7 +761,7 @@ const ContactForm: React.FC = () => {
                                 <Icon className="h-3 w-3 text-muted-foreground" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium truncate">
+                                <p className="text-xs font-medium text-foreground truncate">
                                   {activity.strSubject}
                                 </p>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">

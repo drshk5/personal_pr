@@ -1,4 +1,4 @@
-import { environment } from "../../src/config/environment";
+import { testRuntime } from "./runtime-env";
 
 /**
  * Test User Credentials
@@ -36,6 +36,6 @@ export const API_ENDPOINTS = {
 } as const;
 
 /**
- * Test timeouts - imported from environment config
+ * Test timeouts - resolved from Node process env
  */
-export const TIMEOUTS = environment.test.timeout;
+export const TIMEOUTS = testRuntime.timeout;

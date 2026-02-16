@@ -1,0 +1,4 @@
+strAccountGUID,strFirstName,strLastName,strEmail,strPhone,strMobilePhone,strJobTitle,strDepartment,strLifecycleStage,strAddress,strCity,strState,strCountry,strPostalCode,strNotes,strAssignedToGUID
+,Neha,Patel,neha.patel@example.com,+1-555-0201,+1-555-1201,Sales Executive,Sales,Lead,"22 Pine St",Seattle,WA,USA,98101,"Primary contact",
+,Rahul,Verma,rahul.verma@example.com,+1-555-0202,+1-555-1202,Marketing Lead,Marketing,Subscriber,"9 River Dr",Denver,CO,USA,80202,"Newsletter opted in",
+,Emma,Clark,emma.clark@example.com,+1-555-0203,+1-555-1203,Finance Manager,Finance,Customer,"77 Oak Blvd",Boston,MA,USA,02108,"Existing customer contact",

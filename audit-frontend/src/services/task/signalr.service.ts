@@ -557,10 +557,13 @@ class SignalRService {
       return;
     }
 
+    let unloadHandled = false;
     const cleanupConnection = () => {
+      if (unloadHandled) return;
+      unloadHandled = true;
       if (this.connection) {
         console.log("[SignalR] Page unload detected, closing connection...");
-        this.connection.stop();
+        void this.connection.stop();
       }
     };
 

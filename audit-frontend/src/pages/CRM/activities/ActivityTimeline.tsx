@@ -9,14 +9,19 @@ import {
   CheckCircle2,
   MoreHorizontal,
   Eye,
+  RefreshCw,
 } from "lucide-react";
 
 import type {
   ActivityListDto,
   ActivityFilterParams,
+  ActivityType,
 } from "@/types/CRM/activity";
 import { ACTIVITY_TYPES } from "@/types/CRM/activity";
-import { useActivities } from "@/hooks/api/CRM/use-activities";
+import {
+  useActivities,
+  useUpcomingActivities,
+} from "@/hooks/api/CRM/use-activities";
 import { useListPreferences } from "@/hooks/common/use-list-preferences";
 import { useTableLayout } from "@/hooks/common/use-table-layout";
 import { useUserRights } from "@/hooks/common/use-user-rights";
@@ -30,7 +35,6 @@ import { PageHeader } from "@/components/layout/page-header";
 import { DataTable } from "@/components/data-display/data-tables/DataTable";
 import type { DataTableColumn } from "@/components/data-display/data-tables/DataTable";
 import { DraggableColumnVisibility } from "@/components/shared/draggable-column-visibility";
-import { WithPermission } from "@/components/ui/with-permission";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,13 +80,14 @@ const ActivityTimeline: React.FC = () => {
 
   // Filters
   const [showFilters, setShowFilters] = useState(false);
-  const [filterType, setFilterType] = useState("");
-  const [filterCompleted, setFilterCompleted] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [filterCompleted, setFilterCompleted] = useState("all");
   const [filterFromDate, setFilterFromDate] = useState("");
   const [filterToDate, setFilterToDate] = useState("");
 
   // Create dialog
   const [showCreate, setShowCreate] = useState(false);
+  const [createDefaultType, setCreateDefaultType] = useState<ActivityType>("Note");
 
   // Detail view
   const [detailTarget, setDetailTarget] = useState<ActivityListDto | null>(
@@ -124,16 +129,20 @@ const ActivityTimeline: React.FC = () => {
     resetAll,
   } = useTableLayout("crm-activities", defaultColumnOrder, ["actions"]);
 
+  void columnOrder;
   const sortBy = sorting.columnKey || "dtCreatedOn";
   const ascending = sorting.direction === "asc";
+  const canCreateActivity =
+    canAccess(menuItems, FormModules.CRM_ACTIVITY, Actions.SAVE) ||
+    canAccess(menuItems, ListModules.CRM_ACTIVITY, Actions.SAVE);
 
   // Build filter params
   const filterParams: ActivityFilterParams = useMemo(
     () => ({
       search: debouncedSearch || undefined,
-      strActivityType: filterType || undefined,
+      strActivityType: filterType === "all" ? undefined : filterType,
       bolIsCompleted:
-        filterCompleted === "" ? undefined : filterCompleted === "true",
+        filterCompleted === "all" ? undefined : filterCompleted === "true",
       dtFromDate: filterFromDate || undefined,
       dtToDate: filterToDate || undefined,
       pageNumber: pagination.pageNumber,
@@ -155,7 +164,16 @@ const ActivityTimeline: React.FC = () => {
   );
 
   // Data fetch
-  const { data: activitiesResponse, isLoading } = useActivities(filterParams);
+  const {
+    data: activitiesResponse,
+    isLoading,
+    refetch: refetchActivities,
+  } = useActivities(filterParams);
+  const {
+    data: upcomingActivities = [],
+    isLoading: isUpcomingLoading,
+    refetch: refetchUpcoming,
+  } = useUpcomingActivities();
 
   // Map response
   const pagedData = useMemo(() => {
@@ -178,18 +196,28 @@ const ActivityTimeline: React.FC = () => {
 
   // Active filter count
   const activeFilterCount = [
-    filterType,
-    filterCompleted,
-    filterFromDate,
-    filterToDate,
-  ].filter((v) => v !== "").length;
+    filterType !== "all",
+    filterCompleted !== "all",
+    filterFromDate !== "",
+    filterToDate !== "",
+  ].filter(Boolean).length;
 
   const clearFilters = useCallback(() => {
-    setFilterType("");
-    setFilterCompleted("");
+    setFilterType("all");
+    setFilterCompleted("all");
     setFilterFromDate("");
     setFilterToDate("");
   }, []);
+
+  const openCreateDialog = useCallback((type: ActivityType = "Note") => {
+    setCreateDefaultType(type);
+    setShowCreate(true);
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    void refetchActivities();
+    void refetchUpcoming();
+  }, [refetchActivities, refetchUpcoming]);
 
   const handleSort = useCallback(
     (column: string) => {
@@ -234,7 +262,7 @@ const ActivityTimeline: React.FC = () => {
         cell: (item: ActivityListDto) => (
           <div className="flex items-center gap-2">
             <ActivityTypeIcon type={item.strActivityType} size="sm" />
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium text-foreground">
               {getActivityTypeLabel(item.strActivityType)}
             </span>
           </div>
@@ -261,7 +289,7 @@ const ActivityTimeline: React.FC = () => {
         key: "dtScheduledOn",
         header: "Scheduled",
         cell: (item: ActivityListDto) => (
-          <div className="whitespace-nowrap text-sm">
+          <div className="whitespace-nowrap text-sm text-foreground">
             {item.dtScheduledOn ? (
               <div className="flex items-center gap-1">
                 <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
@@ -279,7 +307,7 @@ const ActivityTimeline: React.FC = () => {
         key: "dtCompletedOn",
         header: "Completed",
         cell: (item: ActivityListDto) => (
-          <div className="whitespace-nowrap text-sm">
+          <div className="whitespace-nowrap text-sm text-foreground">
             {item.dtCompletedOn ? (
               <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -297,7 +325,7 @@ const ActivityTimeline: React.FC = () => {
         key: "intDurationMinutes",
         header: "Duration",
         cell: (item: ActivityListDto) => (
-          <span className="text-sm">
+          <span className="text-sm text-foreground">
             {item.intDurationMinutes
               ? `${item.intDurationMinutes} min`
               : "-"}
@@ -310,7 +338,7 @@ const ActivityTimeline: React.FC = () => {
         key: "strOutcome",
         header: "Outcome",
         cell: (item: ActivityListDto) => (
-          <span className="text-sm truncate block max-w-[160px]" title={item.strOutcome ?? ""}>
+          <span className="text-sm text-foreground truncate block max-w-[160px]" title={item.strOutcome ?? ""}>
             {item.strOutcome || "-"}
           </span>
         ),
@@ -321,7 +349,7 @@ const ActivityTimeline: React.FC = () => {
         key: "strCreatedByName",
         header: "Created By",
         cell: (item: ActivityListDto) => (
-          <span className="text-sm">{item.strCreatedByName}</span>
+          <span className="text-sm text-foreground">{item.strCreatedByName}</span>
         ),
         sortable: true,
         width: "150px",
@@ -330,7 +358,7 @@ const ActivityTimeline: React.FC = () => {
         key: "dtCreatedOn",
         header: "Created On",
         cell: (item: ActivityListDto) => (
-          <div className="whitespace-nowrap text-sm">
+          <div className="whitespace-nowrap text-sm text-foreground">
             {format(new Date(item.dtCreatedOn), "MMM d, yyyy h:mm a")}
           </div>
         ),
@@ -370,19 +398,27 @@ const ActivityTimeline: React.FC = () => {
         description="Timeline of all activities across your CRM"
         icon={HeaderIcon}
         actions={
-          <WithPermission
-            module={FormModules.CRM_ACTIVITY}
-            action={Actions.SAVE}
-          >
+          <div className="flex items-center gap-2">
             <Button
-              onClick={() => setShowCreate(true)}
+              variant="outline"
+              onClick={handleRefresh}
               className="h-9 text-xs sm:text-sm"
               size="sm"
             >
-              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
-              Log Activity
+              <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
+              Refresh
             </Button>
-          </WithPermission>
+            {canCreateActivity && (
+              <Button
+                onClick={() => openCreateDialog("Note")}
+                className="h-9 text-xs sm:text-sm"
+                size="sm"
+              >
+                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
+                Log Activity
+              </Button>
+            )}
+          </div>
         }
       />
 
@@ -451,7 +487,7 @@ const ActivityTimeline: React.FC = () => {
                       <SelectValue placeholder="All Types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
+                      <SelectItem value="all">All Types</SelectItem>
                       {ACTIVITY_TYPES.map((t) => (
                         <SelectItem key={t} value={t}>
                           {getActivityTypeLabel(t)}
@@ -473,7 +509,7 @@ const ActivityTimeline: React.FC = () => {
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
                       <SelectItem value="true">Completed</SelectItem>
                       <SelectItem value="false">Pending</SelectItem>
                     </SelectContent>
@@ -520,6 +556,70 @@ const ActivityTimeline: React.FC = () => {
         )}
       </div>
 
+      {/* Upcoming Activities */}
+      <Card className="mb-4">
+        <CardHeader className="py-4">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-base">Upcoming Activities</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8"
+                onClick={() => void refetchUpcoming()}
+              >
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Reload
+              </Button>
+              {canCreateActivity && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => openCreateDialog("FollowUp")}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  Quick Follow-up
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {isUpcomingLoading ? (
+            <p className="text-sm text-muted-foreground">Loading upcoming activities...</p>
+          ) : upcomingActivities.length > 0 ? (
+            <div className="space-y-2">
+              {upcomingActivities.slice(0, 5).map((activity) => (
+                <div
+                  key={activity.strActivityGUID}
+                  className="flex items-start justify-between gap-3 rounded-md border p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {activity.strSubject}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {getActivityTypeLabel(activity.strActivityType)}
+                      {activity.strEntityName ? ` • ${activity.strEntityName}` : ""}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-xs text-muted-foreground">
+                    {activity.dtScheduledOn
+                      ? format(new Date(activity.dtScheduledOn), "MMM d, h:mm a")
+                      : "No schedule"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No upcoming activities. Use "Log Activity" to add one.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Data Table */}
       <DataTable<ActivityListDto>
         data={pagedData.items}
@@ -538,8 +638,8 @@ const ActivityTimeline: React.FC = () => {
         pagination={{
           pageNumber: pagination.pageNumber,
           pageSize: pagination.pageSize,
-          totalCount: pagination.totalCount,
-          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount ?? 0,
+          totalPages: pagination.totalPages ?? 0,
           onPageChange: (page) => setPagination({ pageNumber: page }),
           onPageSizeChange: (size) =>
             setPagination({ pageSize: size, pageNumber: 1 }),
@@ -553,6 +653,16 @@ const ActivityTimeline: React.FC = () => {
                 ? "Try adjusting your search or filters"
                 : "Log your first activity to get started"}
             </p>
+            {canCreateActivity && (
+              <Button
+                size="sm"
+                className="mt-4"
+                onClick={() => openCreateDialog("Note")}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Log Activity
+              </Button>
+            )}
           </div>
         }
       />
@@ -561,6 +671,7 @@ const ActivityTimeline: React.FC = () => {
       <ActivityForm
         open={showCreate}
         onOpenChange={setShowCreate}
+        defaultActivityType={createDefaultType}
       />
 
       {/* Detail View Dialog */}
@@ -598,7 +709,7 @@ const ActivityDetailDialog: React.FC<ActivityDetailDialogProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-[480px] text-foreground">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ActivityTypeIcon type={activity.strActivityType} size="sm" />
@@ -608,7 +719,7 @@ const ActivityDetailDialog: React.FC<ActivityDetailDialogProps> = ({
         <div className="space-y-4">
           <div>
             <p className="text-sm font-medium text-muted-foreground">Subject</p>
-            <p className="text-sm mt-0.5">{activity.strSubject}</p>
+            <p className="text-sm mt-0.5 text-foreground">{activity.strSubject}</p>
           </div>
 
           {activity.strDescription && (
@@ -616,7 +727,7 @@ const ActivityDetailDialog: React.FC<ActivityDetailDialogProps> = ({
               <p className="text-sm font-medium text-muted-foreground">
                 Description
               </p>
-              <p className="text-sm mt-0.5 whitespace-pre-wrap">
+              <p className="text-sm mt-0.5 text-foreground whitespace-pre-wrap">
                 {activity.strDescription}
               </p>
             </div>
@@ -628,7 +739,7 @@ const ActivityDetailDialog: React.FC<ActivityDetailDialogProps> = ({
                 <p className="text-sm font-medium text-muted-foreground">
                   Scheduled
                 </p>
-                <p className="text-sm mt-0.5">
+                <p className="text-sm mt-0.5 text-foreground">
                   {format(
                     new Date(activity.dtScheduledOn),
                     "MMM d, yyyy h:mm a"
@@ -641,7 +752,7 @@ const ActivityDetailDialog: React.FC<ActivityDetailDialogProps> = ({
                 <p className="text-sm font-medium text-muted-foreground">
                   Completed
                 </p>
-                <p className="text-sm mt-0.5 text-emerald-600">
+                <p className="text-sm mt-0.5 text-emerald-600 dark:text-emerald-400">
                   {format(
                     new Date(activity.dtCompletedOn),
                     "MMM d, yyyy h:mm a"
@@ -654,7 +765,7 @@ const ActivityDetailDialog: React.FC<ActivityDetailDialogProps> = ({
                 <p className="text-sm font-medium text-muted-foreground">
                   Duration
                 </p>
-                <p className="text-sm mt-0.5">
+                <p className="text-sm mt-0.5 text-foreground">
                   {activity.intDurationMinutes} min
                 </p>
               </div>
@@ -664,7 +775,7 @@ const ActivityDetailDialog: React.FC<ActivityDetailDialogProps> = ({
                 <p className="text-sm font-medium text-muted-foreground">
                   Outcome
                 </p>
-                <p className="text-sm mt-0.5">{activity.strOutcome}</p>
+                <p className="text-sm mt-0.5 text-foreground">{activity.strOutcome}</p>
               </div>
             )}
           </div>
@@ -674,13 +785,13 @@ const ActivityDetailDialog: React.FC<ActivityDetailDialogProps> = ({
               <p className="text-sm font-medium text-muted-foreground">
                 Created By
               </p>
-              <p className="text-sm mt-0.5">{activity.strCreatedByName}</p>
+              <p className="text-sm mt-0.5 text-foreground">{activity.strCreatedByName}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 Created On
               </p>
-              <p className="text-sm mt-0.5">
+              <p className="text-sm mt-0.5 text-foreground">
                 {format(new Date(activity.dtCreatedOn), "MMM d, yyyy h:mm a")}
               </p>
             </div>

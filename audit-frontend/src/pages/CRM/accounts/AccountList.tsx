@@ -9,11 +9,21 @@ import {
   Pencil,
   Trash2,
   Building2,
+  Upload,
+  Download,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 
 import type { AccountListDto, AccountFilterParams } from "@/types/CRM/account";
 import { ACCOUNT_INDUSTRIES } from "@/types/CRM/account";
-import { useAccounts, useDeleteAccount } from "@/hooks/api/CRM/use-accounts";
+import {
+  useAccounts,
+  useDeleteAccount,
+  useExportAccounts,
+  useBulkArchiveAccounts,
+  useBulkRestoreAccounts,
+} from "@/hooks/api/CRM/use-accounts";
 import { useListPreferences } from "@/hooks/common/use-list-preferences";
 import { useTableLayout } from "@/hooks/common/use-table-layout";
 import { useUserRights } from "@/hooks/common/use-user-rights";
@@ -46,6 +56,7 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import AccountImportDialog from "./components/AccountImportDialog";
 
 const defaultColumnOrder = [
   "actions",
@@ -78,6 +89,17 @@ const AccountList: React.FC = () => {
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<AccountListDto | null>(null);
   const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
+  const [selectedAccounts, setSelectedAccounts] = useState<Set<string>>(
+    new Set()
+  );
+  const { mutate: bulkArchiveAccounts, isPending: isBulkArchiving } =
+    useBulkArchiveAccounts();
+  const { mutate: bulkRestoreAccounts, isPending: isBulkRestoring } =
+    useBulkRestoreAccounts();
+
+  // Import / Export
+  const [showImport, setShowImport] = useState(false);
+  const { mutate: exportAccounts, isPending: isExporting } = useExportAccounts();
 
   // List preferences
   const { pagination, setPagination, sorting, setSorting, updateResponseData } =
@@ -107,7 +129,6 @@ const AccountList: React.FC = () => {
     pinColumn,
     unpinColumn,
     resetPinnedColumns,
-    columnOrder,
     setColumnOrder,
     columnWidths,
     setColumnWidths,
@@ -204,6 +225,72 @@ const AccountList: React.FC = () => {
     );
   };
 
+  const handleExport = () => {
+    exportAccounts({ params: filterParams });
+  };
+
+  const toggleAccountSelection = useCallback((accountId: string) => {
+    setSelectedAccounts((prev) => {
+      const next = new Set(prev);
+      if (next.has(accountId)) {
+        next.delete(accountId);
+      } else {
+        next.add(accountId);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleAllSelection = useCallback(() => {
+    const visibleIds = pagedData.items.map((item) => item.strAccountGUID);
+    const allVisibleSelected =
+      visibleIds.length > 0 && visibleIds.every((id) => selectedAccounts.has(id));
+
+    if (allVisibleSelected) {
+      setSelectedAccounts((prev) => {
+        const next = new Set(prev);
+        visibleIds.forEach((id) => next.delete(id));
+        return next;
+      });
+      return;
+    }
+
+    setSelectedAccounts((prev) => {
+      const next = new Set(prev);
+      visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
+  }, [pagedData.items, selectedAccounts]);
+
+  const handleBulkArchive = useCallback(() => {
+    if (selectedAccounts.size === 0) return;
+
+    bulkArchiveAccounts(
+      { guids: Array.from(selectedAccounts) },
+      {
+        onSuccess: () => setSelectedAccounts(new Set()),
+      }
+    );
+  }, [bulkArchiveAccounts, selectedAccounts]);
+
+  const handleBulkRestore = useCallback(() => {
+    if (selectedAccounts.size === 0) return;
+
+    bulkRestoreAccounts(
+      { guids: Array.from(selectedAccounts) },
+      {
+        onSuccess: () => setSelectedAccounts(new Set()),
+      }
+    );
+  }, [bulkRestoreAccounts, selectedAccounts]);
+
+  const allVisibleSelected = useMemo(() => {
+    if (pagedData.items.length === 0) return false;
+    return pagedData.items.every((item) =>
+      selectedAccounts.has(item.strAccountGUID)
+    );
+  }, [pagedData.items, selectedAccounts]);
+
   // Format currency
   const formatCurrency = (value: number) => {
     if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -219,56 +306,76 @@ const AccountList: React.FC = () => {
         ? [
             {
               key: "actions",
-              header: "Actions",
+              header: (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleAllSelection}
+                    className="rounded border-gray-300"
+                    aria-label="Select all visible accounts"
+                  />
+                  <span>Actions</span>
+                </div>
+              ),
               cell: (item: AccountListDto) => (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canAccess(
-                      menuItems,
-                      FormModules.CRM_ACCOUNT,
-                      Actions.EDIT
-                    ) && (
-                      <DropdownMenuItem
-                        onClick={() =>
-                          openEditInNewTab(
-                            `/crm/accounts/${item.strAccountGUID}`
-                          )
-                        }
+                <div className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={selectedAccounts.has(item.strAccountGUID)}
+                    onChange={() => toggleAccountSelection(item.strAccountGUID)}
+                    className="rounded border-gray-300"
+                    aria-label={`Select account ${item.strAccountName}`}
+                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
                       >
-                        <Pencil className="h-3.5 w-3.5 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                    )}
-                    {canAccess(
-                      menuItems,
-                      FormModules.CRM_ACCOUNT,
-                      Actions.DELETE
-                    ) && (
-                      <>
-                        <DropdownMenuSeparator />
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {canAccess(
+                        menuItems,
+                        FormModules.CRM_ACCOUNT,
+                        Actions.EDIT
+                      ) && (
                         <DropdownMenuItem
-                          className="text-red-600 focus:text-red-600"
-                          onClick={() => setDeleteTarget(item)}
+                          onClick={() =>
+                            openEditInNewTab(
+                              `/crm/accounts/${item.strAccountGUID}`
+                            )
+                          }
                         >
-                          <Trash2 className="h-3.5 w-3.5 mr-2" />
-                          Delete
+                          <Pencil className="h-3.5 w-3.5 mr-2" />
+                          Edit
                         </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      )}
+                      {canAccess(
+                        menuItems,
+                        FormModules.CRM_ACCOUNT,
+                        Actions.DELETE
+                      ) && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-red-600 focus:text-red-600"
+                            onClick={() => setDeleteTarget(item)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ),
               sortable: false,
-              width: "70px",
+              width: "110px",
             } as DataTableColumn<AccountListDto>,
           ]
         : []),
@@ -353,7 +460,7 @@ const AccountList: React.FC = () => {
         header: "Assigned To",
         cell: (item: AccountListDto) => (
           <span className="text-sm">
-            {item.strAssignedToName || "-"}
+            {item.strAssignedToName || item.strAssignedToGUID || "-"}
           </span>
         ),
         sortable: true,
@@ -390,7 +497,14 @@ const AccountList: React.FC = () => {
         width: "100px",
       },
     ],
-    [menuItems, openEditInNewTab]
+    [
+      allVisibleSelected,
+      menuItems,
+      openEditInNewTab,
+      selectedAccounts,
+      toggleAccountSelection,
+      toggleAllSelection,
+    ]
   );
 
   return (
@@ -417,6 +531,46 @@ const AccountList: React.FC = () => {
           </div>
         }
       />
+
+      {selectedAccounts.size > 0 && (
+        <div className="flex items-center gap-2 mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+          <span className="text-sm font-medium text-foreground">
+            {selectedAccounts.size} account
+            {selectedAccounts.size !== 1 ? "s" : ""} selected
+          </span>
+          <div className="flex items-center gap-2 ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleBulkArchive}
+              disabled={isBulkArchiving || isBulkRestoring}
+            >
+              <Archive className="h-3.5 w-3.5 mr-1" />
+              {isBulkArchiving ? "Archiving..." : "Archive"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleBulkRestore}
+              disabled={isBulkArchiving || isBulkRestoring}
+            >
+              <RotateCcw className="h-3.5 w-3.5 mr-1" />
+              {isBulkRestoring ? "Restoring..." : "Restore"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => setSelectedAccounts(new Set())}
+              disabled={isBulkArchiving || isBulkRestoring}
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Search & Filter Bar */}
       <div className="flex flex-col gap-4 mb-4">
@@ -446,6 +600,37 @@ const AccountList: React.FC = () => {
                 </span>
               )}
             </Button>
+
+            <WithPermission
+              module={FormModules.CRM_ACCOUNT}
+              action={Actions.EXPORT}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9"
+                onClick={handleExport}
+                disabled={isExporting}
+              >
+                <Download className="h-3.5 w-3.5 mr-1" />
+                {isExporting ? "Exporting..." : "Export"}
+              </Button>
+            </WithPermission>
+
+            <WithPermission
+              module={FormModules.CRM_ACCOUNT}
+              action={Actions.IMPORT}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9"
+                onClick={() => setShowImport(true)}
+              >
+                <Upload className="h-3.5 w-3.5 mr-1" />
+                Import
+              </Button>
+            </WithPermission>
 
             <DraggableColumnVisibility
               columns={columns}
@@ -551,8 +736,8 @@ const AccountList: React.FC = () => {
         pagination={{
           pageNumber: pagination.pageNumber,
           pageSize: pagination.pageSize,
-          totalCount: pagination.totalCount,
-          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount ?? 0,
+          totalPages: pagination.totalPages ?? 0,
           onPageChange: (page) => setPagination({ pageNumber: page }),
           onPageSizeChange: (size) =>
             setPagination({ pageSize: size, pageNumber: 1 }),
@@ -581,6 +766,11 @@ const AccountList: React.FC = () => {
         variant="danger"
         isLoading={isDeleting}
         loadingText="Deleting..."
+      />
+
+      <AccountImportDialog
+        open={showImport}
+        onOpenChange={setShowImport}
       />
     </CustomContainer>
   );

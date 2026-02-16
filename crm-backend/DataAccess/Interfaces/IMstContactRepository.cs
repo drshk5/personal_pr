@@ -6,4 +6,5 @@ public interface IMstContactRepository : IRepository<MstContact>
 {
     Task<MstContact?> GetByEmailAsync(string email, Guid groupGuid);
     IQueryable<MstContact> QueryIncludingDeleted();
+    Task AddRangeAsync(IEnumerable<MstContact> entities);
 }

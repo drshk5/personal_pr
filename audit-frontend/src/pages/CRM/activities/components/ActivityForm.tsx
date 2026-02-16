@@ -7,8 +7,11 @@ import {
   activitySchema,
   type ActivityFormValues,
 } from "@/validations/CRM/activity";
-import { ACTIVITY_TYPES, ENTITY_TYPES } from "@/types/CRM/activity";
-import type { ActivityLinkDto } from "@/types/CRM/activity";
+import {
+  ACTIVITY_TYPES,
+  ENTITY_TYPES,
+  type ActivityType,
+} from "@/types/CRM/activity";
 import { useCreateActivity } from "@/hooks/api/CRM/use-activities";
 import { getActivityTypeLabel } from "./ActivityTypeIcon";
 
@@ -43,22 +46,30 @@ interface ActivityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Pre-fill links (e.g. when adding from entity detail page) */
-  defaultLinks?: ActivityLinkDto[];
+  defaultLinks?: ActivityFormValues["links"];
+  /** Optional default activity type for quick actions */
+  defaultActivityType?: ActivityType;
   onSuccess?: () => void;
 }
+
+const EMPTY_ACTIVITY_LINKS: ActivityFormValues["links"] = [];
 
 const ActivityForm: React.FC<ActivityFormProps> = ({
   open,
   onOpenChange,
-  defaultLinks = [],
+  defaultLinks = EMPTY_ACTIVITY_LINKS,
+  defaultActivityType = "Note",
   onSuccess,
 }) => {
   const { mutate: createActivity, isPending } = useCreateActivity();
+  type ActivityFormInput = Omit<ActivityFormValues, "links"> & {
+    links?: ActivityFormValues["links"];
+  };
 
-  const form = useForm<ActivityFormValues>({
+  const form = useForm<ActivityFormInput>({
     resolver: zodResolver(activitySchema),
     defaultValues: {
-      strActivityType: "Note",
+      strActivityType: defaultActivityType,
       strSubject: "",
       strDescription: null,
       dtScheduledOn: null,
@@ -66,14 +77,14 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
       intDurationMinutes: null,
       strOutcome: null,
       strAssignedToGUID: null,
-      links: defaultLinks,
+      links: [...defaultLinks],
     },
   });
 
   React.useEffect(() => {
     if (open) {
       form.reset({
-        strActivityType: "Note",
+        strActivityType: defaultActivityType,
         strSubject: "",
         strDescription: null,
         dtScheduledOn: null,
@@ -81,16 +92,16 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
         intDurationMinutes: null,
         strOutcome: null,
         strAssignedToGUID: null,
-        links: defaultLinks,
+        links: [...defaultLinks],
       });
     }
-  }, [open, form, defaultLinks]);
+  }, [open, form, defaultLinks, defaultActivityType]);
 
   const watchType = form.watch("strActivityType");
-  const links = form.watch("links");
+  const links = form.watch("links") ?? [];
 
   const addLink = () => {
-    const current = form.getValues("links");
+    const current = form.getValues("links") ?? [];
     form.setValue("links", [
       ...current,
       { strEntityType: "Lead", strEntityGUID: "" },
@@ -98,14 +109,14 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   };
 
   const removeLink = (index: number) => {
-    const current = form.getValues("links");
+    const current = form.getValues("links") ?? [];
     form.setValue(
       "links",
       current.filter((_, i) => i !== index)
     );
   };
 
-  const onSubmit = (data: ActivityFormValues) => {
+  const onSubmit = (data: ActivityFormInput) => {
     createActivity(
       {
         strActivityType: data.strActivityType,
@@ -116,7 +127,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
         intDurationMinutes: data.intDurationMinutes || null,
         strOutcome: data.strOutcome || null,
         strAssignedToGUID: data.strAssignedToGUID || null,
-        links: data.links.filter((l) => l.strEntityGUID),
+        links: (data.links ?? []).filter((l) => l.strEntityGUID),
       },
       {
         onSuccess: () => {

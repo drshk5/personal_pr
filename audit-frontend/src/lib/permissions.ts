@@ -146,6 +146,7 @@ export const Actions = {
   DELETE: "delete",
   PRINT: "print",
   EXPORT: "export",
+  IMPORT: "import",
   APPROVE: "approve",
 } as const;
 
@@ -159,6 +160,7 @@ const actionToPermissionMap: Record<ActionType, keyof Permission> = {
   [Actions.DELETE]: "bolCanDelete",
   [Actions.PRINT]: "bolCanPrint",
   [Actions.EXPORT]: "bolCanExport",
+  [Actions.IMPORT]: "bolCanImport",
   [Actions.APPROVE]: "bolCanApprove",
 };
 

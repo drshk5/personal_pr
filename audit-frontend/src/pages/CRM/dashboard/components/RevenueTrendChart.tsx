@@ -1,7 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   XAxis,
@@ -26,7 +24,7 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <div className="bg-popover text-popover-foreground p-3 border border-border-color rounded-lg shadow-lg">
           <p className="font-semibold text-sm">{payload[0].payload.strMonth}</p>
           <p className="text-sm text-green-600">
             Won: ₹{payload[0].value.toLocaleString("en-IN")}
@@ -79,14 +77,14 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
                 <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="strMonth" tick={{ fontSize: 11 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <XAxis dataKey="strMonth" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
             <YAxis
-              tick={{ fontSize: 11 }}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
               tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend />
+            <Legend wrapperStyle={{ color: "var(--foreground)" }} />
             <Area
               type="monotone"
               dataKey="dblWonAmount"

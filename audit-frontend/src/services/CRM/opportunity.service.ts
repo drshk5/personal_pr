@@ -16,6 +16,20 @@ import type {
 
 const OPPORTUNITIES_PREFIX = `${CRM_API_PREFIX}/opportunities`;
 
+type OpportunityDetailApiResponse = OpportunityDetailDto & {
+  Contacts?: OpportunityDetailDto["contacts"];
+  RecentActivities?: OpportunityDetailDto["recentActivities"];
+};
+
+const normalizeOpportunityDetail = (
+  detail: OpportunityDetailApiResponse
+): OpportunityDetailDto => ({
+  ...detail,
+  contacts: detail.contacts ?? detail.Contacts ?? [],
+  recentActivities:
+    detail.recentActivities ?? detail.RecentActivities ?? [],
+});
+
 export const opportunityService = {
   // ── Core CRUD ──────────────────────────────────────────────
 
@@ -29,28 +43,31 @@ export const opportunityService = {
   },
 
   getOpportunity: async (id: string): Promise<OpportunityDetailDto> => {
-    return await ApiService.get<OpportunityDetailDto>(
+    const response = await ApiService.get<OpportunityDetailApiResponse>(
       `${OPPORTUNITIES_PREFIX}/${id}`
     );
+    return normalizeOpportunityDetail(response);
   },
 
   createOpportunity: async (
     dto: CreateOpportunityDto
   ): Promise<OpportunityDetailDto> => {
-    return await ApiService.post<OpportunityDetailDto>(
+    const response = await ApiService.post<OpportunityDetailApiResponse>(
       OPPORTUNITIES_PREFIX,
       dto
     );
+    return normalizeOpportunityDetail(response);
   },
 
   updateOpportunity: async (
     id: string,
     dto: UpdateOpportunityDto
   ): Promise<OpportunityDetailDto> => {
-    return await ApiService.put<OpportunityDetailDto>(
+    const response = await ApiService.put<OpportunityDetailApiResponse>(
       `${OPPORTUNITIES_PREFIX}/${id}`,
       dto
     );
+    return normalizeOpportunityDetail(response);
   },
 
   deleteOpportunity: async (id: string): Promise<boolean> => {
@@ -64,20 +81,22 @@ export const opportunityService = {
     id: string,
     dto: MoveStageDto
   ): Promise<OpportunityDetailDto> => {
-    return await ApiService.patch<OpportunityDetailDto>(
+    const response = await ApiService.patch<OpportunityDetailApiResponse>(
       `${OPPORTUNITIES_PREFIX}/${id}/stage`,
       dto
     );
+    return normalizeOpportunityDetail(response);
   },
 
   closeOpportunity: async (
     id: string,
     dto: CloseOpportunityDto
   ): Promise<OpportunityDetailDto> => {
-    return await ApiService.post<OpportunityDetailDto>(
+    const response = await ApiService.post<OpportunityDetailApiResponse>(
       `${OPPORTUNITIES_PREFIX}/${id}/close`,
       dto
     );
+    return normalizeOpportunityDetail(response);
   },
 
   // ── Contact Management ──────────────────────────────────────

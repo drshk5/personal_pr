@@ -12,13 +12,16 @@ namespace crm_backend.Controllers;
 public class AccountsController : BaseController
 {
     private readonly IMstAccountApplicationService _accountAppService;
+    private readonly IMstImportExportApplicationService _importExportAppService;
     private readonly ILogger<AccountsController> _logger;
 
     public AccountsController(
         IMstAccountApplicationService accountAppService,
+        IMstImportExportApplicationService importExportAppService,
         ILogger<AccountsController> logger)
     {
         _accountAppService = accountAppService;
+        _importExportAppService = importExportAppService;
         _logger = logger;
     }
 
@@ -107,5 +110,79 @@ public class AccountsController : BaseController
     {
         var result = await _accountAppService.BulkRestoreAsync(dto);
         return OkResponse(result, "Accounts restored successfully");
+    }
+
+    /// <summary>
+    /// Import accounts from CSV
+    /// </summary>
+    [HttpPost("import")]
+    [AuthorizePermission("CRM_Accounts", "Create")]
+    public async Task<ActionResult<ApiResponse<ImportJobListDto>>> ImportAccounts(
+        IFormFile file,
+        [FromForm] string strDuplicateHandling,
+        [FromForm] string columnMappingJson)
+    {
+        if (file == null || file.Length == 0)
+            return ErrorResponse<ImportJobListDto>(400, "CSV file is required");
+
+        if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            return ErrorResponse<ImportJobListDto>(400, "Only CSV files are allowed");
+
+        var settings = new ImportStartDto
+        {
+            strDuplicateHandling = strDuplicateHandling ?? "Skip",
+            ColumnMapping = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(
+                columnMappingJson ?? "{}") ?? new Dictionary<string, string>()
+        };
+
+        if (settings.ColumnMapping.Count == 0)
+            return ErrorResponse<ImportJobListDto>(400, "Column mapping is required");
+
+        using var stream = file.OpenReadStream();
+        var result = await _importExportAppService.StartAccountImportAsync(stream, file.FileName, settings);
+
+        return CreatedResponse(result, "Account import completed");
+    }
+
+    /// <summary>
+    /// Suggest account field mapping for CSV headers
+    /// </summary>
+    [HttpPost("import/suggest-mapping")]
+    [AuthorizePermission("CRM_Accounts", "View")]
+    public async Task<ActionResult<ApiResponse<ImportSuggestMappingResultDto>>> SuggestAccountMapping(
+        IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return ErrorResponse<ImportSuggestMappingResultDto>(400, "CSV file is required");
+
+        if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            return ErrorResponse<ImportSuggestMappingResultDto>(400, "Only CSV files are allowed");
+
+        using var stream = file.OpenReadStream();
+        var result = await _importExportAppService.SuggestAccountMappingAsync(stream);
+
+        return OkResponse(result);
+    }
+
+    /// <summary>
+    /// Export accounts to CSV
+    /// </summary>
+    [HttpPost("export")]
+    [AuthorizePermission("CRM_Accounts", "View")]
+    public async Task<IActionResult> ExportAccounts([FromBody] AccountFilterParams filter)
+    {
+        var bytes = await _importExportAppService.ExportAccountsAsync(filter);
+        return File(bytes, "text/csv", $"accounts-export-{DateTime.UtcNow:yyyyMMdd}.csv");
+    }
+
+    /// <summary>
+    /// Export accounts to CSV (GET compatibility route)
+    /// </summary>
+    [HttpGet("export")]
+    [AuthorizePermission("CRM_Accounts", "View")]
+    public async Task<IActionResult> ExportAccountsGet([FromQuery] AccountFilterParams filter)
+    {
+        var bytes = await _importExportAppService.ExportAccountsAsync(filter);
+        return File(bytes, "text/csv", $"accounts-export-{DateTime.UtcNow:yyyyMMdd}.csv");
     }
 }

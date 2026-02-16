@@ -132,14 +132,76 @@ public class MstContactApplicationService : ApplicationServiceBase, IMstContactA
                 strCountry = c.strCountry,
                 strPostalCode = c.strPostalCode,
                 strNotes = c.strNotes,
-                dtLastContactedOn = c.dtLastContactedOn,
-                Opportunities = new List<OpportunityListDto>(),
-                RecentActivities = new List<ActivityListDto>()
+                dtLastContactedOn = c.dtLastContactedOn
             })
             .FirstOrDefaultAsync();
 
         if (contact == null)
             throw new NotFoundException("Contact not found", ContactErrorCodes.ContactNotFound);
+
+        var opportunities = await _unitOfWork.OpportunityContacts.Query()
+            .AsNoTracking()
+            .Where(oc => oc.strContactGUID == id)
+            .OrderByDescending(oc => oc.Opportunity.dtCreatedOn)
+            .Select(oc => new OpportunityListDto
+            {
+                strOpportunityGUID = oc.Opportunity.strOpportunityGUID,
+                strOpportunityName = oc.Opportunity.strOpportunityName,
+                strAccountName = oc.Opportunity.Account != null ? oc.Opportunity.Account.strAccountName : null,
+                strStageName = oc.Opportunity.Stage != null ? oc.Opportunity.Stage.strStageName : string.Empty,
+                strStatus = oc.Opportunity.strStatus,
+                dblAmount = oc.Opportunity.dblAmount,
+                strCurrency = oc.Opportunity.strCurrency,
+                intProbability = oc.Opportunity.intProbability,
+                dtExpectedCloseDate = oc.Opportunity.dtExpectedCloseDate,
+                bolIsRotting = oc.Opportunity.strStatus == "Open"
+                    && oc.Opportunity.Stage != null
+                    && !oc.Opportunity.Stage.bolIsWonStage
+                    && !oc.Opportunity.Stage.bolIsLostStage
+                    && oc.Opportunity.Stage.intDefaultDaysToRot > 0
+                    && (
+                        EF.Functions.DateDiffDay(oc.Opportunity.dtStageEnteredOn, DateTime.UtcNow) > oc.Opportunity.Stage.intDefaultDaysToRot
+                        || (oc.Opportunity.dtLastActivityOn != null
+                            && EF.Functions.DateDiffDay(oc.Opportunity.dtLastActivityOn.Value, DateTime.UtcNow) > oc.Opportunity.Stage.intDefaultDaysToRot)
+                        || (oc.Opportunity.dtLastActivityOn == null
+                            && EF.Functions.DateDiffDay(oc.Opportunity.dtStageEnteredOn, DateTime.UtcNow) > oc.Opportunity.Stage.intDefaultDaysToRot)
+                    ),
+                strAssignedToGUID = oc.Opportunity.strAssignedToGUID,
+                dtCreatedOn = oc.Opportunity.dtCreatedOn,
+                bolIsActive = oc.Opportunity.bolIsActive
+            })
+            .ToListAsync();
+
+        var activities = await _unitOfWork.ActivityLinks.Query()
+            .AsNoTracking()
+            .Where(al => al.strEntityType == EntityTypeConstants.Contact
+                && al.strEntityGUID == id)
+            .OrderByDescending(al => al.Activity.dtCreatedOn)
+            .Take(10)
+            .Select(al => new ActivityListDto
+            {
+                strActivityGUID = al.Activity.strActivityGUID,
+                strActivityType = al.Activity.strActivityType,
+                strSubject = al.Activity.strSubject,
+                strDescription = al.Activity.strDescription,
+                dtScheduledOn = al.Activity.dtScheduledOn,
+                dtCompletedOn = al.Activity.dtCompletedOn,
+                intDurationMinutes = al.Activity.dtScheduledOn.HasValue && al.Activity.dtCompletedOn.HasValue
+                    ? EF.Functions.DateDiffMinute(al.Activity.dtScheduledOn.Value, al.Activity.dtCompletedOn.Value)
+                    : al.Activity.intDurationMinutes,
+                strOutcome = al.Activity.strOutcome,
+                strAssignedToGUID = al.Activity.strAssignedToGUID,
+                strAssignedToName = null,
+                strCreatedByGUID = al.Activity.strCreatedByGUID,
+                strCreatedByName = string.Empty,
+                dtCreatedOn = al.Activity.dtCreatedOn,
+                bolIsActive = al.Activity.bolIsActive,
+                Links = new List<ActivityLinkDto>()
+            })
+            .ToListAsync();
+
+        contact.Opportunities = opportunities;
+        contact.RecentActivities = activities;
 
         return contact;
     }
@@ -205,18 +267,7 @@ public class MstContactApplicationService : ApplicationServiceBase, IMstContactA
 
         _logger.LogInformation("Contact created: {ContactGUID} by {UserGUID}", contact.strContactGUID, GetCurrentUserId());
 
-        // Map directly from the entity — no extra DB round-trip
-        string? accountName = null;
-        if (contact.strAccountGUID.HasValue)
-        {
-            accountName = await _unitOfWork.Accounts.Query()
-                .AsNoTracking()
-                .Where(a => a.strAccountGUID == contact.strAccountGUID.Value)
-                .Select(a => a.strAccountName)
-                .FirstOrDefaultAsync();
-        }
-
-        return MapToDetailDto(contact, accountName);
+        return await GetContactByIdAsync(contact.strContactGUID);
     }
 
     public async Task<ContactDetailDto> UpdateContactAsync(Guid id, UpdateContactDto dto)
@@ -284,18 +335,7 @@ public class MstContactApplicationService : ApplicationServiceBase, IMstContactA
             JsonSerializer.Serialize(new { Old = oldValues, New = newValues }),
             GetCurrentUserId());
 
-        // Fetch account name only if needed — avoid loading full Account entity
-        string? accountName = null;
-        if (contact.strAccountGUID.HasValue)
-        {
-            accountName = await _unitOfWork.Accounts.Query()
-                .AsNoTracking()
-                .Where(a => a.strAccountGUID == contact.strAccountGUID.Value)
-                .Select(a => a.strAccountName)
-                .FirstOrDefaultAsync();
-        }
-
-        return MapToDetailDto(contact, accountName);
+        return await GetContactByIdAsync(contact.strContactGUID);
     }
 
     public async Task<bool> DeleteContactAsync(Guid id)

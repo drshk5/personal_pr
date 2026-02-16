@@ -17,14 +17,16 @@ import {
   MessageSquare,
   CalendarDays,
   Trophy,
-  XCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import type {
   CreateOpportunityDto,
   UpdateOpportunityDto,
 } from "@/types/CRM/opportunity";
 import { OPPORTUNITY_CURRENCIES } from "@/types/CRM/opportunity";
+import type { AccountListDto } from "@/types/CRM/account";
+import type { ContactListDto } from "@/types/CRM/contact";
 import {
   opportunitySchema,
   type OpportunityFormValues,
@@ -37,8 +39,12 @@ import {
   useUpdateOpportunity,
   useDeleteOpportunity,
 } from "@/hooks/api/CRM/use-opportunities";
+import { useAccounts } from "@/hooks/api/CRM/use-accounts";
+import { useContacts } from "@/hooks/api/CRM/use-contacts";
 import { usePipelines, usePipeline } from "@/hooks/api/CRM/use-pipelines";
 import { useMenuIcon } from "@/hooks/common/use-menu-icon";
+import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
+import { opportunityService } from "@/services/CRM/opportunity.service";
 
 import CustomContainer from "@/components/layout/custom-container";
 import { PageHeader } from "@/components/layout/page-header";
@@ -95,9 +101,9 @@ const OpportunityForm: React.FC = () => {
     isFetching: isFetchingOpportunity,
     error: opportunityError,
   } = useOpportunity(isEditMode && id ? id : undefined);
-  const { mutate: createOpportunity, isPending: isCreating } =
+  const { mutateAsync: createOpportunityAsync, isPending: isCreating } =
     useCreateOpportunity();
-  const { mutate: updateOpportunity, isPending: isUpdating } =
+  const { mutateAsync: updateOpportunityAsync, isPending: isUpdating } =
     useUpdateOpportunity();
   const { mutate: deleteOpportunity, isPending: isDeleting } =
     useDeleteOpportunity();
@@ -125,8 +131,54 @@ const OpportunityForm: React.FC = () => {
     },
   });
 
+  const [selectedContactGUIDs, setSelectedContactGUIDs] = React.useState<string[]>([]);
+  const [isSyncingContacts, setIsSyncingContacts] = React.useState(false);
+
+  const selectedAccountGUID = form.watch("strAccountGUID") || "";
+
+  const { data: accountsResponse } = useAccounts({
+    pageNumber: 1,
+    pageSize: 200,
+    bolIsActive: true,
+    sortBy: "strAccountName",
+    ascending: true,
+  });
+
+  const { data: contactsResponse } = useContacts({
+    pageNumber: 1,
+    pageSize: 200,
+    bolIsActive: true,
+    strAccountGUID: selectedAccountGUID || undefined,
+    sortBy: "strFirstName",
+    ascending: true,
+  });
+
+  const accountOptions = React.useMemo(
+    () =>
+      mapToStandardPagedResponse<AccountListDto>(
+        accountsResponse?.data ?? accountsResponse
+      ).items,
+    [accountsResponse]
+  );
+
+  const contactOptions = React.useMemo(
+    () =>
+      mapToStandardPagedResponse<ContactListDto>(
+        contactsResponse?.data ?? contactsResponse
+      ).items,
+    [contactsResponse]
+  );
+
+  const visibleContactIds = React.useMemo(
+    () => new Set(contactOptions.map((contact) => contact.strContactGUID)),
+    [contactOptions]
+  );
+  const hiddenSelectedCount = selectedContactGUIDs.filter(
+    (contactId) => !visibleContactIds.has(contactId)
+  ).length;
+
   const isLoading = isEditMode && isFetchingOpportunity;
-  const isSaving = isCreating || isUpdating;
+  const isSaving = isCreating || isUpdating || isSyncingContacts;
 
   // Set default pipeline
   React.useEffect(() => {
@@ -139,8 +191,8 @@ const OpportunityForm: React.FC = () => {
 
   // Set default stage when pipeline changes
   React.useEffect(() => {
-    if (pipelineDetail?.stages && pipelineDetail.stages.length > 0 && !isEditMode) {
-      const sortedStages = [...pipelineDetail.stages].sort(
+    if (pipelineDetail?.Stages && pipelineDetail.Stages.length > 0 && !isEditMode) {
+      const sortedStages = [...pipelineDetail.Stages].sort(
         (a, b) => a.intDisplayOrder - b.intDisplayOrder
       );
       const firstStage = sortedStages[0];
@@ -168,8 +220,17 @@ const OpportunityForm: React.FC = () => {
       form.setValue("strDescription", opportunity.strDescription || "");
       form.setValue("strAssignedToGUID", opportunity.strAssignedToGUID || "");
       setSelectedPipelineId(opportunity.strPipelineGUID);
+      setSelectedContactGUIDs(
+        (opportunity.contacts ?? []).map((contact) => contact.strContactGUID)
+      );
     }
   }, [opportunity, form, isEditMode]);
+
+  React.useEffect(() => {
+    if (!isEditMode) {
+      setSelectedContactGUIDs([]);
+    }
+  }, [isEditMode]);
 
   // Handle pipeline change
   const handlePipelineChange = (pipelineId: string) => {
@@ -190,45 +251,123 @@ const OpportunityForm: React.FC = () => {
     );
   };
 
-  // Handle submit
-  const onSubmit = (data: OpportunityFormValues) => {
-    if (isEditMode && id) {
-      const updateData: UpdateOpportunityDto = {
-        strOpportunityName: data.strOpportunityName,
-        strAccountGUID: data.strAccountGUID || null,
-        strStageGUID: data.strStageGUID,
-        dblAmount: data.dblAmount ?? null,
-        strCurrency: data.strCurrency,
-        dtExpectedCloseDate: data.dtExpectedCloseDate || null,
-        strDescription: data.strDescription || null,
-        strAssignedToGUID: data.strAssignedToGUID || null,
-      };
-      updateOpportunity(
-        { id, data: updateData },
-        { onSuccess: () => navigate("/crm/opportunities") }
+  const toggleContactSelection = (contactGUID: string) => {
+    setSelectedContactGUIDs((previous) =>
+      previous.includes(contactGUID)
+        ? previous.filter((id) => id !== contactGUID)
+        : [...previous, contactGUID]
+    );
+  };
+
+  const syncOpportunityContacts = React.useCallback(
+    async (opportunityId: string, currentContactGUIDs: string[]) => {
+      const nextContactGUIDs = Array.from(new Set(selectedContactGUIDs));
+      const contactsToAdd = nextContactGUIDs.filter(
+        (contactId) => !currentContactGUIDs.includes(contactId)
       );
-    } else {
-      const createData: CreateOpportunityDto = {
-        strOpportunityName: data.strOpportunityName,
-        strAccountGUID: data.strAccountGUID || null,
-        strPipelineGUID: data.strPipelineGUID,
-        strStageGUID: data.strStageGUID,
-        dblAmount: data.dblAmount ?? null,
-        strCurrency: data.strCurrency,
-        dtExpectedCloseDate: data.dtExpectedCloseDate || null,
-        strDescription: data.strDescription || null,
-        strAssignedToGUID: data.strAssignedToGUID || null,
-      };
-      createOpportunity(createData, {
-        onSuccess: () => navigate("/crm/opportunities"),
-      });
+      const contactsToRemove = currentContactGUIDs.filter(
+        (contactId) => !nextContactGUIDs.includes(contactId)
+      );
+
+      if (contactsToAdd.length === 0 && contactsToRemove.length === 0) {
+        return;
+      }
+
+      const remainingAfterRemove = currentContactGUIDs.filter(
+        (contactId) => !contactsToRemove.includes(contactId)
+      );
+      const primaryContactToAdd =
+        remainingAfterRemove.length === 0 && contactsToAdd.length > 0
+          ? contactsToAdd[0]
+          : null;
+
+      setIsSyncingContacts(true);
+      try {
+        await Promise.all([
+          ...contactsToAdd.map((contactId) =>
+            opportunityService.addContact(opportunityId, {
+              strContactGUID: contactId,
+              strRole: "Stakeholder",
+              bolIsPrimary: contactId === primaryContactToAdd,
+            })
+          ),
+          ...contactsToRemove.map((contactId) =>
+            opportunityService.removeContact(opportunityId, contactId)
+          ),
+        ]);
+      } finally {
+        setIsSyncingContacts(false);
+      }
+    },
+    [selectedContactGUIDs]
+  );
+
+  // Handle submit
+  const onSubmit = async (data: OpportunityFormValues) => {
+    let attemptedContactSync = false;
+    try {
+      if (isEditMode && id) {
+        const updateData: UpdateOpportunityDto = {
+          strOpportunityName: data.strOpportunityName,
+          strAccountGUID: data.strAccountGUID || null,
+          strStageGUID: data.strStageGUID,
+          dblAmount: data.dblAmount ?? null,
+          strCurrency: data.strCurrency,
+          dtExpectedCloseDate: data.dtExpectedCloseDate || null,
+          strDescription: data.strDescription || null,
+          strAssignedToGUID: data.strAssignedToGUID || null,
+        };
+
+        const updatedOpportunity = await updateOpportunityAsync({
+          id,
+          data: updateData,
+        });
+
+        attemptedContactSync = true;
+        await syncOpportunityContacts(
+          updatedOpportunity.strOpportunityGUID,
+          (updatedOpportunity.contacts ?? []).map(
+            (contact) => contact.strContactGUID
+          )
+        );
+      } else {
+        const createData: CreateOpportunityDto = {
+          strOpportunityName: data.strOpportunityName,
+          strAccountGUID: data.strAccountGUID || null,
+          strPipelineGUID: data.strPipelineGUID,
+          strStageGUID: data.strStageGUID,
+          dblAmount: data.dblAmount ?? null,
+          strCurrency: data.strCurrency,
+          dtExpectedCloseDate: data.dtExpectedCloseDate || null,
+          strDescription: data.strDescription || null,
+          strAssignedToGUID: data.strAssignedToGUID || null,
+        };
+
+        const createdOpportunity = await createOpportunityAsync(createData);
+
+        attemptedContactSync = true;
+        await syncOpportunityContacts(
+          createdOpportunity.strOpportunityGUID,
+          (createdOpportunity.contacts ?? []).map(
+            (contact) => contact.strContactGUID
+          )
+        );
+      }
+
+      navigate("/crm/opportunities");
+    } catch {
+      if (attemptedContactSync) {
+        toast.error(
+          "Opportunity was saved, but contact links could not be fully updated."
+        );
+      }
     }
   };
 
   // Stage display order
   const sortedStages = React.useMemo(() => {
-    if (!pipelineDetail?.stages) return [];
-    return [...pipelineDetail.stages].sort(
+    if (!pipelineDetail?.Stages) return [];
+    return [...pipelineDetail.Stages].sort(
       (a, b) => a.intDisplayOrder - b.intDisplayOrder
     );
   }, [pipelineDetail]);
@@ -376,6 +515,44 @@ const OpportunityForm: React.FC = () => {
 
                         <FormField
                           control={form.control}
+                          name="strAccountGUID"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Account</FormLabel>
+                              <Select
+                                value={field.value || "__none__"}
+                                onValueChange={(value) =>
+                                  field.onChange(
+                                    value === "__none__" ? "" : value
+                                  )
+                                }
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select account" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="__none__">
+                                    No account
+                                  </SelectItem>
+                                  {accountOptions.map((account) => (
+                                    <SelectItem
+                                      key={account.strAccountGUID}
+                                      value={account.strAccountGUID}
+                                    >
+                                      {account.strAccountName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
                           name="strAssignedToGUID"
                           render={({ field }) => (
                             <FormItem>
@@ -391,6 +568,77 @@ const OpportunityForm: React.FC = () => {
                             </FormItem>
                           )}
                         />
+                      </div>
+                    </div>
+
+                    {/* Relationships */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-4">
+                        Relationships
+                      </h3>
+                      <div className="space-y-2">
+                        <FormLabel>
+                          Linked Contacts
+                          {selectedAccountGUID && (
+                            <span className="text-muted-foreground font-normal">
+                              {" "}
+                              (filtered by selected account)
+                            </span>
+                          )}
+                        </FormLabel>
+
+                        <div className="rounded-md border p-3 max-h-52 overflow-y-auto space-y-2">
+                          {contactOptions.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              {selectedAccountGUID
+                                ? "No contacts found for the selected account."
+                                : "No contacts available to link."}
+                            </p>
+                          ) : (
+                            contactOptions.map((contact) => {
+                              const fullName =
+                                `${contact.strFirstName} ${contact.strLastName}`.trim();
+                              const isChecked = selectedContactGUIDs.includes(
+                                contact.strContactGUID
+                              );
+
+                              return (
+                                <label
+                                  key={contact.strContactGUID}
+                                  className="flex items-start gap-2 cursor-pointer"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    className="mt-0.5 h-4 w-4 rounded border-input"
+                                    checked={isChecked}
+                                    onChange={() =>
+                                      toggleContactSelection(
+                                        contact.strContactGUID
+                                      )
+                                    }
+                                  />
+                                  <span className="min-w-0">
+                                    <span className="block text-sm text-foreground truncate">
+                                      {fullName}
+                                    </span>
+                                    <span className="block text-xs text-muted-foreground truncate">
+                                      {contact.strEmail}
+                                    </span>
+                                  </span>
+                                </label>
+                              );
+                            })
+                          )}
+                        </div>
+
+                        {hiddenSelectedCount > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {hiddenSelectedCount} linked contact
+                            {hiddenSelectedCount > 1 ? "s are" : " is"} outside
+                            the current filter and will be kept unless you
+                            remove them.
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -542,7 +790,9 @@ const OpportunityForm: React.FC = () => {
                       >
                         <Save className="h-4 w-4 mr-2" />
                         {isSaving
-                          ? isEditMode
+                          ? isSyncingContacts
+                            ? "Syncing contacts..."
+                            : isEditMode
                             ? "Updating..."
                             : "Creating..."
                           : isEditMode
@@ -756,7 +1006,7 @@ const OpportunityForm: React.FC = () => {
                                 <Icon className="h-3 w-3 text-muted-foreground" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium truncate">
+                                <p className="text-xs font-medium text-foreground truncate">
                                   {activity.strSubject}
                                 </p>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">

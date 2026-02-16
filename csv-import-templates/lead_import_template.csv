@@ -1,0 +1,4 @@
+strFirstName,strLastName,strEmail,strPhone,strCompanyName,strJobTitle,strSource,strAddress,strCity,strState,strCountry,strPostalCode,strNotes
+Aarav,Shah,aarav.shah@example.com,+1-555-0101,Acme Inc,Operations Manager,Website,"12 Market St",San Francisco,CA,USA,94105,"Interested in demo"
+Priya,Mehta,priya.mehta@example.com,+1-555-0102,Northwind LLC,CTO,Referral,"45 Lake Ave",Chicago,IL,USA,60601,"Follow up next week"
+John,Doe,john.doe@example.com,+1-555-0103,Contoso Ltd,Founder,LinkedIn,"88 King Rd",Austin,TX,USA,73301,"Budget approved"

@@ -30,6 +30,20 @@ import type {
 const LEADS_PREFIX = `${CRM_API_PREFIX}/leads`;
 const LEAD_CONVERSION_PREFIX = `${CRM_API_PREFIX}/lead-conversion`;
 
+type LeadDetailApiResponse = LeadDetailDto & {
+  RecentActivities?: LeadDetailDto["recentActivities"];
+  ScoreBreakdown?: LeadDetailDto["scoreBreakdown"];
+  Duplicates?: LeadDetailDto["duplicates"];
+};
+
+const normalizeLeadDetail = (detail: LeadDetailApiResponse): LeadDetailDto => ({
+  ...detail,
+  recentActivities:
+    detail.recentActivities ?? detail.RecentActivities ?? [],
+  scoreBreakdown: detail.scoreBreakdown ?? detail.ScoreBreakdown,
+  duplicates: detail.duplicates ?? detail.Duplicates,
+});
+
 export const leadService = {
   // ── Core CRUD ──────────────────────────────────────────────
 
@@ -43,18 +57,29 @@ export const leadService = {
   },
 
   getLead: async (id: string): Promise<LeadDetailDto> => {
-    return await ApiService.get<LeadDetailDto>(`${LEADS_PREFIX}/${id}`);
+    const response = await ApiService.get<LeadDetailApiResponse>(
+      `${LEADS_PREFIX}/${id}`
+    );
+    return normalizeLeadDetail(response);
   },
 
   createLead: async (dto: CreateLeadDto): Promise<LeadDetailDto> => {
-    return await ApiService.post<LeadDetailDto>(LEADS_PREFIX, dto);
+    const response = await ApiService.post<LeadDetailApiResponse>(
+      LEADS_PREFIX,
+      dto
+    );
+    return normalizeLeadDetail(response);
   },
 
   updateLead: async (
     id: string,
     dto: UpdateLeadDto
   ): Promise<LeadDetailDto> => {
-    return await ApiService.put<LeadDetailDto>(`${LEADS_PREFIX}/${id}`, dto);
+    const response = await ApiService.put<LeadDetailApiResponse>(
+      `${LEADS_PREFIX}/${id}`,
+      dto
+    );
+    return normalizeLeadDetail(response);
   },
 
   deleteLead: async (id: string): Promise<boolean> => {
@@ -66,10 +91,11 @@ export const leadService = {
     id: string,
     status: string
   ): Promise<LeadDetailDto> => {
-    return await ApiService.patch<LeadDetailDto>(
+    const response = await ApiService.patch<LeadDetailApiResponse>(
       `${LEADS_PREFIX}/${id}/status`,
       { strStatus: status }
     );
+    return normalizeLeadDetail(response);
   },
 
   // ── Bulk Operations ────────────────────────────────────────

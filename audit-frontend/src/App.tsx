@@ -29,6 +29,14 @@ function AppContent() {
 
   // Request notification permission on app load
   useEffect(() => {
+    const appWindow = window as Window & {
+      __notificationPermissionChecked?: boolean;
+    };
+    if (appWindow.__notificationPermissionChecked) {
+      return;
+    }
+    appWindow.__notificationPermissionChecked = true;
+
     if ("Notification" in window && Notification.permission === "default") {
       console.log("[AppContent] Requesting notification permission...");
       Notification.requestPermission()

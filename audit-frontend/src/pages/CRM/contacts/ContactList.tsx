@@ -9,11 +9,17 @@ import {
   Pencil,
   Trash2,
   Contact,
+  Upload,
+  Download,
 } from "lucide-react";
 
 import type { ContactListDto, ContactFilterParams } from "@/types/CRM/contact";
 import { CONTACT_LIFECYCLE_STAGES } from "@/types/CRM/contact";
-import { useContacts, useDeleteContact } from "@/hooks/api/CRM/use-contacts";
+import {
+  useContacts,
+  useDeleteContact,
+  useExportContacts,
+} from "@/hooks/api/CRM/use-contacts";
 import { useListPreferences } from "@/hooks/common/use-list-preferences";
 import { useTableLayout } from "@/hooks/common/use-table-layout";
 import { useUserRights } from "@/hooks/common/use-user-rights";
@@ -48,6 +54,7 @@ import {
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 import ContactLifecycleBadge from "./components/ContactLifecycleBadge";
+import ContactImportDialog from "./components/ContactImportDialog";
 
 const defaultColumnOrder = [
   "actions",
@@ -80,6 +87,10 @@ const ContactList: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<ContactListDto | null>(null);
   const { mutate: deleteContact, isPending: isDeleting } = useDeleteContact();
 
+  // Import / Export
+  const [showImport, setShowImport] = useState(false);
+  const { mutate: exportContacts, isPending: isExporting } = useExportContacts();
+
   // List preferences
   const { pagination, setPagination, sorting, setSorting, updateResponseData } =
     useListPreferences("crm-contacts", {
@@ -108,7 +119,6 @@ const ContactList: React.FC = () => {
     pinColumn,
     unpinColumn,
     resetPinnedColumns,
-    columnOrder,
     setColumnOrder,
     columnWidths,
     setColumnWidths,
@@ -203,6 +213,10 @@ const ContactList: React.FC = () => {
         onSettled: () => setDeleteTarget(null),
       }
     );
+  };
+
+  const handleExport = () => {
+    exportContacts({ params: filterParams });
   };
 
   // Columns
@@ -426,6 +440,37 @@ const ContactList: React.FC = () => {
               )}
             </Button>
 
+            <WithPermission
+              module={FormModules.CRM_CONTACT}
+              action={Actions.EXPORT}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9"
+                onClick={handleExport}
+                disabled={isExporting}
+              >
+                <Download className="h-3.5 w-3.5 mr-1" />
+                {isExporting ? "Exporting..." : "Export"}
+              </Button>
+            </WithPermission>
+
+            <WithPermission
+              module={FormModules.CRM_CONTACT}
+              action={Actions.IMPORT}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9"
+                onClick={() => setShowImport(true)}
+              >
+                <Upload className="h-3.5 w-3.5 mr-1" />
+                Import
+              </Button>
+            </WithPermission>
+
             <DraggableColumnVisibility
               columns={columns}
               columnVisibility={columnVisibility}
@@ -530,8 +575,8 @@ const ContactList: React.FC = () => {
         pagination={{
           pageNumber: pagination.pageNumber,
           pageSize: pagination.pageSize,
-          totalCount: pagination.totalCount,
-          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount ?? 0,
+          totalPages: pagination.totalPages ?? 0,
           onPageChange: (page) => setPagination({ pageNumber: page }),
           onPageSizeChange: (size) =>
             setPagination({ pageSize: size, pageNumber: 1 }),
@@ -560,6 +605,11 @@ const ContactList: React.FC = () => {
         variant="danger"
         isLoading={isDeleting}
         loadingText="Deleting..."
+      />
+
+      <ContactImportDialog
+        open={showImport}
+        onOpenChange={setShowImport}
       />
     </CustomContainer>
   );

@@ -127,6 +127,49 @@ export interface AccountBulkArchiveDto {
 }
 
 // ============================================================
+// Import / Export
+// ============================================================
+
+export interface AccountImportResultDto {
+  strImportJobGUID: string;
+  strFileName: string;
+  strStatus: string;
+  intTotalRows: number;
+  intProcessedRows: number;
+  intSuccessRows: number;
+  intErrorRows: number;
+  intDuplicateRows: number;
+  strDuplicateHandling: string;
+  dtCreatedOn: string;
+  dtCompletedOn?: string | null;
+}
+
+export interface AccountSuggestMappingResultDto {
+  SuggestedMapping: Record<string, string>;
+  CsvHeaders: string[];
+  AvailableLeadFields: string[];
+}
+
+export type AccountDuplicateHandling = "Skip" | "Update" | "Flag";
+
+export const ACCOUNT_IMPORTABLE_FIELDS = [
+  { value: "strAccountName", label: "Account Name", required: true },
+  { value: "strIndustry", label: "Industry", required: false },
+  { value: "strWebsite", label: "Website", required: false },
+  { value: "strPhone", label: "Phone", required: false },
+  { value: "strEmail", label: "Email", required: false },
+  { value: "intEmployeeCount", label: "Employee Count", required: false },
+  { value: "dblAnnualRevenue", label: "Annual Revenue", required: false },
+  { value: "strAddress", label: "Address", required: false },
+  { value: "strCity", label: "City", required: false },
+  { value: "strState", label: "State", required: false },
+  { value: "strCountry", label: "Country", required: false },
+  { value: "strPostalCode", label: "Postal Code", required: false },
+  { value: "strDescription", label: "Description", required: false },
+  { value: "strAssignedToGUID", label: "Assigned To GUID", required: false },
+] as const;
+
+// ============================================================
 // Response Types
 // ============================================================
 

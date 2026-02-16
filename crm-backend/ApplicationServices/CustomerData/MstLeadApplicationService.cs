@@ -113,7 +113,37 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
         if (lead == null)
             throw new NotFoundException("Lead not found", LeadErrorCodes.LeadNotFound);
 
-        return MapToDetailDto(lead);
+        var activities = await _unitOfWork.ActivityLinks.Query()
+            .AsNoTracking()
+            .Where(al => al.strEntityType == EntityTypeConstants.Lead
+                && al.strEntityGUID == id)
+            .OrderByDescending(al => al.Activity.dtCreatedOn)
+            .Take(10)
+            .Select(al => new ActivityListDto
+            {
+                strActivityGUID = al.Activity.strActivityGUID,
+                strActivityType = al.Activity.strActivityType,
+                strSubject = al.Activity.strSubject,
+                strDescription = al.Activity.strDescription,
+                dtScheduledOn = al.Activity.dtScheduledOn,
+                dtCompletedOn = al.Activity.dtCompletedOn,
+                intDurationMinutes = al.Activity.dtScheduledOn.HasValue && al.Activity.dtCompletedOn.HasValue
+                    ? EF.Functions.DateDiffMinute(al.Activity.dtScheduledOn.Value, al.Activity.dtCompletedOn.Value)
+                    : al.Activity.intDurationMinutes,
+                strOutcome = al.Activity.strOutcome,
+                strAssignedToGUID = al.Activity.strAssignedToGUID,
+                strAssignedToName = null,
+                strCreatedByGUID = al.Activity.strCreatedByGUID,
+                strCreatedByName = string.Empty,
+                dtCreatedOn = al.Activity.dtCreatedOn,
+                bolIsActive = al.Activity.bolIsActive,
+                Links = new List<ActivityLinkDto>()
+            })
+            .ToListAsync();
+
+        var detail = MapToDetailDto(lead);
+        detail.RecentActivities = activities;
+        return detail;
     }
 
     public async Task<LeadDetailDto> CreateLeadAsync(CreateLeadDto dto)
@@ -167,7 +197,7 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
 
         _logger.LogInformation("Lead created: {LeadGUID} by {UserGUID}", lead.strLeadGUID, GetCurrentUserId());
 
-        return MapToDetailDto(lead);
+        return await GetLeadByIdAsync(lead.strLeadGUID);
     }
 
     public async Task<LeadDetailDto> UpdateLeadAsync(Guid id, UpdateLeadDto dto)
@@ -226,7 +256,7 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
             JsonSerializer.Serialize(new { Old = oldValues, New = newValues }),
             GetCurrentUserId());
 
-        return MapToDetailDto(lead);
+        return await GetLeadByIdAsync(lead.strLeadGUID);
     }
 
     public async Task<bool> DeleteLeadAsync(Guid id)
@@ -279,7 +309,7 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
             JsonSerializer.Serialize(new { OldStatus = oldStatus, NewStatus = newStatus }),
             GetCurrentUserId());
 
-        return MapToDetailDto(lead);
+        return await GetLeadByIdAsync(lead.strLeadGUID);
     }
 
     public async Task<bool> BulkArchiveAsync(LeadBulkArchiveDto dto)
@@ -318,7 +348,248 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
         return true;
     }
 
+    public async Task<LeadListDto> GetConversionPreviewAsync(Guid id)
+    {
+        var lead = await _unitOfWork.Leads.GetByIdAsync(id);
+        if (lead == null)
+            throw new NotFoundException("Lead not found", LeadErrorCodes.LeadNotFound);
+
+        return MapToListDto(lead);
+    }
+
+    public async Task<LeadConversionResultDto> ConvertLeadAsync(ConvertLeadDto dto)
+    {
+        var lead = await _unitOfWork.Leads.GetByIdAsync(dto.strLeadGUID);
+        if (lead == null)
+            throw new NotFoundException("Lead not found", LeadErrorCodes.LeadNotFound);
+
+        if (!LeadStatusConstants.ConvertibleStatuses.Contains(lead.strStatus))
+            throw new BusinessException("Only qualified leads can be converted", LeadErrorCodes.LeadNotQualified);
+
+        if (lead.dtConvertedOn.HasValue || lead.strStatus == LeadStatusConstants.Converted)
+            throw new BusinessException("Lead is already converted", LeadErrorCodes.LeadAlreadyConverted);
+
+        if (!dto.bolCreateAccount && !dto.strExistingAccountGUID.HasValue)
+            throw new BusinessException("Existing account is required when create-account is disabled");
+
+        var now = DateTime.UtcNow;
+        var userId = GetCurrentUserId();
+        Guid? accountGuid = null;
+        Guid? opportunityGuid = null;
+
+        if (dto.bolCreateAccount)
+        {
+            var accountName = !string.IsNullOrWhiteSpace(lead.strCompanyName)
+                ? lead.strCompanyName.Trim()
+                : $"{lead.strFirstName} {lead.strLastName}".Trim();
+
+            var account = new MstAccount
+            {
+                strAccountGUID = Guid.NewGuid(),
+                strGroupGUID = GetTenantId(),
+                strAccountName = accountName,
+                strPhone = lead.strPhone,
+                strEmail = lead.strEmail,
+                strAddress = lead.strAddress,
+                strCity = lead.strCity,
+                strState = lead.strState,
+                strCountry = lead.strCountry,
+                strPostalCode = lead.strPostalCode,
+                strDescription = lead.strNotes,
+                strAssignedToGUID = lead.strAssignedToGUID,
+                strCreatedByGUID = userId,
+                dtCreatedOn = now,
+                bolIsActive = true,
+                bolIsDeleted = false
+            };
+
+            await _unitOfWork.Accounts.AddAsync(account);
+            accountGuid = account.strAccountGUID;
+        }
+        else
+        {
+            var existingAccount = await _unitOfWork.Accounts.Query()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.strAccountGUID == dto.strExistingAccountGUID!.Value);
+
+            if (existingAccount == null)
+                throw new NotFoundException("Account not found", "ACCOUNT_NOT_FOUND");
+
+            accountGuid = existingAccount.strAccountGUID;
+        }
+
+        var contact = new MstContact
+        {
+            strContactGUID = Guid.NewGuid(),
+            strGroupGUID = GetTenantId(),
+            strAccountGUID = accountGuid,
+            strFirstName = lead.strFirstName,
+            strLastName = lead.strLastName,
+            strEmail = lead.strEmail,
+            strPhone = lead.strPhone,
+            strMobilePhone = lead.strPhone,
+            strJobTitle = lead.strJobTitle,
+            strLifecycleStage = ContactLifecycleStageConstants.Opportunity,
+            strAddress = lead.strAddress,
+            strCity = lead.strCity,
+            strState = lead.strState,
+            strCountry = lead.strCountry,
+            strPostalCode = lead.strPostalCode,
+            strNotes = lead.strNotes,
+            strAssignedToGUID = lead.strAssignedToGUID,
+            strCreatedByGUID = userId,
+            dtCreatedOn = now,
+            bolIsActive = true,
+            bolIsDeleted = false
+        };
+
+        await _unitOfWork.Contacts.AddAsync(contact);
+
+        if (dto.bolCreateOpportunity)
+        {
+            var pipeline = dto.strPipelineGUID.HasValue
+                ? await _unitOfWork.Pipelines.Query()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.strPipelineGUID == dto.strPipelineGUID.Value && p.bolIsActive)
+                : await _unitOfWork.Pipelines.GetDefaultPipelineAsync();
+
+            pipeline ??= await _unitOfWork.Pipelines.Query()
+                .AsNoTracking()
+                .OrderByDescending(p => p.bolIsDefault)
+                .ThenByDescending(p => p.dtCreatedOn)
+                .FirstOrDefaultAsync(p => p.bolIsActive);
+
+            if (pipeline == null)
+                throw new NotFoundException("No active pipeline found", PipelineConstants.ErrorCodes.PipelineNotFound);
+
+            var firstStage = await _unitOfWork.PipelineStages.GetFirstStageAsync(pipeline.strPipelineGUID);
+            if (firstStage == null)
+                throw new NotFoundException("No active stage found in selected pipeline", PipelineConstants.ErrorCodes.StageNotFound);
+
+            var opportunityName = !string.IsNullOrWhiteSpace(dto.strOpportunityName)
+                ? dto.strOpportunityName!.Trim()
+                : BuildDefaultOpportunityName(lead);
+
+            var opportunity = new MstOpportunity
+            {
+                strOpportunityGUID = Guid.NewGuid(),
+                strGroupGUID = GetTenantId(),
+                strOpportunityName = opportunityName,
+                strAccountGUID = accountGuid,
+                strPipelineGUID = pipeline.strPipelineGUID,
+                strStageGUID = firstStage.strStageGUID,
+                strStatus = "Open",
+                dblAmount = dto.dblAmount,
+                strCurrency = "INR",
+                intProbability = firstStage.intProbabilityPercent,
+                strDescription = lead.strNotes,
+                dtStageEnteredOn = now,
+                strAssignedToGUID = lead.strAssignedToGUID,
+                strCreatedByGUID = userId,
+                dtCreatedOn = now,
+                bolIsActive = true,
+                bolIsDeleted = false
+            };
+
+            await _unitOfWork.Opportunities.AddAsync(opportunity);
+            opportunityGuid = opportunity.strOpportunityGUID;
+
+            await _unitOfWork.OpportunityContacts.AddAsync(new MstOpportunityContact
+            {
+                strOpportunityContactGUID = Guid.NewGuid(),
+                strOpportunityGUID = opportunity.strOpportunityGUID,
+                strContactGUID = contact.strContactGUID,
+                strRole = "Primary",
+                bolIsPrimary = true,
+                dtCreatedOn = now
+            });
+        }
+
+        var leadActivityLinks = await _unitOfWork.ActivityLinks.Query()
+            .AsNoTracking()
+            .Where(al => al.strEntityType == EntityTypeConstants.Lead && al.strEntityGUID == lead.strLeadGUID)
+            .Select(al => new { al.strActivityGUID })
+            .ToListAsync();
+
+        foreach (var link in leadActivityLinks)
+        {
+            await _unitOfWork.ActivityLinks.AddAsync(new MstActivityLink
+            {
+                strActivityLinkGUID = Guid.NewGuid(),
+                strActivityGUID = link.strActivityGUID,
+                strEntityType = EntityTypeConstants.Contact,
+                strEntityGUID = contact.strContactGUID,
+                dtCreatedOn = now
+            });
+
+            if (accountGuid.HasValue)
+            {
+                await _unitOfWork.ActivityLinks.AddAsync(new MstActivityLink
+                {
+                    strActivityLinkGUID = Guid.NewGuid(),
+                    strActivityGUID = link.strActivityGUID,
+                    strEntityType = EntityTypeConstants.Account,
+                    strEntityGUID = accountGuid.Value,
+                    dtCreatedOn = now
+                });
+            }
+
+            if (opportunityGuid.HasValue)
+            {
+                await _unitOfWork.ActivityLinks.AddAsync(new MstActivityLink
+                {
+                    strActivityLinkGUID = Guid.NewGuid(),
+                    strActivityGUID = link.strActivityGUID,
+                    strEntityType = EntityTypeConstants.Opportunity,
+                    strEntityGUID = opportunityGuid.Value,
+                    dtCreatedOn = now
+                });
+            }
+        }
+
+        lead.strStatus = LeadStatusConstants.Converted;
+        lead.strConvertedAccountGUID = accountGuid;
+        lead.strConvertedContactGUID = contact.strContactGUID;
+        lead.strConvertedOpportunityGUID = opportunityGuid;
+        lead.dtConvertedOn = now;
+        lead.strUpdatedByGUID = userId;
+        lead.dtUpdatedOn = now;
+        _unitOfWork.Leads.Update(lead);
+
+        await _unitOfWork.SaveChangesAsync();
+
+        await _auditLogService.LogAsync(
+            EntityTypeConstants.Lead,
+            lead.strLeadGUID,
+            "Convert",
+            JsonSerializer.Serialize(new
+            {
+                strContactGUID = contact.strContactGUID,
+                strAccountGUID = accountGuid,
+                strOpportunityGUID = opportunityGuid
+            }),
+            userId);
+
+        return new LeadConversionResultDto
+        {
+            strLeadGUID = lead.strLeadGUID,
+            strContactGUID = contact.strContactGUID,
+            strAccountGUID = accountGuid,
+            strOpportunityGUID = opportunityGuid,
+            strMessage = "Lead converted successfully"
+        };
+    }
+
     // === Mapping Methods ===
+
+    private static string BuildDefaultOpportunityName(MstLead lead)
+    {
+        if (!string.IsNullOrWhiteSpace(lead.strCompanyName))
+            return $"{lead.strCompanyName.Trim()} - New Opportunity";
+
+        var fullName = $"{lead.strFirstName} {lead.strLastName}".Trim();
+        return $"{fullName} - Opportunity";
+    }
 
     private static LeadListDto MapToListDto(MstLead lead)
     {

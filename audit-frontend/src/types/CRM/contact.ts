@@ -104,6 +104,51 @@ export interface ContactBulkArchiveDto {
 }
 
 // ============================================================
+// Import / Export
+// ============================================================
+
+export interface ContactImportResultDto {
+  strImportJobGUID: string;
+  strFileName: string;
+  strStatus: string;
+  intTotalRows: number;
+  intProcessedRows: number;
+  intSuccessRows: number;
+  intErrorRows: number;
+  intDuplicateRows: number;
+  strDuplicateHandling: string;
+  dtCreatedOn: string;
+  dtCompletedOn?: string | null;
+}
+
+export interface ContactSuggestMappingResultDto {
+  SuggestedMapping: Record<string, string>;
+  CsvHeaders: string[];
+  AvailableLeadFields: string[];
+}
+
+export type ContactDuplicateHandling = "Skip" | "Update" | "Flag";
+
+export const CONTACT_IMPORTABLE_FIELDS = [
+  { value: "strAccountGUID", label: "Account GUID", required: false },
+  { value: "strFirstName", label: "First Name", required: true },
+  { value: "strLastName", label: "Last Name", required: true },
+  { value: "strEmail", label: "Email", required: true },
+  { value: "strPhone", label: "Phone", required: false },
+  { value: "strMobilePhone", label: "Mobile Phone", required: false },
+  { value: "strJobTitle", label: "Job Title", required: false },
+  { value: "strDepartment", label: "Department", required: false },
+  { value: "strLifecycleStage", label: "Lifecycle Stage", required: false },
+  { value: "strAddress", label: "Address", required: false },
+  { value: "strCity", label: "City", required: false },
+  { value: "strState", label: "State", required: false },
+  { value: "strCountry", label: "Country", required: false },
+  { value: "strPostalCode", label: "Postal Code", required: false },
+  { value: "strNotes", label: "Notes", required: false },
+  { value: "strAssignedToGUID", label: "Assigned To GUID", required: false },
+] as const;
+
+// ============================================================
 // Response Types
 // ============================================================
 

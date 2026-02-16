@@ -7,6 +7,7 @@ import type {
   UpdateContactDto,
   ContactFilterParams,
   ContactBulkArchiveDto,
+  ContactDuplicateHandling,
 } from "@/types/CRM/contact";
 
 export const contactQueryKeys = createQueryKeys("crm-contacts");
@@ -110,5 +111,51 @@ export const useBulkRestoreContacts = () => {
     },
     onError: (error) =>
       handleMutationError(error, "Failed to restore contacts"),
+  });
+};
+
+// ── Import / Export ────────────────────────────────────────────
+
+export const useImportContacts = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      file,
+      columnMapping,
+      duplicateHandling,
+    }: {
+      file: File;
+      columnMapping: Record<string, string>;
+      duplicateHandling?: ContactDuplicateHandling;
+    }) =>
+      contactService.importContacts(file, columnMapping, duplicateHandling),
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({
+        queryKey: contactQueryKeys.lists(),
+      });
+      toast.success(
+        `Import complete: ${result.intSuccessRows} success, ${result.intErrorRows} errors`
+      );
+    },
+    onError: (error) => handleMutationError(error, "Failed to import contacts"),
+  });
+};
+
+export const useExportContacts = () => {
+  return useMutation({
+    mutationFn: ({ params }: { params?: ContactFilterParams }) =>
+      contactService.exportContacts(params),
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "contacts-export.csv";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("Contacts exported successfully");
+    },
+    onError: (error) => handleMutationError(error, "Failed to export contacts"),
   });
 };

@@ -26,12 +26,12 @@ export function PipelineFunnelChart({ data }: PipelineFunnelChartProps) {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <div className="bg-popover text-popover-foreground p-3 border border-border-color rounded-lg shadow-lg">
           <p className="font-semibold text-sm">{data.name}</p>
           <p className="text-sm text-blue-600">
             Value: ₹{data.value.toLocaleString("en-IN")}
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Count: {data.count} deals
           </p>
           {data.rotting > 0 && (
@@ -67,14 +67,14 @@ export function PipelineFunnelChart({ data }: PipelineFunnelChartProps) {
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <XAxis dataKey="name" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
             <YAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
               tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend />
+            <Legend wrapperStyle={{ color: "var(--foreground)" }} />
             <Bar dataKey="value" name="Pipeline Value" radius={[8, 8, 0, 0]}>
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />

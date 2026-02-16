@@ -19,6 +19,7 @@ public class MstContactRepository : IMstContactRepository
     public IQueryable<MstContact> Query() => _context.MstContacts.AsQueryable();
     public IQueryable<MstContact> QueryIncludingDeleted() => _context.MstContacts.IgnoreQueryFilters().AsQueryable();
     public async Task AddAsync(MstContact entity) => await _context.MstContacts.AddAsync(entity);
+    public async Task AddRangeAsync(IEnumerable<MstContact> entities) => await _context.MstContacts.AddRangeAsync(entities);
     public void Update(MstContact entity) => _context.MstContacts.Update(entity);
     public void Delete(MstContact entity) => _context.MstContacts.Remove(entity);
 

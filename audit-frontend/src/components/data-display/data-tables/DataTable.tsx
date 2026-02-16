@@ -58,7 +58,7 @@ export interface DataTableProps<T> {
   pageSizeOptions?: number[];
   columnVisibility?: { [key: string]: boolean };
   alwaysVisibleColumns?: string[];
-  maxHeight?: string; // Add this prop to control the table body's max height
+  maxHeight?: string; // Controls scrollable viewport height; defaults to list-view max height
   minHeight?: string; // Add this prop to control the table body's min height
   isTextWrapped?: boolean; // Whether to wrap text in table cells
   pinnedColumns?: string[]; // Array of column keys that should be pinned
@@ -86,6 +86,8 @@ function DataTableComponent<T>({
   columnWidths = {},
   onColumnWidthsChange,
 }: DataTableProps<T>) {
+  const resolvedMaxHeight = maxHeight ?? "calc(100vh - 350px)";
+
   // Reference to the table element and scrollable container
   const tableRef = React.useRef<HTMLTableElement>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
@@ -539,7 +541,7 @@ function DataTableComponent<T>({
               style={
                 maxHeight || minHeight
                   ? ({
-                      "--max-height": maxHeight,
+                      "--max-height": resolvedMaxHeight,
                       "--min-height": minHeight,
                     } as React.CSSProperties)
                   : {}
@@ -550,7 +552,7 @@ function DataTableComponent<T>({
                 ref={scrollContainerRef}
                 className="w-full overflow-auto "
                 style={{
-                  maxHeight: maxHeight || "none",
+                  maxHeight: resolvedMaxHeight,
                   minHeight: minHeight || "none",
                   scrollbarGutter: "stable",
                 }}

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import type { LeadsBySource, LeadsByStatus } from "@/types/crm/dashboard.types";
 
 interface LeadsDistributionChartProps {
@@ -25,6 +25,19 @@ const STATUS_COLORS = [
   "#6366f1", // Indigo - Converted
 ];
 
+const renderPieLabel = ({ name, percent, x, y }: any) => (
+  <text
+    x={x}
+    y={y}
+    fill="var(--foreground)"
+    textAnchor="middle"
+    dominantBaseline="central"
+    fontSize={11}
+  >
+    {`${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+  </text>
+);
+
 export function LeadsDistributionChart({
   sourceData,
   statusData,
@@ -33,10 +46,10 @@ export function LeadsDistributionChart({
     if (active && payload && payload.length) {
       const data = payload[0];
       return (
-        <div className="bg-white p-2 border border-gray-200 rounded-lg shadow-lg">
+        <div className="bg-popover text-popover-foreground p-2 border border-border-color rounded-lg shadow-lg">
           <p className="text-sm font-semibold">{data.name}</p>
-          <p className="text-sm text-gray-600">Count: {data.value}</p>
-          <p className="text-xs text-gray-500">
+          <p className="text-sm text-muted-foreground">Count: {data.value}</p>
+          <p className="text-xs text-muted-foreground">
             {((data.value / data.payload.total) * 100).toFixed(1)}%
           </p>
         </div>
@@ -75,14 +88,12 @@ export function LeadsDistributionChart({
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) =>
-                  `${name}: ${(percent * 100).toFixed(0)}%`
-                }
+                label={renderPieLabel}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
               >
-                {sourceChartData.map((entry, index) => (
+                {sourceChartData.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={SOURCE_COLORS[index % SOURCE_COLORS.length]}
@@ -108,14 +119,12 @@ export function LeadsDistributionChart({
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) =>
-                  `${name}: ${(percent * 100).toFixed(0)}%`
-                }
+                label={renderPieLabel}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
               >
-                {statusChartData.map((entry, index) => (
+                {statusChartData.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={STATUS_COLORS[index % STATUS_COLORS.length]}

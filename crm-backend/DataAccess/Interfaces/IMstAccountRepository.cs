@@ -5,4 +5,5 @@ namespace crm_backend.DataAccess.Interfaces;
 public interface IMstAccountRepository : IRepository<MstAccount>
 {
     IQueryable<MstAccount> QueryIncludingDeleted();
+    Task AddRangeAsync(IEnumerable<MstAccount> entities);
 }

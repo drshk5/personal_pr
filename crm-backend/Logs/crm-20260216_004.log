@@ -1,0 +1,696 @@
+2026-02-16 15:25:29.263 +05:30 [INF] CRM Backend starting on Development
+2026-02-16 15:25:29.558 +05:30 [WRN] Overriding address(es) 'http://localhost:5005'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-02-16 15:26:08.202 +05:30 [INF] → GET /api/crm/accounts/export
+2026-02-16 15:26:08.213 +05:30 [INF] ← GET /api/crm/accounts/export 401 (12ms)
+2026-02-16 15:26:08.375 +05:30 [INF] → POST /api/crm/accounts/export
+2026-02-16 15:26:08.379 +05:30 [INF] ← POST /api/crm/accounts/export 401 (4ms)
+2026-02-16 15:26:08.388 +05:30 [INF] → GET /api/crm/contacts/export
+2026-02-16 15:26:08.393 +05:30 [INF] ← GET /api/crm/contacts/export 401 (5ms)
+2026-02-16 15:26:08.401 +05:30 [INF] → POST /api/crm/contacts/export
+2026-02-16 15:26:08.405 +05:30 [INF] ← POST /api/crm/contacts/export 401 (3ms)
+2026-02-16 15:26:57.111 +05:30 [INF] → GET /api/crm/contacts/658dad2f-a1e4-4ea4-96f9-a6fd74f989e7
+2026-02-16 15:26:57.296 +05:30 [INF] Querying MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:26:58.657 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:26:58.662 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:27:00.243 +05:30 [WRN] SLOW REQUEST: GET /api/crm/contacts/658dad2f-a1e4-4ea4-96f9-a6fd74f989e7 took 3128ms
+2026-02-16 15:27:00.247 +05:30 [INF] ← GET /api/crm/contacts/658dad2f-a1e4-4ea4-96f9-a6fd74f989e7 200 (3135ms)
+2026-02-16 15:27:10.512 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 15:27:10.521 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:27:10.525 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:27:11.707 +05:30 [WRN] SLOW REQUEST: GET /api/crm/accounts took 1192ms
+2026-02-16 15:27:11.714 +05:30 [INF] ← GET /api/crm/accounts 200 (1201ms)
+2026-02-16 15:27:13.104 +05:30 [INF] → GET /api/crm/activities/upcoming
+2026-02-16 15:27:13.109 +05:30 [INF] → GET /api/crm/activities
+2026-02-16 15:27:13.113 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:27:13.116 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:27:13.118 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:27:13.219 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:27:13.441 +05:30 [INF] ← GET /api/crm/activities/upcoming 200 (336ms)
+2026-02-16 15:27:13.612 +05:30 [INF] ← GET /api/crm/activities 200 (502ms)
+2026-02-16 15:32:34.363 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 15:32:34.384 +05:30 [INF] Querying MstGroupModule for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:32:34.542 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:32:34.544 +05:30 [INF] Resolved CRM context. GroupGUID: "a4cda11d-7480-40f2-902a-aa6aaa377617", OrganizationGUID: "b014af82-5e93-4093-a0e3-6e5108afd8a9", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_b014af825e934093a0e36e5108afd8a9
+2026-02-16 15:32:34.939 +05:30 [WRN] SLOW REQUEST: GET /api/crm/contacts took 559ms
+2026-02-16 15:32:34.942 +05:30 [INF] ← GET /api/crm/contacts 200 (579ms)
+2026-02-16 15:43:04.483 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 15:43:04.486 +05:30 [INF] Querying MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:04.506 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:04.510 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:04.909 +05:30 [INF] ← GET /api/crm/accounts 200 (426ms)
+2026-02-16 15:43:06.488 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-16 15:43:06.494 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-16 15:43:06.587 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:06.597 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:06.600 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:06.605 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:06.838 +05:30 [INF] ← GET /api/crm/pipelines 200 (350ms)
+2026-02-16 15:43:06.873 +05:30 [INF] ← GET /api/crm/opportunities 200 (378ms)
+2026-02-16 15:43:32.247 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 15:43:32.253 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:32.255 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:32.447 +05:30 [INF] ← GET /api/crm/contacts 200 (200ms)
+2026-02-16 15:43:33.636 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 15:43:33.641 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:33.644 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:33.820 +05:30 [INF] ← GET /api/crm/contacts 200 (183ms)
+2026-02-16 15:43:35.419 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 15:43:35.422 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:35.425 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:35.607 +05:30 [INF] ← GET /api/crm/contacts 200 (188ms)
+2026-02-16 15:43:35.951 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 15:43:35.954 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:35.957 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:36.131 +05:30 [INF] ← GET /api/crm/contacts 200 (179ms)
+2026-02-16 15:43:37.129 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 15:43:37.132 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:37.136 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:37.319 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 15:43:37.321 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:37.324 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:37.333 +05:30 [ERR] Unhandled exception: No property or field 'strAccountName' exists in type 'MstContact'
+No property or field 'strAccountName' exists in type 'MstContact' (at index 0)
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseMemberAccess(Type type, Expression expression, String id)
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseIdentifier()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParsePrimaryStart()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParsePrimary()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseUnary()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseArithmetic()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseAdditive()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseShiftOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseComparisonOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseLogicalAndOrOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseIn()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseAndOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseOrOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseLambdaOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseNullCoalescingOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseConditionalOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseOrdering(Boolean forceThenBy)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.InternalOrderBy(IQueryable source, ParsingConfig config, String ordering, Object comparer, Object[] args)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.OrderBy(IQueryable source, ParsingConfig config, String ordering, Object[] args)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.OrderBy[TSource](IQueryable`1 source, ParsingConfig config, String ordering, Object[] args)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.OrderBy[TSource](IQueryable`1 source, String ordering, Object[] args)
+   at crm_backend.ApplicationServices.CustomerData.MstContactApplicationService.GetContactsAsync(ContactFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\ApplicationServices\CustomerData\MstContactApplicationService.cs:line 71
+   at crm_backend.Controllers.ContactsController.GetContacts(ContactFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\Controllers\ContactsController.cs:line 36
+   at lambda_method239(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.PerformanceMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\PerformanceMiddleware.cs:line 21
+   at crm_backend.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\RequestLoggingMiddleware.cs:line 24
+   at crm_backend.Middleware.TenantContextMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TenantContextMiddleware.cs:line 32
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.TokenValidationMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TokenValidationMiddleware.cs:line 37
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at crm_backend.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\ExceptionHandlingMiddleware.cs:line 22
+2026-02-16 15:43:37.520 +05:30 [ERR] Unhandled exception: No property or field 'strAccountName' exists in type 'MstContact'
+No property or field 'strAccountName' exists in type 'MstContact' (at index 0)
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseMemberAccess(Type type, Expression expression, String id)
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseIdentifier()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParsePrimaryStart()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParsePrimary()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseUnary()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseArithmetic()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseAdditive()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseShiftOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseComparisonOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseLogicalAndOrOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseIn()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseAndOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseOrOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseLambdaOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseNullCoalescingOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseConditionalOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseOrdering(Boolean forceThenBy)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.InternalOrderBy(IQueryable source, ParsingConfig config, String ordering, Object comparer, Object[] args)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.OrderBy(IQueryable source, ParsingConfig config, String ordering, Object[] args)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.OrderBy[TSource](IQueryable`1 source, ParsingConfig config, String ordering, Object[] args)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.OrderBy[TSource](IQueryable`1 source, String ordering, Object[] args)
+   at crm_backend.ApplicationServices.CustomerData.MstContactApplicationService.GetContactsAsync(ContactFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\ApplicationServices\CustomerData\MstContactApplicationService.cs:line 71
+   at crm_backend.Controllers.ContactsController.GetContacts(ContactFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\Controllers\ContactsController.cs:line 36
+   at lambda_method239(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.PerformanceMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\PerformanceMiddleware.cs:line 21
+   at crm_backend.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\RequestLoggingMiddleware.cs:line 24
+   at crm_backend.Middleware.TenantContextMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TenantContextMiddleware.cs:line 32
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.TokenValidationMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TokenValidationMiddleware.cs:line 37
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at crm_backend.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\ExceptionHandlingMiddleware.cs:line 22
+2026-02-16 15:43:39.641 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 15:43:39.644 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:43:39.647 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:43:39.831 +05:30 [ERR] Unhandled exception: No property or field 'strAccountName' exists in type 'MstContact'
+No property or field 'strAccountName' exists in type 'MstContact' (at index 0)
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseMemberAccess(Type type, Expression expression, String id)
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseIdentifier()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParsePrimaryStart()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParsePrimary()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseUnary()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseArithmetic()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseAdditive()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseShiftOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseComparisonOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseLogicalAndOrOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseIn()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseAndOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseOrOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseLambdaOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseNullCoalescingOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseConditionalOperator()
+   at System.Linq.Dynamic.Core.Parser.ExpressionParser.ParseOrdering(Boolean forceThenBy)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.InternalOrderBy(IQueryable source, ParsingConfig config, String ordering, Object comparer, Object[] args)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.OrderBy(IQueryable source, ParsingConfig config, String ordering, Object[] args)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.OrderBy[TSource](IQueryable`1 source, ParsingConfig config, String ordering, Object[] args)
+   at System.Linq.Dynamic.Core.DynamicQueryableExtensions.OrderBy[TSource](IQueryable`1 source, String ordering, Object[] args)
+   at crm_backend.ApplicationServices.CustomerData.MstContactApplicationService.GetContactsAsync(ContactFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\ApplicationServices\CustomerData\MstContactApplicationService.cs:line 71
+   at crm_backend.Controllers.ContactsController.GetContacts(ContactFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\Controllers\ContactsController.cs:line 36
+   at lambda_method239(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.PerformanceMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\PerformanceMiddleware.cs:line 21
+   at crm_backend.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\RequestLoggingMiddleware.cs:line 24
+   at crm_backend.Middleware.TenantContextMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TenantContextMiddleware.cs:line 32
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.TokenValidationMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TokenValidationMiddleware.cs:line 37
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at crm_backend.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\ExceptionHandlingMiddleware.cs:line 22
+2026-02-16 15:49:25.053 +05:30 [INF] → GET /api/crm/leads/assignment-rules
+2026-02-16 15:49:25.061 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:49:25.066 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:49:25.511 +05:30 [INF] ← GET /api/crm/leads/assignment-rules 200 (457ms)
+2026-02-16 15:52:10.263 +05:30 [INF] → GET /api/crm/leads/e7a49ee4-e039-4031-a151-5b5507ae2aa7
+2026-02-16 15:52:10.268 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:52:10.271 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:52:10.639 +05:30 [INF] ← GET /api/crm/leads/e7a49ee4-e039-4031-a151-5b5507ae2aa7 200 (376ms)
+2026-02-16 15:52:17.494 +05:30 [INF] → PUT /api/crm/leads/e7a49ee4-e039-4031-a151-5b5507ae2aa7
+2026-02-16 15:52:17.502 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:52:17.506 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:52:18.061 +05:30 [WRN] SLOW REQUEST: PUT /api/crm/leads/e7a49ee4-e039-4031-a151-5b5507ae2aa7 took 563ms
+2026-02-16 15:52:18.067 +05:30 [INF] ← PUT /api/crm/leads/e7a49ee4-e039-4031-a151-5b5507ae2aa7 200 (573ms)
+2026-02-16 15:52:18.115 +05:30 [INF] → GET /api/crm/leads/e7a49ee4-e039-4031-a151-5b5507ae2aa7
+2026-02-16 15:52:18.118 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:52:18.122 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:52:18.124 +05:30 [INF] → GET /api/crm/leads
+2026-02-16 15:52:18.224 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:52:18.231 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 15:52:18.446 +05:30 [INF] ← GET /api/crm/leads/e7a49ee4-e039-4031-a151-5b5507ae2aa7 200 (331ms)
+2026-02-16 15:52:18.496 +05:30 [INF] ← GET /api/crm/leads 200 (372ms)
+2026-02-16 15:55:20.696 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-16 15:55:20.696 +05:30 [INF] → GET /api/crm/leads
+2026-02-16 15:55:20.704 +05:30 [INF] Querying MstGroupModule for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:55:20.707 +05:30 [INF] Querying MstGroupModule for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:55:20.716 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:55:20.716 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 15:55:20.720 +05:30 [INF] Resolved CRM context. GroupGUID: "a4cda11d-7480-40f2-902a-aa6aaa377617", OrganizationGUID: "b014af82-5e93-4093-a0e3-6e5108afd8a9", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_b014af825e934093a0e36e5108afd8a9
+2026-02-16 15:55:20.722 +05:30 [INF] Resolved CRM context. GroupGUID: "a4cda11d-7480-40f2-902a-aa6aaa377617", OrganizationGUID: "b014af82-5e93-4093-a0e3-6e5108afd8a9", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_b014af825e934093a0e36e5108afd8a9
+2026-02-16 15:55:20.921 +05:30 [INF] Generating lead dashboard for tenant "a4cda11d-7480-40f2-902a-aa6aaa377617"
+2026-02-16 15:55:20.971 +05:30 [INF] ← GET /api/crm/leads 200 (274ms)
+2026-02-16 15:55:21.120 +05:30 [INF] Generating lead funnel analytics for tenant "a4cda11d-7480-40f2-902a-aa6aaa377617"
+2026-02-16 15:55:21.126 +05:30 [INF] Generating time-to-conversion analytics for tenant "a4cda11d-7480-40f2-902a-aa6aaa377617"
+2026-02-16 15:55:21.137 +05:30 [INF] Generating lead velocity analytics for tenant "a4cda11d-7480-40f2-902a-aa6aaa377617"
+2026-02-16 15:55:21.342 +05:30 [INF] Generating conversion-by-rep analytics for tenant "a4cda11d-7480-40f2-902a-aa6aaa377617"
+2026-02-16 15:55:22.048 +05:30 [WRN] SLOW REQUEST: GET /api/crm/leads/analytics took 1345ms
+2026-02-16 15:55:22.052 +05:30 [INF] ← GET /api/crm/leads/analytics 200 (1355ms)
+2026-02-16 16:00:21.246 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 16:00:21.251 +05:30 [INF] Querying MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:00:21.258 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:00:21.262 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:00:21.606 +05:30 [INF] ← GET /api/crm/accounts 200 (360ms)
+2026-02-16 16:02:05.473 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-16 16:02:05.864 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:02:05.888 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:02:06.085 +05:30 [INF] → GET /api/crm/leads
+2026-02-16 16:02:06.101 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:02:06.105 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:02:06.127 +05:30 [INF] Generating lead dashboard for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:02:06.594 +05:30 [INF] Generating lead funnel analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:02:06.626 +05:30 [WRN] SLOW REQUEST: GET /api/crm/leads took 525ms
+2026-02-16 16:02:06.815 +05:30 [INF] Generating time-to-conversion analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:02:06.852 +05:30 [INF] ← GET /api/crm/leads 200 (767ms)
+2026-02-16 16:02:06.881 +05:30 [INF] Generating lead velocity analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:02:07.214 +05:30 [INF] Generating conversion-by-rep analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:02:07.235 +05:30 [WRN] SLOW REQUEST: GET /api/crm/leads/analytics took 1371ms
+2026-02-16 16:02:07.240 +05:30 [INF] ← GET /api/crm/leads/analytics 200 (1766ms)
+2026-02-16 16:02:26.947 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 16:02:26.950 +05:30 [INF] Querying MstGroupModule for Group "0388216c-9f32-450a-8a19-ddcb910ba510" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:02:26.956 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "0388216c-9f32-450a-8a19-ddcb910ba510" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:02:26.960 +05:30 [INF] Resolved CRM context. GroupGUID: "0388216c-9f32-450a-8a19-ddcb910ba510", OrganizationGUID: "88f8de5f-300a-498f-90bf-d7f882c3f760", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_88f8de5f300a498f90bfd7f882c3f760
+2026-02-16 16:02:27.144 +05:30 [ERR] Unhandled exception: Invalid column name 'bolIsDeleted'.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'bolIsDeleted'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at crm_backend.ApplicationServices.CustomerData.MstAccountApplicationService.GetAccountsAsync(AccountFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\ApplicationServices\CustomerData\MstAccountApplicationService.cs:line 61
+   at crm_backend.Controllers.AccountsController.GetAccounts(AccountFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\Controllers\AccountsController.cs:line 36
+   at lambda_method91(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.PerformanceMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\PerformanceMiddleware.cs:line 21
+   at crm_backend.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\RequestLoggingMiddleware.cs:line 24
+   at crm_backend.Middleware.TenantContextMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TenantContextMiddleware.cs:line 32
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.TokenValidationMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TokenValidationMiddleware.cs:line 37
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at crm_backend.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\ExceptionHandlingMiddleware.cs:line 22
+ClientConnectionId:9709755e-a259-4741-8db0-19e9c533385c
+Error Number:207,State:1,Class:16
+2026-02-16 16:02:29.292 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 16:02:29.294 +05:30 [INF] Connection string found in cache for Group "0388216c-9f32-450a-8a19-ddcb910ba510" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:02:29.297 +05:30 [INF] Resolved CRM context. GroupGUID: "0388216c-9f32-450a-8a19-ddcb910ba510", OrganizationGUID: "88f8de5f-300a-498f-90bf-d7f882c3f760", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_88f8de5f300a498f90bfd7f882c3f760
+2026-02-16 16:02:29.366 +05:30 [ERR] Unhandled exception: Invalid column name 'bolIsDeleted'.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'bolIsDeleted'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at crm_backend.ApplicationServices.CustomerData.MstAccountApplicationService.GetAccountsAsync(AccountFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\ApplicationServices\CustomerData\MstAccountApplicationService.cs:line 61
+   at crm_backend.Controllers.AccountsController.GetAccounts(AccountFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\Controllers\AccountsController.cs:line 36
+   at lambda_method91(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.PerformanceMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\PerformanceMiddleware.cs:line 21
+   at crm_backend.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\RequestLoggingMiddleware.cs:line 24
+   at crm_backend.Middleware.TenantContextMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TenantContextMiddleware.cs:line 32
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.TokenValidationMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TokenValidationMiddleware.cs:line 37
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at crm_backend.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\ExceptionHandlingMiddleware.cs:line 22
+ClientConnectionId:9709755e-a259-4741-8db0-19e9c533385c
+Error Number:207,State:1,Class:16
+2026-02-16 16:04:30.642 +05:30 [INF] → GET /api/crm/leads
+2026-02-16 16:04:30.645 +05:30 [INF] Connection string found in cache for Group "0388216c-9f32-450a-8a19-ddcb910ba510" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:04:30.642 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-16 16:04:30.649 +05:30 [INF] Resolved CRM context. GroupGUID: "0388216c-9f32-450a-8a19-ddcb910ba510", OrganizationGUID: "88f8de5f-300a-498f-90bf-d7f882c3f760", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_88f8de5f300a498f90bfd7f882c3f760
+2026-02-16 16:04:30.650 +05:30 [INF] Connection string found in cache for Group "0388216c-9f32-450a-8a19-ddcb910ba510" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:04:30.657 +05:30 [INF] Resolved CRM context. GroupGUID: "0388216c-9f32-450a-8a19-ddcb910ba510", OrganizationGUID: "88f8de5f-300a-498f-90bf-d7f882c3f760", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_88f8de5f300a498f90bfd7f882c3f760
+2026-02-16 16:04:30.817 +05:30 [ERR] Unhandled exception: Invalid column name 'bolIsDeleted'.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'bolIsDeleted'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at crm_backend.ApplicationServices.CustomerData.MstLeadApplicationService.GetLeadsAsync(LeadFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\ApplicationServices\CustomerData\MstLeadApplicationService.cs:line 79
+   at crm_backend.Controllers.LeadsController.GetLeads(LeadFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\Controllers\LeadsController.cs:line 45
+   at lambda_method1459(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.PerformanceMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\PerformanceMiddleware.cs:line 21
+   at crm_backend.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\RequestLoggingMiddleware.cs:line 24
+   at crm_backend.Middleware.TenantContextMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TenantContextMiddleware.cs:line 32
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.TokenValidationMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TokenValidationMiddleware.cs:line 37
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at crm_backend.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\ExceptionHandlingMiddleware.cs:line 22
+ClientConnectionId:9709755e-a259-4741-8db0-19e9c533385c
+Error Number:207,State:1,Class:16
+2026-02-16 16:04:30.832 +05:30 [INF] Generating lead dashboard for tenant "0388216c-9f32-450a-8a19-ddcb910ba510"
+2026-02-16 16:04:30.846 +05:30 [ERR] Unhandled exception: Invalid column name 'bolIsDeleted'.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'bolIsDeleted'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at crm_backend.Services.CustomerData.MstLeadAnalyticsService.GetDashboardAsync(Guid tenantId) in C:\Users\HP\personal_pr\crm-backend\Services\CustomerData\MstLeadAnalyticsService.cs:line 28
+   at crm_backend.ApplicationServices.CustomerData.MstLeadAnalyticsApplicationService.GetDashboardAsync() in C:\Users\HP\personal_pr\crm-backend\ApplicationServices\CustomerData\MstLeadAnalyticsApplicationService.cs:line 25
+   at crm_backend.Controllers.LeadsController.GetAnalytics(AnalyticsDateRangeParams dateRange) in C:\Users\HP\personal_pr\crm-backend\Controllers\LeadsController.cs:line 145
+   at lambda_method1933(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.PerformanceMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\PerformanceMiddleware.cs:line 21
+   at crm_backend.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\RequestLoggingMiddleware.cs:line 24
+   at crm_backend.Middleware.TenantContextMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TenantContextMiddleware.cs:line 32
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.TokenValidationMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TokenValidationMiddleware.cs:line 37
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at crm_backend.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\ExceptionHandlingMiddleware.cs:line 22
+ClientConnectionId:9709755e-a259-4741-8db0-19e9c533385c
+Error Number:207,State:1,Class:16
+2026-02-16 16:04:32.974 +05:30 [INF] → GET /api/crm/leads
+2026-02-16 16:04:32.978 +05:30 [INF] Connection string found in cache for Group "0388216c-9f32-450a-8a19-ddcb910ba510" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:04:32.976 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-16 16:04:32.982 +05:30 [INF] Resolved CRM context. GroupGUID: "0388216c-9f32-450a-8a19-ddcb910ba510", OrganizationGUID: "88f8de5f-300a-498f-90bf-d7f882c3f760", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_88f8de5f300a498f90bfd7f882c3f760
+2026-02-16 16:04:32.984 +05:30 [INF] Connection string found in cache for Group "0388216c-9f32-450a-8a19-ddcb910ba510" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:04:32.991 +05:30 [INF] Resolved CRM context. GroupGUID: "0388216c-9f32-450a-8a19-ddcb910ba510", OrganizationGUID: "88f8de5f-300a-498f-90bf-d7f882c3f760", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_88f8de5f300a498f90bfd7f882c3f760
+2026-02-16 16:04:33.153 +05:30 [ERR] Unhandled exception: Invalid column name 'bolIsDeleted'.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'bolIsDeleted'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at crm_backend.ApplicationServices.CustomerData.MstLeadApplicationService.GetLeadsAsync(LeadFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\ApplicationServices\CustomerData\MstLeadApplicationService.cs:line 79
+   at crm_backend.Controllers.LeadsController.GetLeads(LeadFilterParams filter) in C:\Users\HP\personal_pr\crm-backend\Controllers\LeadsController.cs:line 45
+   at lambda_method1459(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.PerformanceMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\PerformanceMiddleware.cs:line 21
+   at crm_backend.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\RequestLoggingMiddleware.cs:line 24
+   at crm_backend.Middleware.TenantContextMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TenantContextMiddleware.cs:line 32
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.TokenValidationMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TokenValidationMiddleware.cs:line 37
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at crm_backend.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\ExceptionHandlingMiddleware.cs:line 22
+ClientConnectionId:9709755e-a259-4741-8db0-19e9c533385c
+Error Number:207,State:1,Class:16
+2026-02-16 16:04:33.170 +05:30 [INF] Generating lead dashboard for tenant "0388216c-9f32-450a-8a19-ddcb910ba510"
+2026-02-16 16:04:33.183 +05:30 [ERR] Unhandled exception: Invalid column name 'bolIsDeleted'.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'bolIsDeleted'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at crm_backend.Services.CustomerData.MstLeadAnalyticsService.GetDashboardAsync(Guid tenantId) in C:\Users\HP\personal_pr\crm-backend\Services\CustomerData\MstLeadAnalyticsService.cs:line 28
+   at crm_backend.ApplicationServices.CustomerData.MstLeadAnalyticsApplicationService.GetDashboardAsync() in C:\Users\HP\personal_pr\crm-backend\ApplicationServices\CustomerData\MstLeadAnalyticsApplicationService.cs:line 25
+   at crm_backend.Controllers.LeadsController.GetAnalytics(AnalyticsDateRangeParams dateRange) in C:\Users\HP\personal_pr\crm-backend\Controllers\LeadsController.cs:line 145
+   at lambda_method1933(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.PerformanceMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\PerformanceMiddleware.cs:line 21
+   at crm_backend.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\RequestLoggingMiddleware.cs:line 24
+   at crm_backend.Middleware.TenantContextMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TenantContextMiddleware.cs:line 32
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at crm_backend.Middleware.TokenValidationMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\TokenValidationMiddleware.cs:line 37
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at crm_backend.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in C:\Users\HP\personal_pr\crm-backend\Middleware\ExceptionHandlingMiddleware.cs:line 22
+ClientConnectionId:9709755e-a259-4741-8db0-19e9c533385c
+Error Number:207,State:1,Class:16
+2026-02-16 16:17:49.551 +05:30 [INF] CRM Backend starting on Development
+2026-02-16 16:17:50.670 +05:30 [WRN] Overriding address(es) 'http://localhost:5005'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-02-16 16:18:40.487 +05:30 [INF] → GET /api/crm/leads
+2026-02-16 16:18:40.487 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-16 16:18:40.679 +05:30 [INF] Querying MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:18:40.679 +05:30 [INF] Querying MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:18:41.861 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:18:41.861 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:18:41.865 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:18:41.866 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:18:42.796 +05:30 [INF] Generating lead dashboard for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:18:44.933 +05:30 [WRN] SLOW REQUEST: GET /api/crm/leads took 4440ms
+2026-02-16 16:18:44.937 +05:30 [INF] ← GET /api/crm/leads 200 (4450ms)
+2026-02-16 16:18:44.942 +05:30 [INF] Generating lead funnel analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:18:45.154 +05:30 [INF] Generating time-to-conversion analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:18:45.375 +05:30 [INF] Generating lead velocity analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:18:47.316 +05:30 [INF] Generating conversion-by-rep analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:18:47.471 +05:30 [WRN] SLOW REQUEST: GET /api/crm/leads/analytics took 6977ms
+2026-02-16 16:18:47.475 +05:30 [INF] ← GET /api/crm/leads/analytics 200 (6988ms)
+2026-02-16 16:18:58.801 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 16:18:58.812 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:18:58.816 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:19:00.123 +05:30 [WRN] SLOW REQUEST: GET /api/crm/contacts took 1318ms
+2026-02-16 16:19:00.128 +05:30 [INF] ← GET /api/crm/contacts 200 (1326ms)
+2026-02-16 16:19:24.985 +05:30 [INF] → GET /api/crm/contacts/a1213f7e-98ca-40fa-8b4e-2ea0f736f566
+2026-02-16 16:19:24.990 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:19:24.993 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:19:25.433 +05:30 [INF] ← GET /api/crm/contacts/a1213f7e-98ca-40fa-8b4e-2ea0f736f566 200 (447ms)
+2026-02-16 16:20:56.700 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 16:20:56.706 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:20:56.709 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:20:57.507 +05:30 [WRN] SLOW REQUEST: GET /api/crm/accounts took 804ms
+2026-02-16 16:20:57.511 +05:30 [INF] ← GET /api/crm/accounts 200 (810ms)
+2026-02-16 16:21:20.364 +05:30 [INF] → POST /api/crm/accounts
+2026-02-16 16:21:20.372 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:20.376 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:20.994 +05:30 [INF] Account created: "08916f0f-5a81-4beb-817d-6577872dcd11" by "34ec6e60-c785-4d93-b898-7596ff86a368"
+2026-02-16 16:21:22.474 +05:30 [WRN] SLOW REQUEST: POST /api/crm/accounts took 2106ms
+2026-02-16 16:21:22.478 +05:30 [INF] ← POST /api/crm/accounts 201 (2113ms)
+2026-02-16 16:21:25.018 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 16:21:25.023 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:25.027 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:26.372 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 16:21:26.374 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:26.378 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:28.353 +05:30 [WRN] SLOW REQUEST: GET /api/crm/accounts took 3331ms
+2026-02-16 16:21:28.356 +05:30 [INF] ← GET /api/crm/accounts 200 (3338ms)
+2026-02-16 16:21:28.889 +05:30 [WRN] SLOW REQUEST: GET /api/crm/accounts took 2515ms
+2026-02-16 16:21:28.894 +05:30 [INF] ← GET /api/crm/accounts 200 (2521ms)
+2026-02-16 16:21:32.653 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 16:21:32.656 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:32.658 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:33.193 +05:30 [WRN] SLOW REQUEST: GET /api/crm/accounts took 537ms
+2026-02-16 16:21:33.195 +05:30 [INF] ← GET /api/crm/accounts 200 (542ms)
+2026-02-16 16:21:34.179 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-16 16:21:34.189 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:34.194 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-16 16:21:34.195 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:34.201 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:34.203 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:34.575 +05:30 [INF] ← GET /api/crm/pipelines 200 (395ms)
+2026-02-16 16:21:34.978 +05:30 [WRN] SLOW REQUEST: GET /api/crm/opportunities took 780ms
+2026-02-16 16:21:34.982 +05:30 [INF] ← GET /api/crm/opportunities 200 (788ms)
+2026-02-16 16:21:40.796 +05:30 [INF] → GET /api/crm/opportunities/8f65bfe0-59d1-4bdd-95f3-9eb150e0ea5f
+2026-02-16 16:21:40.806 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:40.814 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:41.692 +05:30 [WRN] SLOW REQUEST: GET /api/crm/opportunities/8f65bfe0-59d1-4bdd-95f3-9eb150e0ea5f took 889ms
+2026-02-16 16:21:41.696 +05:30 [INF] ← GET /api/crm/opportunities/8f65bfe0-59d1-4bdd-95f3-9eb150e0ea5f 200 (899ms)
+2026-02-16 16:21:42.076 +05:30 [INF] → GET /api/crm/pipelines/23e8a54b-0316-45e1-9be3-20aaf26e3d3f
+2026-02-16 16:21:42.081 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:42.083 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:58.800 +05:30 [INF] → GET /api/crm/activities/upcoming
+2026-02-16 16:21:58.802 +05:30 [INF] → GET /api/crm/activities
+2026-02-16 16:21:58.809 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:58.810 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:21:58.812 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:58.819 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:21:59.253 +05:30 [INF] ← GET /api/crm/activities/upcoming 200 (452ms)
+2026-02-16 16:21:59.833 +05:30 [WRN] SLOW REQUEST: GET /api/crm/activities took 1025ms
+2026-02-16 16:21:59.836 +05:30 [INF] ← GET /api/crm/activities 200 (1033ms)
+2026-02-16 16:22:33.156 +05:30 [INF] → GET /api/crm/activities/upcoming
+2026-02-16 16:22:33.159 +05:30 [INF] → GET /api/crm/activities
+2026-02-16 16:22:33.159 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:22:33.163 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:22:33.164 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:22:33.167 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:22:33.374 +05:30 [INF] ← GET /api/crm/activities/upcoming 200 (217ms)
+2026-02-16 16:22:34.730 +05:30 [INF] → GET /api/crm/activities/upcoming
+2026-02-16 16:22:34.733 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:22:34.736 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:22:35.136 +05:30 [WRN] SLOW REQUEST: GET /api/crm/activities took 1972ms
+2026-02-16 16:22:35.140 +05:30 [INF] ← GET /api/crm/activities 200 (1981ms)
+2026-02-16 16:22:35.266 +05:30 [WRN] SLOW REQUEST: GET /api/crm/activities/upcoming took 534ms
+2026-02-16 16:22:35.316 +05:30 [INF] ← GET /api/crm/activities/upcoming 200 (585ms)
+2026-02-16 16:22:35.351 +05:30 [INF] → GET /api/crm/activities
+2026-02-16 16:22:35.353 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:22:35.448 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:22:36.287 +05:30 [WRN] SLOW REQUEST: GET /api/crm/activities took 933ms
+2026-02-16 16:22:36.292 +05:30 [INF] ← GET /api/crm/activities 200 (940ms)
+2026-02-16 16:22:43.222 +05:30 [WRN] SLOW REQUEST: GET /api/crm/pipelines/23e8a54b-0316-45e1-9be3-20aaf26e3d3f took 61144ms
+2026-02-16 16:22:43.225 +05:30 [INF] ← GET /api/crm/pipelines/23e8a54b-0316-45e1-9be3-20aaf26e3d3f 200 (61149ms)
+2026-02-16 16:27:50.225 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 16:27:50.228 +05:30 [INF] Querying MstGroupModule for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:27:50.232 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:27:50.234 +05:30 [INF] Resolved CRM context. GroupGUID: "a4cda11d-7480-40f2-902a-aa6aaa377617", OrganizationGUID: "b014af82-5e93-4093-a0e3-6e5108afd8a9", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_b014af825e934093a0e36e5108afd8a9
+2026-02-16 16:27:50.425 +05:30 [INF] ← GET /api/crm/accounts 200 (200ms)
+2026-02-16 16:28:06.858 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 16:28:06.861 +05:30 [INF] Connection string found in cache for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:28:06.864 +05:30 [INF] Resolved CRM context. GroupGUID: "a4cda11d-7480-40f2-902a-aa6aaa377617", OrganizationGUID: "b014af82-5e93-4093-a0e3-6e5108afd8a9", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_b014af825e934093a0e36e5108afd8a9
+2026-02-16 16:28:06.945 +05:30 [INF] ← GET /api/crm/contacts 200 (87ms)
+2026-02-16 16:29:33.611 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-16 16:29:33.617 +05:30 [INF] ← GET /api/crm/pipelines 400 (6ms)
+2026-02-16 16:35:51.539 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 16:35:51.542 +05:30 [INF] Connection string found in cache for Group "a4cda11d-7480-40f2-902a-aa6aaa377617" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:35:51.544 +05:30 [INF] Resolved CRM context. GroupGUID: "a4cda11d-7480-40f2-902a-aa6aaa377617", OrganizationGUID: "b014af82-5e93-4093-a0e3-6e5108afd8a9", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_b014af825e934093a0e36e5108afd8a9
+2026-02-16 16:35:52.138 +05:30 [WRN] SLOW REQUEST: GET /api/crm/contacts took 596ms
+2026-02-16 16:35:52.141 +05:30 [INF] ← GET /api/crm/contacts 200 (601ms)
+2026-02-16 16:36:55.802 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 16:36:55.809 +05:30 [INF] Querying MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:36:55.847 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:36:55.859 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:36:56.324 +05:30 [INF] → GET /api/crm/leads
+2026-02-16 16:36:56.337 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:36:56.349 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-16 16:36:56.369 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:36:56.373 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:36:56.377 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:36:56.489 +05:30 [INF] Generating lead dashboard for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:36:56.752 +05:30 [WRN] SLOW REQUEST: GET /api/crm/contacts took 943ms
+2026-02-16 16:36:56.806 +05:30 [INF] ← GET /api/crm/contacts 200 (1004ms)
+2026-02-16 16:36:57.797 +05:30 [WRN] SLOW REQUEST: GET /api/crm/leads took 1461ms
+2026-02-16 16:36:57.804 +05:30 [INF] ← GET /api/crm/leads 200 (1479ms)
+2026-02-16 16:36:58.342 +05:30 [INF] Generating lead funnel analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:36:58.763 +05:30 [INF] Generating time-to-conversion analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:36:58.862 +05:30 [INF] Generating lead velocity analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:37:00.224 +05:30 [INF] Generating conversion-by-rep analytics for tenant "27acdd52-e7cd-4654-ac3c-7d61d81fc915"
+2026-02-16 16:37:00.244 +05:30 [WRN] SLOW REQUEST: GET /api/crm/leads/analytics took 3871ms
+2026-02-16 16:37:00.247 +05:30 [INF] ← GET /api/crm/leads/analytics 200 (3898ms)
+2026-02-16 16:37:17.380 +05:30 [INF] → GET /api/crm/contacts
+2026-02-16 16:37:17.384 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:37:17.388 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:37:17.760 +05:30 [INF] ← GET /api/crm/contacts 200 (379ms)
+2026-02-16 16:37:22.561 +05:30 [INF] → GET /api/crm/contacts/a1213f7e-98ca-40fa-8b4e-2ea0f736f566
+2026-02-16 16:37:22.566 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:37:22.569 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:37:22.705 +05:30 [INF] ← GET /api/crm/contacts/a1213f7e-98ca-40fa-8b4e-2ea0f736f566 200 (143ms)
+2026-02-16 16:37:37.472 +05:30 [INF] → GET /api/crm/accounts
+2026-02-16 16:37:37.473 +05:30 [INF] Connection string found in cache for Group "27acdd52-e7cd-4654-ac3c-7d61d81fc915" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-16 16:37:37.475 +05:30 [INF] Resolved CRM context. GroupGUID: "27acdd52-e7cd-4654-ac3c-7d61d81fc915", OrganizationGUID: "5c46bc2e-d930-47fa-8c22-5954a6025230", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_5c46bc2ed93047fa8c225954a6025230
+2026-02-16 16:37:37.716 +05:30 [INF] ← GET /api/crm/accounts 200 (244ms)

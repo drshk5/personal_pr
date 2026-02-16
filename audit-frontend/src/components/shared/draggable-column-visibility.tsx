@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   DndContext,
   closestCenter,
@@ -35,12 +35,11 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogOverlay,
-  DialogPortal,
 } from "@/components/ui/dialog";
 import type { DataTableColumn } from "@/components/data-display/data-tables/DataTable";
 
@@ -148,14 +147,19 @@ function SortableColumnItem({
       </div>
 
       {/* Label */}
-      <label
-        htmlFor={`column-${id}`}
-        className={`flex-1 text-sm select-none ${
+      <button
+        type="button"
+        onClick={() => {
+          if (disabled) return;
+          onVisibilityChange(!visible);
+        }}
+        className={`flex-1 text-left text-sm select-none ${
           !visible && !disabled ? "text-muted-foreground" : ""
         } ${disabled ? "cursor-not-allowed text-muted-foreground/70" : "cursor-pointer"}`}
+        disabled={disabled}
       >
         {label}
-      </label>
+      </button>
 
       {/* Pin Icon */}
       {visible && !disabled && (
@@ -232,7 +236,7 @@ export function DraggableColumnVisibility<T>({
   );
 
   // Sync column states when dialog opens
-  const handleOpenChange = (isOpen: boolean) => {
+  const handleOpenChange = useCallback((isOpen: boolean) => {
     if (isOpen) {
       // Use saved order if available, otherwise use current columns order
       const columnsToUse =
@@ -253,8 +257,8 @@ export function DraggableColumnVisibility<T>({
       );
       setSearchQuery(""); // Reset search when opening
     }
-    setOpen(isOpen);
-  };
+    setOpen((prev) => (prev === isOpen ? prev : isOpen));
+  }, [savedColumnOrder, safeColumns, columnVisibility, pinnedColumns]);
 
   // DnD sensors
   const sensors = useSensors(
@@ -381,7 +385,7 @@ export function DraggableColumnVisibility<T>({
   const totalCount = columnStates.length;
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -392,9 +396,7 @@ export function DraggableColumnVisibility<T>({
           Columns
         </Button>
       </DialogTrigger>
-      <DialogPortal>
-        <DialogOverlay className="bg-transparent backdrop-blur-sm" />
-        <DialogContent className="max-w-lg p-0 gap-0 bg-card backdrop-blur-lg">
+      <DialogContent className="max-w-lg p-0 gap-0 bg-card backdrop-blur-lg">
           <DialogHeader className="px-6 pt-6 pb-4 space-y-3">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-lg font-semibold flex items-center gap-2">
@@ -405,6 +407,9 @@ export function DraggableColumnVisibility<T>({
                 {visibleCount} of {totalCount} Selected
               </span>
             </div>
+            <DialogDescription className="sr-only">
+              Choose visible columns, drag to reorder, and pin up to two columns.
+            </DialogDescription>
 
             {/* Search Input */}
             <div className="relative">
@@ -527,8 +532,7 @@ export function DraggableColumnVisibility<T>({
               Save
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </DialogPortal>
+      </DialogContent>
     </Dialog>
   );
 }

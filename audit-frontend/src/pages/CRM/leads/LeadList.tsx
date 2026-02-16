@@ -149,7 +149,6 @@ const LeadList: React.FC = () => {
     pinColumn,
     unpinColumn,
     resetPinnedColumns,
-    columnOrder,
     setColumnOrder,
     columnWidths,
     setColumnWidths,
@@ -283,16 +282,6 @@ const LeadList: React.FC = () => {
       return next;
     });
   }, []);
-
-  const toggleAllSelection = useCallback(() => {
-    if (selectedLeads.size === pagedData.items.length) {
-      setSelectedLeads(new Set());
-    } else {
-      setSelectedLeads(
-        new Set(pagedData.items.map((item) => item.strLeadGUID))
-      );
-    }
-  }, [selectedLeads.size, pagedData.items]);
 
   // Handle export
   const handleExport = (format: "csv" | "excel") => {
@@ -490,7 +479,7 @@ const LeadList: React.FC = () => {
         header: "Assigned To",
         cell: (item: LeadListDto) => (
           <span className="text-sm">
-            {item.strAssignedToName || "-"}
+            {item.strAssignedToName || item.strAssignedToGUID || "-"}
           </span>
         ),
         sortable: true,
@@ -606,7 +595,7 @@ const LeadList: React.FC = () => {
       {/* Bulk Action Bar */}
       {selectedLeads.size > 0 && (
         <div className="flex items-center gap-2 mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-          <span className="text-sm font-medium">
+          <span className="text-sm font-medium text-foreground">
             {selectedLeads.size} lead{selectedLeads.size !== 1 ? "s" : ""}{" "}
             selected
           </span>
@@ -907,8 +896,8 @@ const LeadList: React.FC = () => {
         pagination={{
           pageNumber: pagination.pageNumber,
           pageSize: pagination.pageSize,
-          totalCount: pagination.totalCount,
-          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount ?? 0,
+          totalPages: pagination.totalPages ?? 0,
           onPageChange: (page) => setPagination({ pageNumber: page }),
           onPageSizeChange: (size) =>
             setPagination({ pageSize: size, pageNumber: 1 }),

@@ -5,6 +5,8 @@ import {
   useAutoAssignLeads,
   useAssignmentRules,
 } from "@/hooks/api/CRM/use-leads";
+import { useActiveUsers } from "@/hooks/api/central/use-users";
+import { useDebounce } from "@/hooks/common/use-debounce";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +25,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select/select";
 
 interface LeadAssignmentDialogProps {
   open: boolean;
@@ -46,12 +55,28 @@ const LeadAssignmentDialog: React.FC<LeadAssignmentDialogProps> = ({
 }) => {
   const [assignToGUID, setAssignToGUID] = useState("");
   const [assignToSearch, setAssignToSearch] = useState("");
+  const debouncedAssignToSearch = useDebounce(assignToSearch, 300);
 
   const { mutate: bulkAssign, isPending: isAssigning } =
     useBulkAssignLeads();
   const { mutate: autoAssign, isPending: isAutoAssigning } =
     useAutoAssignLeads();
-  const { data: assignmentRules } = useAssignmentRules();
+  const {
+    data: assignmentRules,
+    isLoading: isRulesLoading,
+    isError: isRulesError,
+  } = useAssignmentRules(open);
+  const { data: activeUsers = [], isLoading: isUsersLoading } = useActiveUsers(
+    debouncedAssignToSearch || undefined,
+    open
+  );
+
+  React.useEffect(() => {
+    if (!open) {
+      setAssignToGUID("");
+      setAssignToSearch("");
+    }
+  }, [open]);
 
   const handleManualAssign = () => {
     if (!assignToGUID) return;
@@ -76,6 +101,8 @@ const LeadAssignmentDialog: React.FC<LeadAssignmentDialogProps> = ({
   };
 
   const activeRules = assignmentRules?.filter((r) => r.bolIsActive) ?? [];
+  const canRunAutoAssign =
+    !isRulesLoading && (activeRules.length > 0 || isRulesError);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -106,26 +133,43 @@ const LeadAssignmentDialog: React.FC<LeadAssignmentDialogProps> = ({
           {/* Manual Assignment */}
           <TabsContent value="manual" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Assign To
-              </label>
+              <label className="text-sm font-medium">Assign To</label>
               <Input
                 placeholder="Search team member..."
                 value={assignToSearch}
                 onChange={(e) => setAssignToSearch(e.target.value)}
                 className="h-9"
               />
-              <p className="text-xs text-muted-foreground">
-                Type to search for a team member, then select from the list.
-              </p>
-              {/* In a full implementation, this would be a combobox/autocomplete
-                  connected to a users endpoint. For now it's a GUID input. */}
-              <Input
-                placeholder="Team member GUID"
-                value={assignToGUID}
-                onChange={(e) => setAssignToGUID(e.target.value)}
-                className="h-9 font-mono text-xs"
-              />
+
+              <Select value={assignToGUID} onValueChange={setAssignToGUID}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select team member" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isUsersLoading && (
+                    <SelectItem value="__loading__" disabled>
+                      Loading team members...
+                    </SelectItem>
+                  )}
+
+                  {!isUsersLoading && activeUsers.length === 0 && (
+                    <SelectItem value="__empty__" disabled>
+                      No team members found
+                    </SelectItem>
+                  )}
+
+                  {!isUsersLoading &&
+                    activeUsers.map((user) => (
+                      <SelectItem
+                        key={user.strUserGUID}
+                        value={user.strUserGUID}
+                      >
+                        {user.strName}
+                        {user.strEmailId ? ` (${user.strEmailId})` : ""}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <DialogFooter>
@@ -149,7 +193,16 @@ const LeadAssignmentDialog: React.FC<LeadAssignmentDialogProps> = ({
           <TabsContent value="auto" className="space-y-4 mt-4">
             <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
               <h4 className="text-sm font-medium">Active Assignment Rules</h4>
-              {activeRules.length > 0 ? (
+              {isRulesLoading ? (
+                <p className="text-sm text-muted-foreground">
+                  Loading assignment rules...
+                </p>
+              ) : isRulesError ? (
+                <p className="text-sm text-destructive">
+                  Unable to load assignment rules. You can still run
+                  auto-assignment, but rule details are unavailable.
+                </p>
+              ) : activeRules.length > 0 ? (
                 <div className="space-y-2">
                   {activeRules.map((rule) => (
                     <div
@@ -198,7 +251,7 @@ const LeadAssignmentDialog: React.FC<LeadAssignmentDialogProps> = ({
               </Button>
               <Button
                 onClick={handleAutoAssign}
-                disabled={isAutoAssigning || activeRules.length === 0}
+                disabled={isAutoAssigning || !canRunAutoAssign}
               >
                 <Wand2 className="h-4 w-4 mr-2" />
                 {isAutoAssigning ? "Assigning..." : "Auto-Assign"}

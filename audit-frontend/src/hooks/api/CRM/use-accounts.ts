@@ -7,6 +7,7 @@ import type {
   UpdateAccountDto,
   AccountFilterParams,
   AccountBulkArchiveDto,
+  AccountDuplicateHandling,
 } from "@/types/CRM/account";
 
 export const accountQueryKeys = createQueryKeys("crm-accounts");
@@ -94,5 +95,49 @@ export const useBulkRestoreAccounts = () => {
     },
     onError: (error) =>
       handleMutationError(error, "Failed to restore accounts"),
+  });
+};
+
+// ── Import / Export ────────────────────────────────────────────
+
+export const useImportAccounts = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      file,
+      columnMapping,
+      duplicateHandling,
+    }: {
+      file: File;
+      columnMapping: Record<string, string>;
+      duplicateHandling?: AccountDuplicateHandling;
+    }) =>
+      accountService.importAccounts(file, columnMapping, duplicateHandling),
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: accountQueryKeys.all });
+      toast.success(
+        `Import complete: ${result.intSuccessRows} success, ${result.intErrorRows} errors`
+      );
+    },
+    onError: (error) => handleMutationError(error, "Failed to import accounts"),
+  });
+};
+
+export const useExportAccounts = () => {
+  return useMutation({
+    mutationFn: ({ params }: { params?: AccountFilterParams }) =>
+      accountService.exportAccounts(params),
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "accounts-export.csv";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("Accounts exported successfully");
+    },
+    onError: (error) => handleMutationError(error, "Failed to export accounts"),
   });
 };

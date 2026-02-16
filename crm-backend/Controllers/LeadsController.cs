@@ -135,6 +135,81 @@ public class LeadsController : BaseController
     }
 
     /// <summary>
+    /// Bulk manual assignment for selected leads.
+    /// </summary>
+    [HttpPost("bulk-assign")]
+    [AuthorizePermission("CRM_Leads", "Edit")]
+    public async Task<ActionResult<ApiResponse<bool>>> BulkAssign(
+        [FromBody] LeadBulkAssignDto dto)
+    {
+        if (dto.guids == null || dto.guids.Count == 0)
+            return OkResponse(true, "No leads selected");
+
+        var distinctLeadIds = dto.guids.Distinct().ToList();
+        foreach (var leadId in distinctLeadIds)
+        {
+            await _assignmentAppService.ManualAssignAsync(new ManualAssignDto
+            {
+                strLeadGUID = leadId,
+                strAssignToGUID = dto.strAssignedToGUID
+            });
+        }
+
+        return OkResponse(true, "Leads assigned successfully");
+    }
+
+    /// <summary>
+    /// Bulk auto-assignment for selected leads.
+    /// </summary>
+    [HttpPost("auto-assign")]
+    [AuthorizePermission("CRM_Leads", "Edit")]
+    public async Task<ActionResult<ApiResponse<LeadAutoAssignResultDto>>> AutoAssign(
+        [FromBody] LeadAutoAssignRequestDto dto)
+    {
+        var response = new LeadAutoAssignResultDto();
+        if (dto.guids == null || dto.guids.Count == 0)
+            return OkResponse(response);
+
+        var assignmentItems = new List<LeadAutoAssignItemDto>();
+        foreach (var leadId in dto.guids.Distinct())
+        {
+            var result = await _assignmentAppService.AutoAssignLeadAsync(leadId);
+            if (result?.strAssignedToGUID.HasValue == true)
+            {
+                assignmentItems.Add(new LeadAutoAssignItemDto
+                {
+                    strLeadGUID = result.strLeadGUID,
+                    strAssignedToGUID = result.strAssignedToGUID.Value,
+                    strAssignedToName = string.Empty
+                });
+            }
+        }
+
+        var assignedUserIds = assignmentItems
+            .Select(a => a.strAssignedToGUID)
+            .Distinct()
+            .ToList();
+
+        if (assignedUserIds.Count > 0)
+        {
+            var nameById = await _masterDbContext.MstUsers.AsNoTracking()
+                .Where(u => u.strGroupGUID == GetGroupGuid() && assignedUserIds.Contains(u.strUserGUID))
+                .Select(u => new { u.strUserGUID, u.strName })
+                .ToDictionaryAsync(u => u.strUserGUID, u => u.strName);
+
+            foreach (var item in assignmentItems)
+            {
+                if (nameById.TryGetValue(item.strAssignedToGUID, out var name))
+                    item.strAssignedToName = name;
+            }
+        }
+
+        response.intAssigned = assignmentItems.Count;
+        response.assignments = assignmentItems;
+        return OkResponse(response);
+    }
+
+    /// <summary>
     /// Lead analytics summary used by the Leads list funnel widget.
     /// </summary>
     [HttpGet("analytics")]
@@ -195,7 +270,7 @@ public class LeadsController : BaseController
     /// Assignment rules summary used by the Leads bulk assignment dialog.
     /// </summary>
     [HttpGet("assignment-rules")]
-    [AuthorizePermission("CRM_LeadAssignment", "View")]
+    [AuthorizePermission("CRM_Leads", "View")]
     public async Task<ActionResult<ApiResponse<List<LeadAssignmentRuleDto>>>> GetAssignmentRules()
     {
         var rules = await _assignmentAppService.GetRulesAsync(new AssignmentRuleFilterParams
