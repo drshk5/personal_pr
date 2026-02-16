@@ -19,6 +19,7 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
     private readonly MasterDbContext _masterDbContext;
     private readonly IActivityService _activityService;
     private readonly IAuditLogService _auditLogService;
+    private readonly IWorkflowService _workflowService;
 
     public MstActivityApplicationService(
         IUnitOfWork unitOfWork,
@@ -26,72 +27,66 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
         MasterDbContext masterDbContext,
         IActivityService activityService,
         IAuditLogService auditLogService,
+        IWorkflowService workflowService,
         ILogger<MstActivityApplicationService> logger)
         : base(unitOfWork, tenantContextProvider, logger)
     {
         _masterDbContext = masterDbContext;
         _activityService = activityService;
         _auditLogService = auditLogService;
+        _workflowService = workflowService;
     }
 
-    /// <summary>
-    /// Paginated list of all activities with filtering — SQL-level projection, no full entity loading.
-    /// </summary>
+    // ─────────────────────────────────────────────────────────────────────
+    //  SHARED: DTO projection expression (ensures consistent mapping)
+    // ─────────────────────────────────────────────────────────────────────
+
+    private static ActivityListDto ProjectToDto(MstActivity a)
+    {
+        var now = DateTime.UtcNow;
+        return new ActivityListDto
+        {
+            strActivityGUID = a.strActivityGUID,
+            strActivityType = a.strActivityType,
+            strSubject = a.strSubject,
+            strDescription = a.strDescription,
+            dtScheduledOn = a.dtScheduledOn,
+            dtCompletedOn = a.dtCompletedOn,
+            intDurationMinutes = a.intDurationMinutes,
+            strOutcome = a.strOutcome,
+            strStatus = a.strStatus,
+            strPriority = a.strPriority,
+            dtDueDate = a.dtDueDate,
+            strCategory = a.strCategory,
+            bolIsOverdue = a.dtDueDate.HasValue && a.dtDueDate.Value < now
+                          && a.strStatus != ActivityStatusConstants.Completed
+                          && a.strStatus != ActivityStatusConstants.Cancelled,
+            strAssignedToGUID = a.strAssignedToGUID,
+            strAssignedToName = null,
+            strCreatedByGUID = a.strCreatedByGUID,
+            strCreatedByName = string.Empty,
+            dtCreatedOn = a.dtCreatedOn,
+            dtUpdatedOn = a.dtUpdatedOn,
+            bolIsActive = a.bolIsActive,
+            Links = a.ActivityLinks.Select(al => new ActivityLinkDto
+            {
+                strEntityType = al.strEntityType,
+                strEntityGUID = al.strEntityGUID
+            }).ToList()
+        };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  GET: Paginated list with enhanced filtering
+    // ─────────────────────────────────────────────────────────────────────
+
     public async Task<PagedResponse<ActivityListDto>> GetActivitiesAsync(ActivityFilterParams filter)
     {
-        var query = _unitOfWork.Activities.Query().AsNoTracking();
+        var query = BuildFilteredQuery(filter);
 
-        // ── Filters — applied BEFORE count/pagination for max SQL efficiency ──
-
-        if (filter.bolIsActive.HasValue)
-            query = query.Where(a => a.bolIsActive == filter.bolIsActive.Value);
-
-        if (!string.IsNullOrWhiteSpace(filter.strActivityType))
-            query = query.Where(a => a.strActivityType == filter.strActivityType);
-
-        if (filter.strAssignedToGUID.HasValue)
-            query = query.Where(a => a.strAssignedToGUID == filter.strAssignedToGUID.Value);
-
-        if (filter.dtFromDate.HasValue)
-            query = query.Where(a => a.dtCreatedOn >= filter.dtFromDate.Value);
-
-        if (filter.dtToDate.HasValue)
-            query = query.Where(a => a.dtCreatedOn <= filter.dtToDate.Value);
-
-        if (filter.bolIsCompleted.HasValue)
-        {
-            query = filter.bolIsCompleted.Value
-                ? query.Where(a => a.dtCompletedOn != null)
-                : query.Where(a => a.dtCompletedOn == null);
-        }
-
-        // Entity-level filtering via ActivityLinks junction
-        if (!string.IsNullOrWhiteSpace(filter.strEntityType) && filter.strEntityGUID.HasValue)
-        {
-            query = query.Where(a => a.ActivityLinks.Any(
-                al => al.strEntityType == filter.strEntityType &&
-                      al.strEntityGUID == filter.strEntityGUID.Value));
-        }
-        else if (!string.IsNullOrWhiteSpace(filter.strEntityType))
-        {
-            query = query.Where(a => a.ActivityLinks.Any(
-                al => al.strEntityType == filter.strEntityType));
-        }
-
-        // Search — SQL Server case-insensitive collation, no ToLower() needed
-        if (!string.IsNullOrWhiteSpace(filter.Search))
-        {
-            var searchTerm = filter.Search.Trim();
-            query = query.Where(a =>
-                a.strSubject.Contains(searchTerm) ||
-                (a.strDescription != null && a.strDescription.Contains(searchTerm)) ||
-                (a.strOutcome != null && a.strOutcome.Contains(searchTerm)));
-        }
-
-        // Count AFTER filtering
         var totalCount = await query.CountAsync();
 
-        // ── Sorting ──
+        // Sorting
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
             var direction = filter.Ascending ? "ascending" : "descending";
@@ -102,36 +97,13 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
             query = query.OrderByDescending(a => a.dtCreatedOn);
         }
 
-        // ── Project to DTO at DB level — single round-trip ──
-        var activityDtos = await query
+        var activities = await query
             .Skip((filter.PageNumber - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .Select(a => new ActivityListDto
-            {
-                strActivityGUID = a.strActivityGUID,
-                strActivityType = a.strActivityType,
-                strSubject = a.strSubject,
-                strDescription = a.strDescription,
-                dtScheduledOn = a.dtScheduledOn,
-                dtCompletedOn = a.dtCompletedOn,
-                intDurationMinutes = a.dtScheduledOn.HasValue && a.dtCompletedOn.HasValue
-                    ? EF.Functions.DateDiffMinute(a.dtScheduledOn.Value, a.dtCompletedOn.Value)
-                    : a.intDurationMinutes,
-                strOutcome = a.strOutcome,
-                strAssignedToGUID = a.strAssignedToGUID,
-                strAssignedToName = null, // Populated below
-                strCreatedByGUID = a.strCreatedByGUID,
-                strCreatedByName = string.Empty, // Populated below
-                dtCreatedOn = a.dtCreatedOn,
-                bolIsActive = a.bolIsActive,
-                Links = a.ActivityLinks.Select(al => new ActivityLinkDto
-                {
-                    strEntityType = al.strEntityType,
-                    strEntityGUID = al.strEntityGUID
-                }).ToList()
-            })
+            .Include(a => a.ActivityLinks)
             .ToListAsync();
 
+        var activityDtos = activities.Select(ProjectToDto).ToList();
         await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), activityDtos);
 
         return new PagedResponse<ActivityListDto>
@@ -144,55 +116,27 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
         };
     }
 
-    /// <summary>
-    /// Single activity detail — AsNoTracking + Include for links.
-    /// </summary>
     public async Task<ActivityListDto> GetActivityByIdAsync(Guid id)
     {
         var activity = await _unitOfWork.Activities.Query()
             .AsNoTracking()
-            .Where(a => a.strActivityGUID == id)
-            .Select(a => new ActivityListDto
-            {
-                strActivityGUID = a.strActivityGUID,
-                strActivityType = a.strActivityType,
-                strSubject = a.strSubject,
-                strDescription = a.strDescription,
-                dtScheduledOn = a.dtScheduledOn,
-                dtCompletedOn = a.dtCompletedOn,
-                intDurationMinutes = a.dtScheduledOn.HasValue && a.dtCompletedOn.HasValue
-                    ? EF.Functions.DateDiffMinute(a.dtScheduledOn.Value, a.dtCompletedOn.Value)
-                    : a.intDurationMinutes,
-                strOutcome = a.strOutcome,
-                strAssignedToGUID = a.strAssignedToGUID,
-                strAssignedToName = null,
-                strCreatedByGUID = a.strCreatedByGUID,
-                strCreatedByName = string.Empty,
-                dtCreatedOn = a.dtCreatedOn,
-                bolIsActive = a.bolIsActive,
-                Links = a.ActivityLinks.Select(al => new ActivityLinkDto
-                {
-                    strEntityType = al.strEntityType,
-                    strEntityGUID = al.strEntityGUID
-                }).ToList()
-            })
-            .FirstOrDefaultAsync();
+            .Include(a => a.ActivityLinks)
+            .FirstOrDefaultAsync(a => a.strActivityGUID == id && !a.bolIsDeleted);
 
         if (activity == null)
             throw new NotFoundException("Activity not found");
 
-        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), new List<ActivityListDto> { activity });
-
-        return activity;
+        var dto = ProjectToDto(activity);
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), new List<ActivityListDto> { dto });
+        return dto;
     }
 
-    /// <summary>
-    /// Create activity — IMMUTABLE: insert-only, no update/delete ever.
-    /// Single SaveChanges call for both activity + links (atomic).
-    /// </summary>
+    // ─────────────────────────────────────────────────────────────────────
+    //  CREATE — with workflow triggers
+    // ─────────────────────────────────────────────────────────────────────
+
     public async Task<ActivityListDto> CreateActivityAsync(CreateActivityDto dto)
     {
-        // Validate
         _activityService.ValidateActivityType(dto.strActivityType);
         if (dto.Links.Count > 0)
             _activityService.ValidateEntityLinks(dto.Links);
@@ -212,6 +156,10 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
             dtCompletedOn = dto.dtCompletedOn,
             intDurationMinutes = dto.intDurationMinutes,
             strOutcome = DataNormalizationHelper.TrimOrNull(dto.strOutcome),
+            strStatus = dto.strStatus ?? (dto.dtCompletedOn.HasValue ? ActivityStatusConstants.Completed : ActivityStatusConstants.Pending),
+            strPriority = dto.strPriority ?? ActivityPriorityConstants.Medium,
+            dtDueDate = dto.dtDueDate,
+            strCategory = dto.strCategory,
             strAssignedToGUID = dto.strAssignedToGUID,
             strCreatedByGUID = userId,
             dtCreatedOn = now,
@@ -220,7 +168,6 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
 
         await _unitOfWork.Activities.AddAsync(activity);
 
-        // Insert all links in a single batch — no N+1
         var linkDtos = new List<ActivityLinkDto>();
         foreach (var link in dto.Links)
         {
@@ -233,7 +180,6 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
                 dtCreatedOn = now
             };
             await _unitOfWork.ActivityLinks.AddAsync(activityLink);
-
             linkDtos.Add(new ActivityLinkDto
             {
                 strEntityType = link.strEntityType,
@@ -241,10 +187,9 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
             });
         }
 
-        // Single SaveChanges — activity + all links atomically
         await _unitOfWork.SaveChangesAsync();
 
-        // Auto-update lead status: if activity is logged for a "New" lead, move it to "Contacted"
+        // Auto lead status: New → Contacted when any activity is logged
         var leadLinks = dto.Links.Where(l => l.strEntityType == EntityTypeConstants.Lead).ToList();
         foreach (var leadLink in leadLinks)
         {
@@ -260,62 +205,434 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
         if (leadLinks.Count > 0)
             await _unitOfWork.SaveChangesAsync();
 
-        // Audit log
+        // Trigger workflows
+        await _workflowService.TriggerWorkflowsAsync(
+            EntityTypeConstants.Activity, activityId,
+            WorkflowTriggerConstants.ActivityCreated,
+            GetTenantId(), userId,
+            JsonSerializer.Serialize(new { dto.strActivityType, dto.strSubject, dto.strAssignedToGUID }));
+
+        // If created as Completed, also trigger the Completed workflow
+        if (activity.strStatus == ActivityStatusConstants.Completed)
+        {
+            await TriggerActivityCompletedWorkflowsAsync(activity, leadLinks);
+        }
+
         await _auditLogService.LogAsync(
-            "Activity",
-            activityId,
-            "Create",
+            "Activity", activityId, "Create",
             JsonSerializer.Serialize(new { dto.strActivityType, dto.strSubject, LinkCount = dto.Links.Count }),
             userId);
 
         _logger.LogInformation("Activity created: {ActivityGUID} type={Type} by {UserGUID}",
             activityId, dto.strActivityType, userId);
 
-        return new ActivityListDto
+        activity.ActivityLinks = linkDtos.Select(l => new MstActivityLink
         {
-            strActivityGUID = activityId,
-            strActivityType = activity.strActivityType,
-            strSubject = activity.strSubject,
-            strDescription = activity.strDescription,
-            dtScheduledOn = activity.dtScheduledOn,
-            dtCompletedOn = activity.dtCompletedOn,
-            intDurationMinutes = activity.dtScheduledOn.HasValue && activity.dtCompletedOn.HasValue
-                ? (int?)(activity.dtCompletedOn.Value - activity.dtScheduledOn.Value).TotalMinutes
-                : dto.intDurationMinutes,
-            strOutcome = activity.strOutcome,
-            strAssignedToGUID = activity.strAssignedToGUID,
-            strAssignedToName = null,
-            strCreatedByGUID = userId,
-            strCreatedByName = GetCurrentUserName(),
-            dtCreatedOn = activity.dtCreatedOn,
-            bolIsActive = activity.bolIsActive,
-            Links = linkDtos
-        };
+            strEntityType = l.strEntityType,
+            strEntityGUID = l.strEntityGUID
+        }).ToList();
+
+        var resultDto = ProjectToDto(activity);
+        resultDto.strCreatedByName = GetCurrentUserName();
+        return resultDto;
     }
 
-    /// <summary>
-    /// All activities for a specific entity — uses the IX_MstActivityLinks_Entity index.
-    /// Single query via join, no N+1.
-    /// </summary>
+    // ─────────────────────────────────────────────────────────────────────
+    //  UPDATE
+    // ─────────────────────────────────────────────────────────────────────
+
+    public async Task<ActivityListDto> UpdateActivityAsync(Guid id, UpdateActivityDto dto)
+    {
+        _activityService.ValidateActivityType(dto.strActivityType);
+        if (dto.Links?.Count > 0)
+            _activityService.ValidateEntityLinks(dto.Links);
+
+        var activity = await _unitOfWork.Activities.Query()
+            .Include(a => a.ActivityLinks)
+            .FirstOrDefaultAsync(a => a.strActivityGUID == id && !a.bolIsDeleted);
+
+        if (activity == null)
+            throw new NotFoundException("Activity not found");
+
+        var now = DateTime.UtcNow;
+        var userId = GetCurrentUserId();
+        var oldStatus = activity.strStatus;
+
+        activity.strActivityType = dto.strActivityType;
+        activity.strSubject = dto.strSubject.Trim();
+        activity.strDescription = DataNormalizationHelper.TrimOrNull(dto.strDescription);
+        activity.dtScheduledOn = dto.dtScheduledOn;
+        activity.dtCompletedOn = dto.dtCompletedOn;
+        activity.intDurationMinutes = dto.intDurationMinutes;
+        activity.strOutcome = DataNormalizationHelper.TrimOrNull(dto.strOutcome);
+        if (dto.strStatus != null)
+            activity.strStatus = dto.strStatus;
+        if (dto.strPriority != null)
+            activity.strPriority = dto.strPriority;
+        activity.dtDueDate = dto.dtDueDate;
+        activity.strCategory = dto.strCategory;
+        activity.strAssignedToGUID = dto.strAssignedToGUID;
+        activity.strUpdatedByGUID = userId;
+        activity.dtUpdatedOn = now;
+
+        // Handle completion
+        if (dto.strStatus == ActivityStatusConstants.Completed && activity.dtCompletedOn == null)
+            activity.dtCompletedOn = now;
+
+        _unitOfWork.Activities.Update(activity);
+
+        // Update links if provided
+        if (dto.Links != null)
+        {
+            // Remove old links
+            var existingLinks = activity.ActivityLinks.ToList();
+            foreach (var link in existingLinks)
+                activity.ActivityLinks.Remove(link);
+
+            // Add new links
+            foreach (var link in dto.Links)
+            {
+                await _unitOfWork.ActivityLinks.AddAsync(new MstActivityLink
+                {
+                    strActivityLinkGUID = Guid.NewGuid(),
+                    strActivityGUID = id,
+                    strEntityType = link.strEntityType,
+                    strEntityGUID = link.strEntityGUID,
+                    dtCreatedOn = now
+                });
+            }
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+        // Trigger status-change workflow if status changed to Completed
+        if (oldStatus != activity.strStatus && activity.strStatus == ActivityStatusConstants.Completed)
+        {
+            var leadLinks = activity.ActivityLinks
+                .Where(l => l.strEntityType == EntityTypeConstants.Lead)
+                .Select(l => new ActivityLinkDto { strEntityType = l.strEntityType, strEntityGUID = l.strEntityGUID })
+                .ToList();
+            await TriggerActivityCompletedWorkflowsAsync(activity, leadLinks);
+        }
+
+        await _auditLogService.LogAsync(
+            "Activity", id, "Update",
+            JsonSerializer.Serialize(new { dto.strActivityType, dto.strSubject, dto.strStatus }),
+            userId);
+
+        // Reload with links for response
+        var updated = await _unitOfWork.Activities.Query()
+            .AsNoTracking()
+            .Include(a => a.ActivityLinks)
+            .FirstAsync(a => a.strActivityGUID == id);
+
+        var resultDto = ProjectToDto(updated);
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), new List<ActivityListDto> { resultDto });
+        return resultDto;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  DELETE (soft)
+    // ─────────────────────────────────────────────────────────────────────
+
+    public async Task<bool> DeleteActivityAsync(Guid id)
+    {
+        var activity = await _unitOfWork.Activities.GetByIdAsync(id);
+        if (activity == null || activity.bolIsDeleted)
+            throw new NotFoundException("Activity not found");
+
+        activity.bolIsDeleted = true;
+        activity.bolIsActive = false;
+        activity.dtDeletedOn = DateTime.UtcNow;
+        activity.strUpdatedByGUID = GetCurrentUserId();
+        activity.dtUpdatedOn = DateTime.UtcNow;
+
+        _unitOfWork.Activities.Update(activity);
+        await _unitOfWork.SaveChangesAsync();
+
+        await _auditLogService.LogAsync("Activity", id, "Delete", null, GetCurrentUserId());
+        return true;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  STATUS CHANGE — with auto business logic
+    // ─────────────────────────────────────────────────────────────────────
+
+    public async Task<ActivityListDto> ChangeStatusAsync(Guid id, ActivityStatusChangeDto dto)
+    {
+        var activity = await _unitOfWork.Activities.Query()
+            .Include(a => a.ActivityLinks)
+            .FirstOrDefaultAsync(a => a.strActivityGUID == id && !a.bolIsDeleted);
+
+        if (activity == null)
+            throw new NotFoundException("Activity not found");
+
+        var now = DateTime.UtcNow;
+        var userId = GetCurrentUserId();
+        var oldStatus = activity.strStatus;
+
+        activity.strStatus = dto.strStatus;
+        activity.strUpdatedByGUID = userId;
+        activity.dtUpdatedOn = now;
+
+        if (dto.strOutcome != null)
+            activity.strOutcome = dto.strOutcome;
+
+        // Auto-set completedOn when marking as completed
+        if (dto.strStatus == ActivityStatusConstants.Completed && activity.dtCompletedOn == null)
+            activity.dtCompletedOn = now;
+
+        // Clear completedOn if reopening
+        if (dto.strStatus == ActivityStatusConstants.Pending || dto.strStatus == ActivityStatusConstants.InProgress)
+            activity.dtCompletedOn = null;
+
+        _unitOfWork.Activities.Update(activity);
+        await _unitOfWork.SaveChangesAsync();
+
+        // Trigger ActivityCompleted workflow if status changed to Completed
+        if (dto.strStatus == ActivityStatusConstants.Completed && oldStatus != ActivityStatusConstants.Completed)
+        {
+            var leadLinks = activity.ActivityLinks
+                .Where(l => l.strEntityType == EntityTypeConstants.Lead)
+                .Select(l => new ActivityLinkDto { strEntityType = l.strEntityType, strEntityGUID = l.strEntityGUID })
+                .ToList();
+            await TriggerActivityCompletedWorkflowsAsync(activity, leadLinks);
+        }
+
+        await _auditLogService.LogAsync(
+            "Activity", id, "StatusChange",
+            JsonSerializer.Serialize(new { OldStatus = oldStatus, NewStatus = dto.strStatus }),
+            userId);
+
+        var resultDto = ProjectToDto(activity);
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), new List<ActivityListDto> { resultDto });
+        return resultDto;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  ASSIGN
+    // ─────────────────────────────────────────────────────────────────────
+
+    public async Task<ActivityListDto> AssignActivityAsync(Guid id, ActivityAssignDto dto)
+    {
+        var activity = await _unitOfWork.Activities.Query()
+            .Include(a => a.ActivityLinks)
+            .FirstOrDefaultAsync(a => a.strActivityGUID == id && !a.bolIsDeleted);
+
+        if (activity == null)
+            throw new NotFoundException("Activity not found");
+
+        var userId = GetCurrentUserId();
+        activity.strAssignedToGUID = dto.strAssignedToGUID;
+        activity.strUpdatedByGUID = userId;
+        activity.dtUpdatedOn = DateTime.UtcNow;
+
+        _unitOfWork.Activities.Update(activity);
+        await _unitOfWork.SaveChangesAsync();
+
+        // Trigger Assigned workflow
+        await _workflowService.TriggerWorkflowsAsync(
+            EntityTypeConstants.Activity, id,
+            WorkflowTriggerConstants.Assigned,
+            GetTenantId(), userId,
+            JsonSerializer.Serialize(new { dto.strAssignedToGUID }));
+
+        await _auditLogService.LogAsync(
+            "Activity", id, "Assign",
+            JsonSerializer.Serialize(new { dto.strAssignedToGUID }),
+            userId);
+
+        var resultDto = ProjectToDto(activity);
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), new List<ActivityListDto> { resultDto });
+        return resultDto;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  BULK OPERATIONS
+    // ─────────────────────────────────────────────────────────────────────
+
+    public async Task<bool> BulkAssignAsync(ActivityBulkAssignDto dto)
+    {
+        if (dto.Guids.Count == 0)
+            return true;
+
+        var now = DateTime.UtcNow;
+        var userId = GetCurrentUserId();
+        var activities = await _unitOfWork.Activities.Query()
+            .Where(a => dto.Guids.Contains(a.strActivityGUID) && !a.bolIsDeleted)
+            .ToListAsync();
+
+        foreach (var activity in activities)
+        {
+            activity.strAssignedToGUID = dto.strAssignedToGUID;
+            activity.strUpdatedByGUID = userId;
+            activity.dtUpdatedOn = now;
+            _unitOfWork.Activities.Update(activity);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+        _logger.LogInformation("Bulk assigned {Count} activities to {UserId}", activities.Count, dto.strAssignedToGUID);
+        return true;
+    }
+
+    public async Task<bool> BulkChangeStatusAsync(ActivityBulkStatusDto dto)
+    {
+        if (dto.Guids.Count == 0)
+            return true;
+
+        var now = DateTime.UtcNow;
+        var userId = GetCurrentUserId();
+        var activities = await _unitOfWork.Activities.Query()
+            .Include(a => a.ActivityLinks)
+            .Where(a => dto.Guids.Contains(a.strActivityGUID) && !a.bolIsDeleted)
+            .ToListAsync();
+
+        foreach (var activity in activities)
+        {
+            var oldStatus = activity.strStatus;
+            activity.strStatus = dto.strStatus;
+            activity.strUpdatedByGUID = userId;
+            activity.dtUpdatedOn = now;
+
+            if (dto.strOutcome != null)
+                activity.strOutcome = dto.strOutcome;
+
+            if (dto.strStatus == ActivityStatusConstants.Completed && activity.dtCompletedOn == null)
+                activity.dtCompletedOn = now;
+
+            _unitOfWork.Activities.Update(activity);
+
+            // Trigger workflow for each completed activity
+            if (dto.strStatus == ActivityStatusConstants.Completed && oldStatus != ActivityStatusConstants.Completed)
+            {
+                var leadLinks = activity.ActivityLinks
+                    .Where(l => l.strEntityType == EntityTypeConstants.Lead)
+                    .Select(l => new ActivityLinkDto { strEntityType = l.strEntityType, strEntityGUID = l.strEntityGUID })
+                    .ToList();
+                await TriggerActivityCompletedWorkflowsAsync(activity, leadLinks);
+            }
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+        _logger.LogInformation("Bulk status change to {Status} for {Count} activities", dto.strStatus, activities.Count);
+        return true;
+    }
+
+    public async Task<bool> BulkDeleteAsync(ActivityBulkDeleteDto dto)
+    {
+        if (dto.Guids.Count == 0)
+            return true;
+
+        var now = DateTime.UtcNow;
+        var userId = GetCurrentUserId();
+        var activities = await _unitOfWork.Activities.Query()
+            .Where(a => dto.Guids.Contains(a.strActivityGUID) && !a.bolIsDeleted)
+            .ToListAsync();
+
+        foreach (var activity in activities)
+        {
+            activity.bolIsDeleted = true;
+            activity.bolIsActive = false;
+            activity.dtDeletedOn = now;
+            activity.strUpdatedByGUID = userId;
+            activity.dtUpdatedOn = now;
+            _unitOfWork.Activities.Update(activity);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+        _logger.LogInformation("Bulk deleted {Count} activities", activities.Count);
+        return true;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  USER-CENTRIC VIEWS
+    // ─────────────────────────────────────────────────────────────────────
+
+    public async Task<List<ActivityListDto>> GetTodayActivitiesAsync()
+    {
+        var userId = GetCurrentUserId();
+        var todayStart = DateTime.UtcNow.Date;
+        var todayEnd = todayStart.AddDays(1);
+
+        var activities = await _unitOfWork.Activities.Query()
+            .AsNoTracking()
+            .Include(a => a.ActivityLinks)
+            .Where(a => a.strAssignedToGUID == userId
+                        && !a.bolIsDeleted
+                        && a.bolIsActive
+                        && a.strStatus != ActivityStatusConstants.Completed
+                        && a.strStatus != ActivityStatusConstants.Cancelled
+                        && ((a.dtDueDate.HasValue && a.dtDueDate.Value >= todayStart && a.dtDueDate.Value < todayEnd)
+                            || (a.dtScheduledOn.HasValue && a.dtScheduledOn.Value >= todayStart && a.dtScheduledOn.Value < todayEnd)
+                            || (a.dtDueDate.HasValue && a.dtDueDate.Value < todayStart)))  // Include overdue
+            .OrderBy(a => a.dtDueDate ?? a.dtScheduledOn ?? a.dtCreatedOn)
+            .Take(50)
+            .ToListAsync();
+
+        var dtos = activities.Select(ProjectToDto).ToList();
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), dtos);
+        return dtos;
+    }
+
+    public async Task<PagedResponse<ActivityListDto>> GetMyActivitiesAsync(ActivityFilterParams filter)
+    {
+        filter.strAssignedToGUID = GetCurrentUserId();
+        return await GetActivitiesAsync(filter);
+    }
+
+    public async Task<List<ActivityListDto>> GetOverdueActivitiesAsync()
+    {
+        var now = DateTime.UtcNow;
+
+        var activities = await _unitOfWork.Activities.Query()
+            .AsNoTracking()
+            .Include(a => a.ActivityLinks)
+            .Where(a => !a.bolIsDeleted
+                        && a.bolIsActive
+                        && a.dtDueDate.HasValue
+                        && a.dtDueDate.Value < now
+                        && a.strStatus != ActivityStatusConstants.Completed
+                        && a.strStatus != ActivityStatusConstants.Cancelled)
+            .OrderBy(a => a.dtDueDate)
+            .Take(50)
+            .ToListAsync();
+
+        var dtos = activities.Select(ProjectToDto).ToList();
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), dtos);
+        return dtos;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  ENTITY ACTIVITIES (existing, enhanced)
+    // ─────────────────────────────────────────────────────────────────────
+
     public async Task<PagedResponse<ActivityListDto>> GetEntityActivitiesAsync(
         string entityType, Guid entityId, ActivityFilterParams filter)
     {
-        // Start from ActivityLinks and join to Activities — leverages the covering index
         var query = _unitOfWork.ActivityLinks.Query()
             .AsNoTracking()
             .Where(al => al.strEntityType == entityType && al.strEntityGUID == entityId)
             .Select(al => al.Activity)
+            .Where(a => !a.bolIsDeleted)
             .Distinct();
 
-        // Apply additional filters
         if (!string.IsNullOrWhiteSpace(filter.strActivityType))
             query = query.Where(a => a.strActivityType == filter.strActivityType);
+
+        if (!string.IsNullOrWhiteSpace(filter.strStatus))
+            query = query.Where(a => a.strStatus == filter.strStatus);
+
+        if (!string.IsNullOrWhiteSpace(filter.strPriority))
+            query = query.Where(a => a.strPriority == filter.strPriority);
 
         if (filter.bolIsCompleted.HasValue)
         {
             query = filter.bolIsCompleted.Value
-                ? query.Where(a => a.dtCompletedOn != null)
-                : query.Where(a => a.dtCompletedOn == null);
+                ? query.Where(a => a.strStatus == ActivityStatusConstants.Completed)
+                : query.Where(a => a.strStatus != ActivityStatusConstants.Completed);
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -328,7 +645,6 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
 
         var totalCount = await query.CountAsync();
 
-        // Sort
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
             var direction = filter.Ascending ? "ascending" : "descending";
@@ -339,36 +655,13 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
             query = query.OrderByDescending(a => a.dtCreatedOn);
         }
 
-        // Project to DTO at DB level
-        var activityDtos = await query
+        var activities = await query
             .Skip((filter.PageNumber - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .Select(a => new ActivityListDto
-            {
-                strActivityGUID = a.strActivityGUID,
-                strActivityType = a.strActivityType,
-                strSubject = a.strSubject,
-                strDescription = a.strDescription,
-                dtScheduledOn = a.dtScheduledOn,
-                dtCompletedOn = a.dtCompletedOn,
-                intDurationMinutes = a.dtScheduledOn.HasValue && a.dtCompletedOn.HasValue
-                    ? EF.Functions.DateDiffMinute(a.dtScheduledOn.Value, a.dtCompletedOn.Value)
-                    : a.intDurationMinutes,
-                strOutcome = a.strOutcome,
-                strAssignedToGUID = a.strAssignedToGUID,
-                strAssignedToName = null,
-                strCreatedByGUID = a.strCreatedByGUID,
-                strCreatedByName = string.Empty,
-                dtCreatedOn = a.dtCreatedOn,
-                bolIsActive = a.bolIsActive,
-                Links = a.ActivityLinks.Select(al => new ActivityLinkDto
-                {
-                    strEntityType = al.strEntityType,
-                    strEntityGUID = al.strEntityGUID
-                }).ToList()
-            })
+            .Include(a => a.ActivityLinks)
             .ToListAsync();
 
+        var activityDtos = activities.Select(ProjectToDto).ToList();
         await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), activityDtos);
 
         return new PagedResponse<ActivityListDto>
@@ -381,29 +674,183 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
         };
     }
 
-    /// <summary>
-    /// Upcoming scheduled activities (not yet completed, ordered by soonest first).
-    /// Lightweight DTO — no links fetched.
-    /// </summary>
+    // ─────────────────────────────────────────────────────────────────────
+    //  UPCOMING (existing, enhanced with status/priority)
+    // ─────────────────────────────────────────────────────────────────────
+
     public async Task<List<UpcomingActivityDto>> GetUpcomingActivitiesAsync()
     {
         var now = DateTime.UtcNow;
 
         return await _unitOfWork.Activities.Query()
             .AsNoTracking()
-            .Where(a => a.dtScheduledOn != null &&
-                        a.dtScheduledOn > now &&
-                        a.dtCompletedOn == null &&
-                        a.bolIsActive)
+            .Where(a => a.dtScheduledOn != null
+                        && a.dtScheduledOn > now
+                        && !a.bolIsDeleted
+                        && a.strStatus != ActivityStatusConstants.Completed
+                        && a.strStatus != ActivityStatusConstants.Cancelled
+                        && a.bolIsActive)
             .OrderBy(a => a.dtScheduledOn)
-            .Take(20) // Cap at 20 upcoming
+            .Take(20)
             .Select(a => new UpcomingActivityDto
             {
                 strActivityGUID = a.strActivityGUID,
                 strActivityType = a.strActivityType,
                 strSubject = a.strSubject,
-                dtScheduledOn = a.dtScheduledOn
+                strStatus = a.strStatus,
+                strPriority = a.strPriority,
+                dtScheduledOn = a.dtScheduledOn,
+                dtDueDate = a.dtDueDate,
+                bolIsOverdue = a.dtDueDate.HasValue && a.dtDueDate.Value < now,
+                strAssignedToGUID = a.strAssignedToGUID,
+                strCategory = a.strCategory,
+                Links = a.ActivityLinks.Select(al => new ActivityLinkDto
+                {
+                    strEntityType = al.strEntityType,
+                    strEntityGUID = al.strEntityGUID
+                }).ToList()
             })
             .ToListAsync();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  PRIVATE HELPERS
+    // ─────────────────────────────────────────────────────────────────────
+
+    private IQueryable<MstActivity> BuildFilteredQuery(ActivityFilterParams filter)
+    {
+        var query = _unitOfWork.Activities.Query()
+            .AsNoTracking()
+            .Where(a => !a.bolIsDeleted);
+
+        if (filter.bolIsActive.HasValue)
+            query = query.Where(a => a.bolIsActive == filter.bolIsActive.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.strActivityType))
+            query = query.Where(a => a.strActivityType == filter.strActivityType);
+
+        if (!string.IsNullOrWhiteSpace(filter.strStatus))
+            query = query.Where(a => a.strStatus == filter.strStatus);
+
+        if (!string.IsNullOrWhiteSpace(filter.strPriority))
+            query = query.Where(a => a.strPriority == filter.strPriority);
+
+        if (!string.IsNullOrWhiteSpace(filter.strCategory))
+            query = query.Where(a => a.strCategory == filter.strCategory);
+
+        if (filter.strAssignedToGUID.HasValue)
+            query = query.Where(a => a.strAssignedToGUID == filter.strAssignedToGUID.Value);
+
+        if (filter.dtFromDate.HasValue)
+            query = query.Where(a => a.dtCreatedOn >= filter.dtFromDate.Value);
+
+        if (filter.dtToDate.HasValue)
+            query = query.Where(a => a.dtCreatedOn <= filter.dtToDate.Value);
+
+        if (filter.dtDueBefore.HasValue)
+            query = query.Where(a => a.dtDueDate.HasValue && a.dtDueDate.Value <= filter.dtDueBefore.Value);
+
+        if (filter.dtDueAfter.HasValue)
+            query = query.Where(a => a.dtDueDate.HasValue && a.dtDueDate.Value >= filter.dtDueAfter.Value);
+
+        if (filter.bolIsOverdue == true)
+        {
+            var now = DateTime.UtcNow;
+            query = query.Where(a => a.dtDueDate.HasValue && a.dtDueDate.Value < now
+                                     && a.strStatus != ActivityStatusConstants.Completed
+                                     && a.strStatus != ActivityStatusConstants.Cancelled);
+        }
+
+        if (filter.bolIsCompleted.HasValue)
+        {
+            query = filter.bolIsCompleted.Value
+                ? query.Where(a => a.strStatus == ActivityStatusConstants.Completed)
+                : query.Where(a => a.strStatus != ActivityStatusConstants.Completed);
+        }
+
+        // Entity-level filtering via ActivityLinks junction
+        if (!string.IsNullOrWhiteSpace(filter.strEntityType) && filter.strEntityGUID.HasValue)
+        {
+            query = query.Where(a => a.ActivityLinks.Any(
+                al => al.strEntityType == filter.strEntityType &&
+                      al.strEntityGUID == filter.strEntityGUID.Value));
+        }
+        else if (!string.IsNullOrWhiteSpace(filter.strEntityType))
+        {
+            query = query.Where(a => a.ActivityLinks.Any(
+                al => al.strEntityType == filter.strEntityType));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var searchTerm = filter.Search.Trim();
+            query = query.Where(a =>
+                a.strSubject.Contains(searchTerm) ||
+                (a.strDescription != null && a.strDescription.Contains(searchTerm)) ||
+                (a.strOutcome != null && a.strOutcome.Contains(searchTerm)));
+        }
+
+        return query;
+    }
+
+    /// <summary>
+    /// Trigger business logic when an activity is completed:
+    /// 1. Update linked lead status (Contacted → Qualified for meetings, etc.)
+    /// 2. Fire ActivityCompleted workflow trigger
+    /// </summary>
+    private async Task TriggerActivityCompletedWorkflowsAsync(MstActivity activity, List<ActivityLinkDto> leadLinks)
+    {
+        var userId = GetCurrentUserId();
+        var tenantId = GetTenantId();
+
+        // Auto lead status progression based on activity type
+        foreach (var leadLink in leadLinks)
+        {
+            var lead = await _unitOfWork.Leads.GetByIdAsync(leadLink.strEntityGUID);
+            if (lead == null) continue;
+
+            string? newStatus = null;
+
+            // Meeting/Call completed + lead is Contacted → Qualified
+            if ((activity.strActivityType == ActivityTypeConstants.Meeting
+                 || activity.strActivityType == ActivityTypeConstants.Call)
+                && lead.strStatus == LeadStatusConstants.Contacted)
+            {
+                newStatus = LeadStatusConstants.Qualified;
+            }
+            // Any activity completed + lead is New → Contacted
+            else if (lead.strStatus == LeadStatusConstants.New)
+            {
+                newStatus = LeadStatusConstants.Contacted;
+            }
+
+            if (newStatus != null)
+            {
+                lead.strStatus = newStatus;
+                lead.strUpdatedByGUID = userId;
+                lead.dtUpdatedOn = DateTime.UtcNow;
+                _unitOfWork.Leads.Update(lead);
+
+                _logger.LogInformation(
+                    "Auto-updated lead {LeadId} status to {NewStatus} upon activity {ActivityId} completion",
+                    lead.strLeadGUID, newStatus, activity.strActivityGUID);
+            }
+        }
+
+        if (leadLinks.Count > 0)
+            await _unitOfWork.SaveChangesAsync();
+
+        // Trigger workflow engine
+        await _workflowService.TriggerWorkflowsAsync(
+            EntityTypeConstants.Activity, activity.strActivityGUID,
+            WorkflowTriggerConstants.ActivityCompleted,
+            tenantId, userId,
+            JsonSerializer.Serialize(new
+            {
+                activity.strActivityType,
+                activity.strSubject,
+                activity.strStatus,
+                LinkedLeadIds = leadLinks.Select(l => l.strEntityGUID).ToList()
+            }));
     }
 }

@@ -14,6 +14,8 @@ public class CrmDashboardDto
     public decimal dblSalesVelocity { get; set; }
     public int intRottingOpportunities { get; set; }
     public int intActivitiesThisWeek { get; set; }
+    public int intMyActivitiesCount { get; set; }
+    public int intTeamOverdueCount { get; set; }
 
     public List<PipelineStageSummaryDto> PipelineStages { get; set; } = new();
     public List<LeadsBySourceDto> LeadsBySource { get; set; } = new();
@@ -21,6 +23,8 @@ public class CrmDashboardDto
     public List<RevenueByMonthDto> RevenueByMonth { get; set; } = new();
     public List<TopOpportunityDto> TopOpportunities { get; set; } = new();
     public List<UpcomingActivityDto> UpcomingActivities { get; set; } = new();
+    public List<ActivityListDto> TodayTasks { get; set; } = new();
+    public List<ActivityListDto> OverdueActivities { get; set; } = new();
 }
 
 public class PipelineStageSummaryDto
@@ -57,13 +61,4 @@ public class TopOpportunityDto
     public decimal? dblAmount { get; set; }
     public string strStageName { get; set; } = string.Empty;
     public string? strAccountName { get; set; }
-}
-
-public class UpcomingActivityDto
-{
-    public Guid strActivityGUID { get; set; }
-    public string strActivityType { get; set; } = string.Empty;
-    public string strSubject { get; set; } = string.Empty;
-    public DateTime? dtScheduledOn { get; set; }
-    public string? strEntityName { get; set; }
 }

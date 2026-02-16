@@ -160,24 +160,50 @@ export interface DuplicateCheckResultDto {
 // Import / Export
 // ============================================================
 
+/** Column mapping sent to the backend as a Dictionary<csvColumn, leadField> */
+export type LeadImportColumnMapping = Record<string, string>;
+
+/**
+ * Legacy array-style mapping DTO — kept for backward compat but the service
+ * now converts this to the backend's Dictionary format.
+ */
 export interface LeadImportMappingDto {
   strCsvColumn: string;
   strLeadField: string;
 }
 
+/** Matches the backend ImportJobListDto exactly */
 export interface LeadImportResultDto {
+  strImportJobGUID: string;
+  strFileName: string;
+  strStatus: string;
   intTotalRows: number;
-  intCreated: number;
-  intSkippedDuplicate: number;
-  intFailed: number;
-  errors: LeadImportErrorDto[];
+  intProcessedRows: number;
+  intSuccessRows: number;
+  intErrorRows: number;
+  intDuplicateRows: number;
+  strDuplicateHandling: string;
+  dtCreatedOn: string;
+  dtCompletedOn?: string | null;
 }
 
-export interface LeadImportErrorDto {
-  intRowNumber: number;
-  strField: string;
-  strMessage: string;
+/** Matches the backend ImportJobDetailDto which extends ImportJobListDto */
+export interface LeadImportDetailDto extends LeadImportResultDto {
+  strColumnMappingJson: string;
+  Errors: LeadImportErrorDto[];
 }
+
+/** Matches the backend ImportJobErrorDto */
+export interface LeadImportErrorDto {
+  strImportJobErrorGUID: string;
+  intRowNumber: number;
+  strRawData?: string | null;
+  strErrorMessage: string;
+  strErrorType: string;
+}
+
+/** Duplicate handling strategies accepted by the backend */
+export type DuplicateHandlingStrategy = "Skip" | "Update" | "Flag";
 
 export const LEAD_IMPORTABLE_FIELDS = [
   { value: "strFirstName", label: "First Name", required: true },

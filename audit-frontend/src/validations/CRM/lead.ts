@@ -113,7 +113,7 @@ export const leadImportSchema = z.object({
   mappings: z
     .array(leadImportMappingSchema)
     .min(3, { message: "Map at least First Name, Last Name, and Email" }),
-  skipDuplicates: z.boolean().default(false),
+  duplicateHandling: z.enum(["Skip", "Update", "Flag"]).default("Skip"),
 });
 
 export type LeadImportFormValues = z.infer<typeof leadImportSchema>;

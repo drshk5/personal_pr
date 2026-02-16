@@ -152,6 +152,18 @@ public class MstWorkflowService : IWorkflowService
                     await ExecuteArchiveAsync(execution, rule);
                     break;
 
+                case WorkflowActionConstants.UpdateEntityStatus:
+                    await ExecuteUpdateEntityStatusAsync(execution, rule);
+                    break;
+
+                case WorkflowActionConstants.CreateFollowUp:
+                    await ExecuteCreateFollowUpAsync(execution, rule);
+                    break;
+
+                case WorkflowActionConstants.AssignActivity:
+                    await ExecuteAssignActivityAsync(execution, rule);
+                    break;
+
                 default:
                     execution.strStatus = "Failed";
                     execution.strResultJson = JsonSerializer.Serialize(new { error = $"Unknown action type: {rule.strActionType}" });
@@ -312,6 +324,163 @@ public class MstWorkflowService : IWorkflowService
 
         _logger.LogInformation("Archived lead {LeadId} via workflow rule {RuleId}",
             lead.strLeadGUID, rule.strWorkflowRuleGUID);
+    }
+
+    private async Task ExecuteUpdateEntityStatusAsync(MstWorkflowExecution execution, MstWorkflowRule rule)
+    {
+        var config = ParseActionConfig(rule.strActionConfigJson);
+        var newStatus = config.GetValueOrDefault("status", string.Empty);
+
+        if (string.IsNullOrWhiteSpace(newStatus))
+        {
+            _logger.LogWarning("UpdateEntityStatus action config missing 'status' field for rule {RuleId}", rule.strWorkflowRuleGUID);
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+
+        switch (rule.strEntityType)
+        {
+            case EntityTypeConstants.Lead:
+                var lead = await _unitOfWork.Leads.GetByIdAsync(execution.strEntityGUID);
+                if (lead == null)
+                {
+                    _logger.LogWarning("Lead {LeadId} not found for UpdateEntityStatus workflow action", execution.strEntityGUID);
+                    return;
+                }
+                lead.strStatus = newStatus;
+                lead.dtUpdatedOn = now;
+                _unitOfWork.Leads.Update(lead);
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("Updated lead {LeadId} status to {NewStatus} via workflow rule {RuleId}",
+                    lead.strLeadGUID, newStatus, rule.strWorkflowRuleGUID);
+                break;
+
+            case EntityTypeConstants.Opportunity:
+                var opportunity = await _unitOfWork.Opportunities.GetByIdAsync(execution.strEntityGUID);
+                if (opportunity == null)
+                {
+                    _logger.LogWarning("Opportunity {OppId} not found for UpdateEntityStatus workflow action", execution.strEntityGUID);
+                    return;
+                }
+                opportunity.strStatus = newStatus;
+                opportunity.dtUpdatedOn = now;
+                _unitOfWork.Opportunities.Update(opportunity);
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("Updated opportunity {OppId} stage to {NewStage} via workflow rule {RuleId}",
+                    opportunity.strOpportunityGUID, newStatus, rule.strWorkflowRuleGUID);
+                break;
+
+            case EntityTypeConstants.Account:
+                var account = await _unitOfWork.Accounts.GetByIdAsync(execution.strEntityGUID);
+                if (account == null)
+                {
+                    _logger.LogWarning("Account {AccountId} not found for UpdateEntityStatus workflow action", execution.strEntityGUID);
+                    return;
+                }
+                // Assuming Accounts have a status field. Adjust as needed based on actual schema
+                // account.strStatus = newStatus;
+                // account.dtUpdatedOn = now;
+                // _unitOfWork.Accounts.Update(account);
+                // await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("Account entity type doesn't support status change yet for rule {RuleId}", rule.strWorkflowRuleGUID);
+                break;
+
+            default:
+                _logger.LogWarning("UpdateEntityStatus action not supported for entity type {EntityType}", rule.strEntityType);
+                break;
+        }
+    }
+
+    private async Task ExecuteCreateFollowUpAsync(MstWorkflowExecution execution, MstWorkflowRule rule)
+    {
+        var config = ParseActionConfig(rule.strActionConfigJson);
+        var subject = config.GetValueOrDefault("subject", "Follow-up Activity");
+        var description = config.GetValueOrDefault("description", $"Auto-created follow-up from workflow rule: {rule.strRuleName}");
+        var daysAfter = int.TryParse(config.GetValueOrDefault("daysAfter", "1"), out var days) ? days : 1;
+
+        var followUpActivity = new MstActivity
+        {
+            strActivityGUID = Guid.NewGuid(),
+            strGroupGUID = execution.strGroupGUID,
+            strActivityType = "FollowUp",
+            strSubject = subject,
+            strDescription = description,
+            dtScheduledOn = DateTime.UtcNow.AddDays(daysAfter),
+            dtDueDate = DateTime.UtcNow.AddDays(daysAfter),
+            strStatus = ActivityStatusConstants.Pending,
+            strPriority = ActivityPriorityConstants.Medium,
+            strCreatedByGUID = rule.strCreatedByGUID,
+            dtCreatedOn = DateTime.UtcNow,
+            bolIsActive = true
+        };
+
+        // Assign to the entity's owner if applicable
+        if (rule.strEntityType == EntityTypeConstants.Lead)
+        {
+            var lead = await _unitOfWork.Leads.GetByIdAsync(execution.strEntityGUID);
+            if (lead?.strAssignedToGUID != null)
+                followUpActivity.strAssignedToGUID = lead.strAssignedToGUID;
+        }
+        else if (rule.strEntityType == EntityTypeConstants.Opportunity)
+        {
+            var opportunity = await _unitOfWork.Opportunities.GetByIdAsync(execution.strEntityGUID);
+            if (opportunity?.strAssignedToGUID != null)
+                followUpActivity.strAssignedToGUID = opportunity.strAssignedToGUID;
+        }
+
+        await _unitOfWork.Activities.AddAsync(followUpActivity);
+
+        var activityLink = new MstActivityLink
+        {
+            strActivityLinkGUID = Guid.NewGuid(),
+            strActivityGUID = followUpActivity.strActivityGUID,
+            strEntityType = rule.strEntityType,
+            strEntityGUID = execution.strEntityGUID,
+            dtCreatedOn = DateTime.UtcNow
+        };
+
+        await _unitOfWork.ActivityLinks.AddAsync(activityLink);
+        await _unitOfWork.SaveChangesAsync();
+
+        _logger.LogInformation("Created follow-up activity {ActivityId} for entity {EntityId} via workflow rule {RuleId}",
+            followUpActivity.strActivityGUID, execution.strEntityGUID, rule.strWorkflowRuleGUID);
+    }
+
+    private async Task ExecuteAssignActivityAsync(MstWorkflowExecution execution, MstWorkflowRule rule)
+    {
+        var config = ParseActionConfig(rule.strActionConfigJson);
+        var assignToUserIdStr = config.GetValueOrDefault("assignToUserId", string.Empty);
+
+        if (!Guid.TryParse(assignToUserIdStr, out var assignToUserId))
+        {
+            _logger.LogWarning("AssignActivity action config missing or invalid 'assignToUserId' field for rule {RuleId}", rule.strWorkflowRuleGUID);
+            return;
+        }
+
+        // For Activity entities themselves
+        if (rule.strEntityType == EntityTypeConstants.Activity)
+        {
+            var activity = await _unitOfWork.Activities.GetByIdAsync(execution.strEntityGUID);
+            if (activity == null)
+            {
+                _logger.LogWarning("Activity {ActivityId} not found for AssignActivity workflow action", execution.strEntityGUID);
+                return;
+            }
+
+            activity.strAssignedToGUID = assignToUserId;
+            activity.dtUpdatedOn = DateTime.UtcNow;
+            _unitOfWork.Activities.Update(activity);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Assigned activity {ActivityId} to user {UserId} via workflow rule {RuleId}",
+                activity.strActivityGUID, assignToUserId, rule.strWorkflowRuleGUID);
+        }
+        else
+        {
+            _logger.LogWarning("AssignActivity action is only supported for Activity entities. Rule {RuleId} targets {EntityType}",
+                rule.strWorkflowRuleGUID, rule.strEntityType);
+        }
     }
 
     private static bool EvaluateCondition(string? conditionJson, string? contextJson)

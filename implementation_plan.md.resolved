@@ -1,0 +1,379 @@
+# CRM Industry-Grade Enhancement — Comprehensive Implementation Plan
+
+## Problem Summary
+
+The CRM system has a **bare-bones Activity module** (create + list only, no update/delete/bulk/status/priority), while the Lead module is mature. The system lacks:
+- Activity lifecycle management (status, priority, due dates, completion)
+- Bulk actions on activities (assign, complete, delete)
+- Auto business logic (activity completion → lead status change)
+- Role-based data scoping (user sees own data, manager sees team, admin sees all)
+- 360° account detail view with all related data + inline editing
+- Today's tasks / upcoming activities dashboard
+
+---
+
+## Current State Analysis
+
+| Module | Current State | Gap |
+|--------|-------------|-----|
+| **Activity** | Create + List only, no status/priority/update/delete | ❌ Major rework needed |
+| **Lead** | Full CRUD, assignment rules, bulk assign, analytics, scoring | ✅ Mature — extend for auto-status |
+| **Account** | CRUD, import/export, detail has contacts+opportunities+activities | ⚠️ Needs 360° enhancement |
+| **Contact** | CRUD, import/export | ⚠️ Needs assignment bulk ops |
+| **Opportunity** | CRUD, kanban board, stage movement, close | ✅ Mature |
+| **Workflow** | 4 triggers (StatusChanged, Created, ScoreChanged, Aging), 4 actions (CreateTask, SendNotification, ChangeStatus, Archive) | ⚠️ Needs ActivityCompleted trigger + new actions |
+| **Auth/Roles** | JWT claims `module:action`, AuthorizePermission attribute | ⚠️ No data-scope filtering |
+| **Dashboard** | KPIs, charts, caching | ⚠️ Needs today's tasks widget |
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Data-scope filtering**: Adding role-based data scoping (user/team/admin) requires changes to the JWT token structure in `central-backend`. This affects the auth flow. Please confirm this is acceptable.
+
+> [!IMPORTANT]
+> **Database migration**: The [MstActivity](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Models/Core/CustomerData/MstActivity.cs#3-22) table needs new columns (`strStatus`, `strPriority`, `dtDueDate`, `strCategory`, etc.). This is a **schema change** — confirm if you want migration SQL or EF migrations.
+
+> [!WARNING]
+> **Breaking change in Activity API**: The current Activity endpoints are immutable (no update/delete). Adding update/delete endpoints changes the API contract. Existing frontend calls should remain compatible.
+
+---
+
+## Proposed Changes
+
+### Phase 1 — Activity Module Overhaul
+
+---
+
+#### [MODIFY] [MstActivity.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Models/Core/CustomerData/MstActivity.cs)
+
+Add new fields to model:
+```diff
++public string strStatus { get; set; } = "Pending";        // Pending, InProgress, Completed, Cancelled
++public string strPriority { get; set; } = "Medium";        // Low, Medium, High, Urgent
++public DateTime? dtDueDate { get; set; }
++public string? strCategory { get; set; }                   // Sales, Support, FollowUp, Internal
++public Guid? strUpdatedByGUID { get; set; }
++public DateTime? dtUpdatedOn { get; set; }
++public bool bolIsDeleted { get; set; }
++public DateTime? dtDeletedOn { get; set; }
+```
+
+---
+
+#### [NEW] [ActivityStatusConstants.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Constants/ActivityStatusConstants.cs)
+
+```csharp
+public static class ActivityStatusConstants
+{
+    public const string Pending = "Pending";
+    public const string InProgress = "InProgress";
+    public const string Completed = "Completed";
+    public const string Cancelled = "Cancelled";
+    public static readonly string[] AllStatuses = { Pending, InProgress, Completed, Cancelled };
+}
+```
+
+#### [NEW] [ActivityPriorityConstants.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Constants/ActivityPriorityConstants.cs)
+
+```csharp
+public static class ActivityPriorityConstants
+{
+    public const string Low = "Low";
+    public const string Medium = "Medium";
+    public const string High = "High";
+    public const string Urgent = "Urgent";
+    public static readonly string[] AllPriorities = { Low, Medium, High, Urgent };
+}
+```
+
+---
+
+#### [MODIFY] [ActivityDtos.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/DTOs/CustomerData/ActivityDtos.cs)
+
+Add new DTOs:
+
+- **`UpdateActivityDto`** — All fields from CreateActivityDto + status, priority, dueDate
+- **`ActivityDetailDto`** — Extended version with linked entity names, history
+- **`ActivityBulkAssignDto`** — `{ guids: Guid[], strAssignedToGUID: Guid }`
+- **`ActivityBulkStatusDto`** — `{ guids: Guid[], strStatus: string }`
+- **`ActivityBulkDeleteDto`** — `{ guids: Guid[] }`
+- **`TodayTasksFilterParams`** — Filter for today's + overdue activities
+- **Enhanced [ActivityFilterParams](file:///Users/drshk5/Downloads/crm-dk/crm-backend/DTOs/CustomerData/ActivityDtos.cs#46-56)** — Add `strStatus`, `strPriority`, `dtDueBefore`, `dtDueAfter`, `bolIsOverdue`, `strCategory`
+
+Update [ActivityListDto](file:///Users/drshk5/Downloads/crm-dk/crm-backend/DTOs/CustomerData/ActivityDtos.cs#26-45) to include `strStatus`, `strPriority`, `dtDueDate`, `strCategory`, `bolIsOverdue` (computed).
+
+---
+
+#### [MODIFY] [ActivitiesController.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Controllers/ActivitiesController.cs)
+
+Add new endpoints:
+
+| Method | Route | Permission | Description |
+|--------|-------|-----------|-------------|
+| `PUT` | `{id:guid}` | `CRM_Activities:Edit` | Update activity |
+| `DELETE` | `{id:guid}` | `CRM_Activities:Delete` | Soft delete activity |
+| `PATCH` | `{id:guid}/status` | `CRM_Activities:Edit` | Change status (triggers workflows) |
+| `PATCH` | `{id:guid}/assign` | `CRM_Activities:Edit` | Re-assign activity |
+| `POST` | `bulk-assign` | `CRM_Activities:Edit` | Bulk assign activities |
+| `POST` | `bulk-status` | `CRM_Activities:Edit` | Bulk status change |
+| `POST` | `bulk-delete` | `CRM_Activities:Delete` | Bulk soft delete |
+| `GET` | `today` | `CRM_Activities:View` | Today's tasks for current user |
+| `GET` | `my-activities` | `CRM_Activities:View` | All assigned to current user |
+| `GET` | `overdue` | `CRM_Activities:View` | Overdue activities |
+
+---
+
+#### [MODIFY] [MstActivityService.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Services/CustomerData/MstActivityService.cs)
+
+- Add `UpdateActivityAsync`, `DeleteActivityAsync`, [ChangeStatusAsync](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Services/CustomerData/MstWorkflowService.cs#258-291)
+- Add `BulkAssignAsync`, `BulkChangeStatusAsync`, `BulkDeleteAsync`
+- Add `GetTodayActivitiesAsync`, `GetMyActivitiesAsync`, `GetOverdueActivitiesAsync`
+- **On status change to "Completed"**: Trigger workflow with `ActivityCompleted` event → auto-update linked lead status
+
+#### [NEW] [ActivityUpdateDtoValidator.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Validators/ActivityUpdateDtoValidator.cs)
+
+Validates update payload fields (type, status, priority must be valid constants).
+
+---
+
+### Phase 2 — Business Logic Automation
+
+---
+
+#### [MODIFY] [WorkflowTriggerConstants.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Constants/WorkflowTriggerConstants.cs)
+
+```diff
++public const string ActivityCompleted = "ActivityCompleted";
++public const string ActivityCreated = "ActivityCreated";
++public const string Assigned = "Assigned";
+```
+
+#### [MODIFY] [WorkflowActionConstants.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Constants/WorkflowActionConstants.cs)
+
+```diff
++public const string AssignActivity = "AssignActivity";
++public const string UpdateEntityStatus = "UpdateEntityStatus";
++public const string CreateFollowUp = "CreateFollowUp";
+```
+
+#### [MODIFY] [MstWorkflowService.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Services/CustomerData/MstWorkflowService.cs)
+
+- Add `ExecuteUpdateEntityStatusAsync` — Changes linked entity (Lead/Opportunity) status when activity completes
+- Add `ExecuteCreateFollowUpAsync` — Auto-creates a follow-up activity
+- Add `ExecuteAssignActivityAsync` — Auto-assigns activity to entity owner
+- Extend [ExecuteChangeStatusAsync](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Services/CustomerData/MstWorkflowService.cs#258-291) to support Activity entity type alongside Lead
+
+**Key Business Logic Flow:**
+```
+Activity Completed → WorkflowTrigger("ActivityCompleted")
+  → Condition: Activity.Type == "Call" && LinkedEntity == "Lead"
+  → Action: UpdateEntityStatus → Lead.Status = "Contacted"
+  
+Activity Completed → WorkflowTrigger("ActivityCompleted")  
+  → Condition: Activity.Type == "Meeting" && Lead.Status == "Contacted"
+  → Action: UpdateEntityStatus → Lead.Status = "Qualified"
+  
+Activity Completed → WorkflowTrigger("ActivityCompleted")
+  → Action: CreateFollowUp → Creates next follow-up activity
+```
+
+---
+
+### Phase 3 — Universal Assignment & Data Scoping
+
+---
+
+#### [MODIFY] [ActivityDtos.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/DTOs/CustomerData/ActivityDtos.cs)
+
+All filter params for Activity, Account, Contact, Opportunity get:
+```diff
++public string? strDataScope { get; set; }  // "own", "team", "all" — resolved from JWT role
+```
+
+#### [MODIFY] Each repository query method
+
+Add data-scope filtering logic:
+- **Own** → `WHERE strAssignedToGUID == currentUserId`
+- **Team** → `WHERE strAssignedToGUID IN (team member IDs from JWT or central-backend lookup)`
+- **All** → No filter (admin view)
+
+This is resolved in a shared extension method to avoid repetition.
+
+#### [NEW] [DataScopeExtensions.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Extensions/DataScopeExtensions.cs)
+
+Shared `IQueryable<T>` extension that applies data-scope filtering based on user role claims.
+
+---
+
+### Phase 4 — 360° Account Detail View
+
+---
+
+#### [MODIFY] [AccountDtos.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/DTOs/CustomerData/AccountDtos.cs)
+
+Enhance [AccountDetailDto](file:///Users/drshk5/Downloads/crm-dk/crm-backend/DTOs/CustomerData/AccountDtos.cs#41-56):
+```diff
++public List<ActivityListDto> AllActivities { get; set; } = new();      // ALL, not just recent
++public string? strAssignedToName { get; set; }                          // Already in ListDto
++public int intActivityCount { get; set; }
++public int intOverdueActivityCount { get; set; }
++public DateTime? dtLastActivityOn { get; set; }
++public List<AccountTimelineEntryDto> Timeline { get; set; } = new();   // Combined timeline
+```
+
+#### [NEW] `AccountTimelineEntryDto`
+
+A unified timeline entry combining activities, status changes, and key events:
+```csharp
+public class AccountTimelineEntryDto
+{
+    public string strEventType { get; set; }  // Activity, StatusChange, NoteAdded, ContactAdded
+    public string strDescription { get; set; }
+    public DateTime dtOccurredOn { get; set; }
+    public Guid? strPerformedByGUID { get; set; }
+    public string? strPerformedByName { get; set; }
+}
+```
+
+#### [MODIFY] [AccountsController.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Controllers/AccountsController.cs)
+
+Add endpoints:
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| `GET` | `{id:guid}/timeline` | Combined account timeline |
+| `PUT` | `{id:guid}/contacts/{contactId}` | Inline edit contact from account |
+| `PUT` | `{id:guid}/opportunities/{oppId}` | Inline edit opportunity from account |
+| `POST` | `{id:guid}/activities` | Create activity linked to account |
+| `POST` | `bulk-assign` | Bulk assign accounts |
+
+---
+
+### Phase 5 — Dashboard Enhancements
+
+---
+
+#### [MODIFY] [CrmDashboardDtos.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/DTOs/CustomerData/CrmDashboardDtos.cs)
+
+```diff
++public List<ActivityListDto> TodayTasks { get; set; } = new();
++public List<ActivityListDto> OverdueActivities { get; set; } = new();
++public int intMyActivitiesCount { get; set; }
++public int intTeamOverdueCount { get; set; }
+```
+
+#### [MODIFY] [MstDashboardService.cs](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Services/CustomerData/MstDashboardService.cs)
+
+Add today's tasks and overdue activity queries to dashboard data.
+
+---
+
+### Phase 6 — Frontend Enhancements
+
+---
+
+#### [MODIFY] [ActivityTimeline.tsx](file:///Users/drshk5/Downloads/crm-dk/audit-frontend/src/pages/CRM/activities/ActivityTimeline.tsx)
+
+Convert to full Activity management page with:
+- Data table with filters (status, priority, type, assigned user, date range)
+- Bulk action toolbar (assign, complete, delete)
+- Status/priority badge columns
+- Today's tasks tab, My Activities tab
+
+#### [NEW] `ActivityForm.tsx`
+Full create/edit form with:
+- Activity type, subject, description
+- Status + priority dropdowns
+- Due date picker
+- Assign to user picker (searchable dropdown)
+- Entity linker (link to Lead/Account/Contact/Opportunity)
+
+#### [MODIFY] [AccountForm.tsx](file:///Users/drshk5/Downloads/crm-dk/audit-frontend/src/pages/CRM/accounts/AccountForm.tsx)
+
+Add 360° view with tabs:
+- **Overview**: Account details + assigned user
+- **Contacts**: List with inline edit capability
+- **Opportunities**: List with stage badges + inline edit
+- **Activities**: Full activity timeline + create new
+- **Timeline**: Combined event timeline
+
+#### [NEW] Frontend service files + types for new API endpoints
+
+---
+
+### Phase 7 — Database Migration
+
+---
+
+#### [NEW] [activity_module_enhancement.sql](file:///Users/drshk5/Downloads/crm-dk/scripts/activity_module_enhancement.sql)
+
+SQL migration script for [MstActivity](file:///Users/drshk5/Downloads/crm-dk/crm-backend/Models/Core/CustomerData/MstActivity.cs#3-22) table alterations and new indexes.
+
+#### [NEW] [seed_activity_workflow_rules.sql](file:///Users/drshk5/Downloads/crm-dk/scripts/seed_activity_workflow_rules.sql)
+
+Seed data for:
+- Default workflow rules (ActivityCompleted → Lead status change)
+- Activity status/priority initial configuration
+
+---
+
+## Verification Plan
+
+### Automated Tests
+
+1. **Backend API Tests** — The project uses .http files for API testing. We'll create new test files:
+   ```
+   # Run from the crm-backend directory:
+   # Activity CRUD
+   curl -X POST /api/crm/activities -d '{"strActivityType":"Call","strSubject":"Test"}' -H "Content-Type: application/json" -H "Authorization: Bearer <token>"
+   curl -X PUT /api/crm/activities/{id} -d '{"strStatus":"Completed"}'
+   curl -X POST /api/crm/activities/bulk-assign -d '{"guids":[...], "strAssignedToGUID":"..."}'
+   ```
+
+2. **Workflow Trigger Test** — Test that completing an activity linked to a lead triggers the `ActivityCompleted` workflow and auto-changes lead status:
+   ```
+   # 1. Create a lead (status: New)
+   # 2. Create an activity linked to that lead
+   # 3. Complete the activity
+   # 4. Verify lead status changed to "Contacted"
+   ```
+
+### Manual Verification
+
+> [!TIP]
+> The following tests require a running instance of the CRM with seeded data.
+
+1. **Activity Module Smoke Test**:
+   - Open the Activities page → Verify table shows status/priority columns
+   - Create new activity → Assign to a user → Verify it appears in their "Today's Tasks"
+   - Select multiple activities → Use bulk assign → Verify all assignments updated
+   - Complete an activity linked to a lead → Verify the lead status auto-updates
+
+2. **360° Account View Test**:
+   - Open any account → Verify tabs show Contacts, Opportunities, Activities, Timeline
+   - Edit a contact inline → Verify changes save
+   - Create a new activity from within the account → Verify it links automatically
+
+3. **Role-Based Filtering Test**:
+   - Login as regular user → Verify only own assigned activities visible
+   - Login as admin → Verify all data visible
+
+4. **Please suggest additional manual test scenarios** if needed, especially around your specific business workflows.
+
+---
+
+## Implementation Priority
+
+| Priority | Phase | Effort | Impact |
+|----------|-------|--------|--------|
+| 🔴 P0 | Phase 1: Activity Module | ~3-4 days | Core feature, blocks everything |
+| 🔴 P0 | Phase 2: Business Logic | ~2 days | Critical CRM workflow |
+| 🟡 P1 | Phase 3: Assignment/Scoping | ~2-3 days | User experience |
+| 🟡 P1 | Phase 4: 360° Account View | ~2 days | User experience |
+| 🟢 P2 | Phase 5: Dashboard | ~1 day | Polish |
+| 🟡 P1 | Phase 6: Frontend | ~4-5 days | User-facing |
+| 🔴 P0 | Phase 7: DB Migration | ~0.5 day | Required for Phase 1 |
+
+**Total estimated effort: ~15-18 days**

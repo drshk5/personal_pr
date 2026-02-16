@@ -29,6 +29,7 @@ import { useTableLayout } from "@/hooks/common/use-table-layout";
 import { useUserRights } from "@/hooks/common/use-user-rights";
 import { useDebounce } from "@/hooks/common/use-debounce";
 import { useMenuIcon } from "@/hooks/common/use-menu-icon";
+import { useModuleUsers } from "@/hooks/api/central/use-users";
 import { Actions, FormModules, ListModules, canAccess } from "@/lib/permissions";
 import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 
@@ -164,6 +165,13 @@ const AccountList: React.FC = () => {
 
   // Data fetch
   const { data: accountsResponse, isLoading } = useAccounts(filterParams);
+  const { data: users } = useModuleUsers();
+
+  const userMap = useMemo(() => {
+    if (!users) return new Map<string, string>();
+    return new Map(users.map((u) => [u.strUserGUID, u.strName]));
+  }, [users]);
+
 
   // Map response to standardized format
   const pagedData = useMemo(() => {
@@ -302,47 +310,47 @@ const AccountList: React.FC = () => {
   const columns: DataTableColumn<AccountListDto>[] = useMemo(
     () => [
       ...(canAccess(menuItems, FormModules.CRM_ACCOUNT, Actions.EDIT) ||
-      canAccess(menuItems, FormModules.CRM_ACCOUNT, Actions.DELETE)
+        canAccess(menuItems, FormModules.CRM_ACCOUNT, Actions.DELETE)
         ? [
-            {
-              key: "actions",
-              header: (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={allVisibleSelected}
-                    onChange={toggleAllSelection}
-                    className="rounded border-gray-300"
-                    aria-label="Select all visible accounts"
-                  />
-                  <span>Actions</span>
-                </div>
-              ),
-              cell: (item: AccountListDto) => (
-                <div className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    checked={selectedAccounts.has(item.strAccountGUID)}
-                    onChange={() => toggleAccountSelection(item.strAccountGUID)}
-                    className="rounded border-gray-300"
-                    aria-label={`Select account ${item.strAccountName}`}
-                  />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {canAccess(
-                        menuItems,
-                        FormModules.CRM_ACCOUNT,
-                        Actions.EDIT
-                      ) && (
+          {
+            key: "actions",
+            header: (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  onChange={toggleAllSelection}
+                  className="rounded border-gray-300"
+                  aria-label="Select all visible accounts"
+                />
+                <span>Actions</span>
+              </div>
+            ),
+            cell: (item: AccountListDto) => (
+              <div className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={selectedAccounts.has(item.strAccountGUID)}
+                  onChange={() => toggleAccountSelection(item.strAccountGUID)}
+                  className="rounded border-gray-300"
+                  aria-label={`Select account ${item.strAccountName}`}
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {canAccess(
+                      menuItems,
+                      FormModules.CRM_ACCOUNT,
+                      Actions.EDIT
+                    ) && (
                         <DropdownMenuItem
                           onClick={() =>
                             openEditInNewTab(
@@ -354,11 +362,11 @@ const AccountList: React.FC = () => {
                           Edit
                         </DropdownMenuItem>
                       )}
-                      {canAccess(
-                        menuItems,
-                        FormModules.CRM_ACCOUNT,
-                        Actions.DELETE
-                      ) && (
+                    {canAccess(
+                      menuItems,
+                      FormModules.CRM_ACCOUNT,
+                      Actions.DELETE
+                    ) && (
                         <>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -370,14 +378,14 @@ const AccountList: React.FC = () => {
                           </DropdownMenuItem>
                         </>
                       )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ),
-              sortable: false,
-              width: "110px",
-            } as DataTableColumn<AccountListDto>,
-          ]
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ),
+            sortable: false,
+            width: "110px",
+          } as DataTableColumn<AccountListDto>,
+        ]
         : []),
       {
         key: "strAccountName",
@@ -460,7 +468,7 @@ const AccountList: React.FC = () => {
         header: "Assigned To",
         cell: (item: AccountListDto) => (
           <span className="text-sm text-foreground">
-            {item.strAssignedToName || item.strAssignedToGUID || "-"}
+            {item.strAssignedToName || userMap.get(item.strAssignedToGUID || "") || "-"}
           </span>
         ),
         sortable: true,
@@ -484,11 +492,10 @@ const AccountList: React.FC = () => {
         header: "Active",
         cell: (item: AccountListDto) => (
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              item.bolIsActive
-                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-            }`}
+            className={`px-2 py-1 rounded-full text-xs font-medium ${item.bolIsActive
+              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+              }`}
           >
             {item.bolIsActive ? "Active" : "Inactive"}
           </span>
@@ -504,6 +511,7 @@ const AccountList: React.FC = () => {
       selectedAccounts,
       toggleAccountSelection,
       toggleAllSelection,
+      userMap,
     ]
   );
 

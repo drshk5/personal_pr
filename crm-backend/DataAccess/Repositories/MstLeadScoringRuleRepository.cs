@@ -19,8 +19,20 @@ public class MstLeadScoringRuleRepository : IMstLeadScoringRuleRepository
     public void Delete(MstLeadScoringRule entity) => _context.MstLeadScoringRules.Remove(entity);
 
     public async Task<IEnumerable<MstLeadScoringRule>> GetActiveRulesByCategoryAsync(string category)
-        => await _context.MstLeadScoringRules.Where(r => r.bolIsActive && r.strRuleCategory == category).OrderBy(r => r.intSortOrder).ToListAsync();
+    {
+        // intSortOrder is unmapped (legacy DB doesn't have this column), so we load then sort client-side
+        var rules = await _context.MstLeadScoringRules
+            .Where(r => r.bolIsActive && r.strRuleCategory == category)
+            .ToListAsync();
+        return rules.OrderBy(r => r.intSortOrder);
+    }
 
     public async Task<IEnumerable<MstLeadScoringRule>> GetAllActiveRulesAsync()
-        => await _context.MstLeadScoringRules.Where(r => r.bolIsActive).OrderBy(r => r.intSortOrder).ToListAsync();
+    {
+        // intSortOrder is unmapped (legacy DB doesn't have this column), so we load then sort client-side
+        var rules = await _context.MstLeadScoringRules
+            .Where(r => r.bolIsActive)
+            .ToListAsync();
+        return rules.OrderBy(r => r.intSortOrder);
+    }
 }

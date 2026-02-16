@@ -119,33 +119,43 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
         if (lead == null)
             throw new NotFoundException("Lead not found", LeadErrorCodes.LeadNotFound);
 
-        var activities = await _unitOfWork.ActivityLinks.Query()
-            .AsNoTracking()
-            .Where(al => al.strEntityType == EntityTypeConstants.Lead
-                && al.strEntityGUID == id)
-            .OrderByDescending(al => al.Activity.dtCreatedOn)
-            .Take(10)
-            .Select(al => new ActivityListDto
-            {
-                strActivityGUID = al.Activity.strActivityGUID,
-                strActivityType = al.Activity.strActivityType,
-                strSubject = al.Activity.strSubject,
-                strDescription = al.Activity.strDescription,
-                dtScheduledOn = al.Activity.dtScheduledOn,
-                dtCompletedOn = al.Activity.dtCompletedOn,
-                intDurationMinutes = al.Activity.dtScheduledOn.HasValue && al.Activity.dtCompletedOn.HasValue
-                    ? EF.Functions.DateDiffMinute(al.Activity.dtScheduledOn.Value, al.Activity.dtCompletedOn.Value)
-                    : al.Activity.intDurationMinutes,
-                strOutcome = al.Activity.strOutcome,
-                strAssignedToGUID = al.Activity.strAssignedToGUID,
-                strAssignedToName = null,
-                strCreatedByGUID = al.Activity.strCreatedByGUID,
-                strCreatedByName = string.Empty,
-                dtCreatedOn = al.Activity.dtCreatedOn,
-                bolIsActive = al.Activity.bolIsActive,
-                Links = new List<ActivityLinkDto>()
-            })
-            .ToListAsync();
+        // Load activities with graceful fallback for schema mismatch
+        var activities = new List<ActivityListDto>();
+        try
+        {
+            activities = await _unitOfWork.ActivityLinks.Query()
+                .AsNoTracking()
+                .Where(al => al.strEntityType == EntityTypeConstants.Lead
+                    && al.strEntityGUID == id)
+                .OrderByDescending(al => al.Activity.dtCreatedOn)
+                .Take(10)
+                .Select(al => new ActivityListDto
+                {
+                    strActivityGUID = al.Activity.strActivityGUID,
+                    strActivityType = al.Activity.strActivityType,
+                    strSubject = al.Activity.strSubject,
+                    strDescription = al.Activity.strDescription,
+                    dtScheduledOn = al.Activity.dtScheduledOn,
+                    dtCompletedOn = al.Activity.dtCompletedOn,
+                    intDurationMinutes = al.Activity.dtScheduledOn.HasValue && al.Activity.dtCompletedOn.HasValue
+                        ? EF.Functions.DateDiffMinute(al.Activity.dtScheduledOn.Value, al.Activity.dtCompletedOn.Value)
+                        : al.Activity.intDurationMinutes,
+                    strOutcome = al.Activity.strOutcome,
+                    strAssignedToGUID = al.Activity.strAssignedToGUID,
+                    strAssignedToName = null,
+                    strCreatedByGUID = al.Activity.strCreatedByGUID,
+                    strCreatedByName = string.Empty,
+                    dtCreatedOn = al.Activity.dtCreatedOn,
+                    bolIsActive = al.Activity.bolIsActive,
+                    Links = new List<ActivityLinkDto>()
+                })
+                .ToListAsync();
+        }
+        catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 207)
+        {
+            // Column not found - database schema mismatch, return empty list
+            activities = new List<ActivityListDto>();
+        }
 
         var detail = MapToDetailDto(lead);
         detail.RecentActivities = activities;

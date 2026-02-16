@@ -113,6 +113,29 @@ public class AccountsController : BaseController
     }
 
     /// <summary>
+    /// Bulk assign accounts to user
+    /// </summary>
+    [HttpPost("bulk-assign")]
+    [AuthorizePermission("CRM_Accounts", "Edit")]
+    public async Task<ActionResult<ApiResponse<bool>>> BulkAssign(
+        [FromBody] BulkAssignDto dto)
+    {
+        var result = await _accountAppService.BulkAssignAsync(dto);
+        return OkResponse(result, $"Successfully assigned {dto.Guids.Count} accounts");
+    }
+
+    /// <summary>
+    /// Get account timeline (combined activities and events)
+    /// </summary>
+    [HttpGet("{id:guid}/timeline")]
+    [AuthorizePermission("CRM_Accounts", "View")]
+    public async Task<ActionResult<ApiResponse<List<AccountTimelineEntryDto>>>> GetAccountTimeline(Guid id)
+    {
+        var result = await _accountAppService.GetAccountTimelineAsync(id);
+        return OkResponse(result);
+    }
+
+    /// <summary>
     /// Import accounts from CSV
     /// </summary>
     [HttpPost("import")]

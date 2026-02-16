@@ -49,14 +49,34 @@ public class AccountDetailDto : AccountListDto
     public string? strCountry { get; set; }
     public string? strPostalCode { get; set; }
     public string? strDescription { get; set; }
+    public int intActivityCount { get; set; }
+    public int intOverdueActivityCount { get; set; }
+    public DateTime? dtLastActivityOn { get; set; }
     public List<ContactListDto> Contacts { get; set; } = new();
     public List<OpportunityListDto> Opportunities { get; set; } = new();
+    public List<ActivityListDto> AllActivities { get; set; } = new();
     public List<ActivityListDto> RecentActivities { get; set; } = new();
+    public List<AccountTimelineEntryDto> Timeline { get; set; } = new();
+}
+
+public class AccountTimelineEntryDto
+{
+    public string strEventType { get; set; } = string.Empty;
+    public string strDescription { get; set; } = string.Empty;
+    public DateTime dtOccurredOn { get; set; }
+    public Guid? strPerformedByGUID { get; set; }
+    public string? strPerformedByName { get; set; }
 }
 
 public class AccountBulkArchiveDto
 {
     public List<Guid> Guids { get; set; } = new();
+}
+
+public class BulkAssignDto
+{
+    public List<Guid> Guids { get; set; } = new();
+    public Guid strAssignedToGUID { get; set; }
 }
 
 public class AccountFilterParams : PagedRequestDto

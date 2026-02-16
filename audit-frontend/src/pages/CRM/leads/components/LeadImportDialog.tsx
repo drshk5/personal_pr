@@ -1,14 +1,23 @@
 import React, { useState, useCallback } from "react";
-import { Upload, Download, FileSpreadsheet, X, Check, AlertCircle } from "lucide-react";
+import {
+  Upload,
+  Download,
+  FileSpreadsheet,
+  X,
+  Check,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+} from "lucide-react";
 import { LEAD_IMPORTABLE_FIELDS } from "@/types/CRM/lead";
-import type { LeadImportMappingDto } from "@/types/CRM/lead";
+import type { LeadImportMappingDto, DuplicateHandlingStrategy } from "@/types/CRM/lead";
 import {
   useImportLeads,
   useDownloadImportTemplate,
 } from "@/hooks/api/CRM/use-leads";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +42,28 @@ interface LeadImportDialogProps {
 
 type ImportStep = "upload" | "mapping" | "result";
 
+const DUPLICATE_HANDLING_OPTIONS: {
+  value: DuplicateHandlingStrategy;
+  label: string;
+  description: string;
+}[] = [
+    {
+      value: "Skip",
+      label: "Skip Duplicates",
+      description: "Existing leads with the same email will be skipped",
+    },
+    {
+      value: "Update",
+      label: "Update Duplicates",
+      description: "Existing leads will be updated with imported data",
+    },
+    {
+      value: "Flag",
+      label: "Flag Duplicates",
+      description: "Creates the lead anyway but marks it as a duplicate",
+    },
+  ];
+
 const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
   open,
   onOpenChange,
@@ -42,9 +73,14 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [mappings, setMappings] = useState<Record<string, string>>({});
-  const [skipDuplicates, setSkipDuplicates] = useState(false);
+  const [duplicateHandling, setDuplicateHandling] =
+    useState<DuplicateHandlingStrategy>("Skip");
 
-  const { mutate: importLeads, isPending, data: importResult } = useImportLeads();
+  const {
+    mutate: importLeads,
+    isPending,
+    data: importResult,
+  } = useImportLeads();
   const { mutate: downloadTemplate, isPending: isDownloading } =
     useDownloadImportTemplate();
 
@@ -53,7 +89,7 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
     setFile(null);
     setCsvHeaders([]);
     setMappings({});
-    setSkipDuplicates(false);
+    setDuplicateHandling("Skip");
   }, []);
 
   const handleFileChange = useCallback(
@@ -133,6 +169,7 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
   const handleImport = () => {
     if (!file) return;
 
+    // Convert the key-value mappings record into the array format the hook expects
     const importMappings: LeadImportMappingDto[] = Object.entries(mappings).map(
       ([csvCol, leadField]) => ({
         strCsvColumn: csvCol,
@@ -141,7 +178,7 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
     );
 
     importLeads(
-      { file, mappings: importMappings, skipDuplicates },
+      { file, mappings: importMappings, duplicateHandling },
       {
         onSuccess: () => {
           setStep("result");
@@ -318,20 +355,35 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
               </table>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Checkbox
-                id="skipDuplicates"
-                checked={skipDuplicates}
-                onCheckedChange={(checked) =>
-                  setSkipDuplicates(checked === true)
-                }
-              />
-              <label
-                htmlFor="skipDuplicates"
-                className="text-sm cursor-pointer text-foreground"
-              >
-                Skip duplicate leads (match by email)
+            {/* Duplicate Handling */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Duplicate Handling
               </label>
+              <Select
+                value={duplicateHandling}
+                onValueChange={(val) =>
+                  setDuplicateHandling(val as DuplicateHandlingStrategy)
+                }
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DUPLICATE_HANDLING_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {
+                  DUPLICATE_HANDLING_OPTIONS.find(
+                    (o) => o.value === duplicateHandling
+                  )?.description
+                }
+              </p>
             </div>
           </div>
         )}
@@ -340,10 +392,20 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
         {step === "result" && importResult && (
           <div className="space-y-4 py-4">
             <div className="text-center">
-              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-                <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Import Complete</h3>
+              {importResult.strStatus === "Failed" ? (
+                <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
+                  <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                </div>
+              ) : (
+                <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
+                  <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+              )}
+              <h3 className="text-lg font-semibold text-foreground">
+                {importResult.strStatus === "Failed"
+                  ? "Import Failed"
+                  : "Import Complete"}
+              </h3>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -354,49 +416,43 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
                 <p className="text-xs text-muted-foreground">Total Rows</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {importResult.intCreated}
+                  {importResult.intSuccessRows}
                 </p>
-                <p className="text-xs text-muted-foreground">Created</p>
+                <p className="text-xs text-muted-foreground">Imported</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                </div>
                 <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                  {importResult.intSkippedDuplicate}
+                  {importResult.intDuplicateRows}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Skipped (Dup)
-                </p>
+                <p className="text-xs text-muted-foreground">Duplicates</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-red-50 dark:bg-red-950/20">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                </div>
                 <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                  {importResult.intFailed}
+                  {importResult.intErrorRows}
                 </p>
                 <p className="text-xs text-muted-foreground">Failed</p>
               </div>
             </div>
 
-            {importResult.errors.length > 0 && (
-              <div className="border rounded-lg overflow-hidden max-h-40 overflow-y-auto">
-                <table className="w-full text-xs">
-                  <thead className="bg-muted/50 sticky top-0">
-                    <tr>
-                      <th className="text-left px-3 py-1.5 text-foreground">Row</th>
-                      <th className="text-left px-3 py-1.5 text-foreground">Field</th>
-                      <th className="text-left px-3 py-1.5 text-foreground">Error</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {importResult.errors.slice(0, 20).map((err, i) => (
-                      <tr key={i} className="border-t">
-                        <td className="px-3 py-1.5">{err.intRowNumber}</td>
-                        <td className="px-3 py-1.5">{err.strField}</td>
-                        <td className="px-3 py-1.5 text-red-600 dark:text-red-400">
-                          {err.strMessage}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {importResult.intDuplicateRows > 0 && (
+              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                <p className="text-xs text-muted-foreground">
+                  Duplicate handling strategy:{" "}
+                  <span className="font-medium text-foreground">
+                    {importResult.strDuplicateHandling}
+                  </span>
+                </p>
               </div>
             )}
           </div>

@@ -158,12 +158,18 @@ export const leadService = {
   importLeads: async (
     file: File,
     mappings: LeadImportMappingDto[],
-    skipDuplicates: boolean = false
+    duplicateHandling: string = "Skip"
   ): Promise<LeadImportResultDto> => {
+    // Convert the array-style mappings to the Dictionary<string,string> the backend expects
+    const columnMapping: Record<string, string> = {};
+    for (const m of mappings) {
+      columnMapping[m.strCsvColumn] = m.strLeadField;
+    }
+
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("mappings", JSON.stringify(mappings));
-    formData.append("skipDuplicates", String(skipDuplicates));
+    formData.append("columnMappingJson", JSON.stringify(columnMapping));
+    formData.append("strDuplicateHandling", duplicateHandling);
 
     const response = await api.post<{ data: LeadImportResultDto }>(
       `${LEADS_PREFIX}/import`,
@@ -177,17 +183,24 @@ export const leadService = {
 
   exportLeads: async (
     params: LeadFilterParams = {},
-    format: "csv" | "excel" = "csv"
+    _format: "csv" | "excel" = "csv"
   ): Promise<Blob> => {
-    return await ApiService.exportFile(
+    return await ApiService.exportFilePost(
       `${LEADS_PREFIX}/export`,
-      formatPaginationParams({ ...params }) as Record<string, unknown>,
-      format
+      formatPaginationParams({ ...params }) as Record<string, unknown>
     );
   },
 
+  /**
+   * Generate a CSV import template client-side.
+   * The backend doesn't expose a dedicated template endpoint — we simply
+   * build one from the LEAD_IMPORTABLE_FIELDS definition.
+   */
   downloadImportTemplate: async (): Promise<Blob> => {
-    return await ApiService.downloadFile(`${LEADS_PREFIX}/import-template`);
+    const { LEAD_IMPORTABLE_FIELDS } = await import("@/types/CRM/lead");
+    const headers = LEAD_IMPORTABLE_FIELDS.map((f) => f.label).join(",");
+    const csv = headers + "\n";
+    return new Blob([csv], { type: "text/csv" });
   },
 
   // ── Assignment ─────────────────────────────────────────────

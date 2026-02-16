@@ -761,6 +761,8 @@ namespace crm_backend.Data
             builder.Entity<MstImportJobError>(entity =>
             {
                 entity.Property(e => e.strImportJobErrorGUID).HasDefaultValueSql("NEWID()");
+                // Legacy DB column is 'strRawData', not 'strRawDataJson'
+                entity.Property(e => e.strRawDataJson).HasColumnName("strRawData");
                 entity.Property(e => e.strErrorMessage).HasMaxLength(500).IsRequired();
                 entity.Property(e => e.strErrorType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");

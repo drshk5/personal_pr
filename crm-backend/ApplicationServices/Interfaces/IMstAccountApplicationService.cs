@@ -12,4 +12,6 @@ public interface IMstAccountApplicationService : IApplicationService
     Task<bool> DeleteAccountAsync(Guid id);
     Task<bool> BulkArchiveAsync(AccountBulkArchiveDto dto);
     Task<bool> BulkRestoreAsync(AccountBulkArchiveDto dto);
+    Task<bool> BulkAssignAsync(BulkAssignDto dto);
+    Task<List<AccountTimelineEntryDto>> GetAccountTimelineAsync(Guid accountId);
 }

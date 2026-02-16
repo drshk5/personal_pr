@@ -167,16 +167,16 @@ export const useImportLeads = () => {
     mutationFn: ({
       file,
       mappings,
-      skipDuplicates,
+      duplicateHandling,
     }: {
       file: File;
       mappings: LeadImportMappingDto[];
-      skipDuplicates?: boolean;
-    }) => leadService.importLeads(file, mappings, skipDuplicates),
+      duplicateHandling?: string;
+    }) => leadService.importLeads(file, mappings, duplicateHandling),
     onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: leadQueryKeys.all });
       toast.success(
-        `Import complete: ${result.intCreated} created, ${result.intSkippedDuplicate} duplicates skipped`
+        `Import complete: ${result.intSuccessRows} created, ${result.intDuplicateRows} duplicates, ${result.intErrorRows} errors`
       );
     },
     onError: (error) => handleMutationError(error, "Failed to import leads"),

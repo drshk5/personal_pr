@@ -135,6 +135,9 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
         if (account == null)
             throw new NotFoundException("Account not found", "ACCOUNT_NOT_FOUND");
 
+        // Store account name in a local variable to use in subsequent queries
+        var accountName = account.strAccountName;
+
         // Run queries sequentially because scoped DbContext cannot execute concurrent operations safely
         var contacts = await _unitOfWork.Contacts.Query()
             .AsNoTracking()
@@ -148,7 +151,7 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
                 strEmail = c.strEmail,
                 strPhone = c.strPhone,
                 strJobTitle = c.strJobTitle,
-                strAccountName = account.strAccountName,
+                strAccountName = accountName,
                 strLifecycleStage = c.strLifecycleStage,
                 strAssignedToGUID = c.strAssignedToGUID,
                 dtCreatedOn = c.dtCreatedOn,
@@ -165,7 +168,7 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
             {
                 strOpportunityGUID = o.strOpportunityGUID,
                 strOpportunityName = o.strOpportunityName,
-                strAccountName = account.strAccountName,
+                strAccountName = accountName,
                 strStageName = o.Stage != null ? o.Stage.strStageName : string.Empty,
                 strStatus = o.strStatus,
                 dblAmount = o.dblAmount,
@@ -188,35 +191,95 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
             })
             .ToListAsync();
 
-        var activities = await _unitOfWork.ActivityLinks.Query()
-            .AsNoTracking()
-            .Where(al => al.strEntityType == EntityTypeConstants.Account
-                && al.strEntityGUID == id)
-            .OrderByDescending(al => al.Activity.dtCreatedOn)
-            .Take(10)
-            .Select(al => new ActivityListDto
-            {
-                strActivityGUID = al.Activity.strActivityGUID,
-                strActivityType = al.Activity.strActivityType,
-                strSubject = al.Activity.strSubject,
-                strDescription = al.Activity.strDescription,
-                dtScheduledOn = al.Activity.dtScheduledOn,
-                dtCompletedOn = al.Activity.dtCompletedOn,
-                intDurationMinutes = al.Activity.dtScheduledOn.HasValue && al.Activity.dtCompletedOn.HasValue
-                    ? EF.Functions.DateDiffMinute(al.Activity.dtScheduledOn.Value, al.Activity.dtCompletedOn.Value)
-                    : al.Activity.intDurationMinutes,
-                strOutcome = al.Activity.strOutcome,
-                strAssignedToGUID = al.Activity.strAssignedToGUID,
-                strAssignedToName = null,
-                strCreatedByGUID = al.Activity.strCreatedByGUID,
-                strCreatedByName = string.Empty,
-                dtCreatedOn = al.Activity.dtCreatedOn,
-                bolIsActive = al.Activity.bolIsActive,
-                Links = new List<ActivityLinkDto>()
-            })
-            .ToListAsync();
+        // Load activities with graceful fallback for schema mismatch
+        var activities = new List<ActivityListDto>();
+        try
+        {
+            activities = await _unitOfWork.ActivityLinks.Query()
+                .AsNoTracking()
+                .Where(al => al.strEntityType == EntityTypeConstants.Account
+                    && al.strEntityGUID == id)
+                .OrderByDescending(al => al.Activity.dtCreatedOn)
+                .Take(10)
+                .Select(al => new ActivityListDto
+                {
+                    strActivityGUID = al.Activity.strActivityGUID,
+                    strActivityType = al.Activity.strActivityType,
+                    strSubject = al.Activity.strSubject,
+                    strDescription = al.Activity.strDescription,
+                    dtScheduledOn = al.Activity.dtScheduledOn,
+                    dtCompletedOn = al.Activity.dtCompletedOn,
+                    intDurationMinutes = al.Activity.dtScheduledOn.HasValue && al.Activity.dtCompletedOn.HasValue
+                        ? EF.Functions.DateDiffMinute(al.Activity.dtScheduledOn.Value, al.Activity.dtCompletedOn.Value)
+                        : al.Activity.intDurationMinutes,
+                    strOutcome = al.Activity.strOutcome,
+                    strAssignedToGUID = al.Activity.strAssignedToGUID,
+                    strAssignedToName = null,
+                    strCreatedByGUID = al.Activity.strCreatedByGUID,
+                    strCreatedByName = string.Empty,
+                    dtCreatedOn = al.Activity.dtCreatedOn,
+                    bolIsActive = al.Activity.bolIsActive,
+                    Links = new List<ActivityLinkDto>()
+                })
+                .ToListAsync();
+        }
+        catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 207)
+        {
+            // Column not found - database schema mismatch, return empty list
+            activities = new List<ActivityListDto>();
+        }
 
         var openOpps = opportunities.Where(o => o.strStatus == "Open").ToList();
+
+        // Get all activities for the account (not just recent) with schema mismatch fallback
+        var allActivities = new List<ActivityListDto>();
+        try
+        {
+            allActivities = await _unitOfWork.ActivityLinks.Query()
+                .AsNoTracking()
+                .Where(al => al.strEntityType == EntityTypeConstants.Account
+                    && al.strEntityGUID == id)
+                .OrderByDescending(al => al.Activity.dtCreatedOn)
+                .Select(al => new ActivityListDto
+                {
+                    strActivityGUID = al.Activity.strActivityGUID,
+                    strActivityType = al.Activity.strActivityType,
+                    strSubject = al.Activity.strSubject,
+                    strDescription = al.Activity.strDescription,
+                    dtScheduledOn = al.Activity.dtScheduledOn,
+                    dtCompletedOn = al.Activity.dtCompletedOn,
+                    intDurationMinutes = al.Activity.intDurationMinutes,
+                    strOutcome = al.Activity.strOutcome,
+                    strStatus = al.Activity.strStatus,
+                    strPriority = al.Activity.strPriority,
+                    dtDueDate = al.Activity.dtDueDate,
+                    strCategory = al.Activity.strCategory,
+                    bolIsOverdue = al.Activity.dtDueDate.HasValue && al.Activity.dtDueDate.Value < DateTime.UtcNow
+                                  && al.Activity.strStatus != ActivityStatusConstants.Completed
+                                  && al.Activity.strStatus != ActivityStatusConstants.Cancelled,
+                    strAssignedToGUID = al.Activity.strAssignedToGUID,
+                    strAssignedToName = null,
+                    strCreatedByGUID = al.Activity.strCreatedByGUID,
+                    strCreatedByName = string.Empty,
+                    dtCreatedOn = al.Activity.dtCreatedOn,
+                    dtUpdatedOn = al.Activity.dtUpdatedOn,
+                    bolIsActive = al.Activity.bolIsActive,
+                    Links = new List<ActivityLinkDto>()
+                })
+                .ToListAsync();
+        }
+        catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 207)
+        {
+            // Column not found - database schema mismatch, return empty list
+            allActivities = new List<ActivityListDto>();
+        }
+
+        var now = DateTime.UtcNow;
+        var overdueCount = allActivities.Count(a => a.bolIsOverdue);
+        var lastActivityDate = allActivities.FirstOrDefault()?.dtCreatedOn;
+
+        // Get timeline
+        var timeline = await GetAccountTimelineAsync(id);
 
         return new AccountDetailDto
         {
@@ -240,9 +303,14 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
             strCountry = account.strCountry,
             strPostalCode = account.strPostalCode,
             strDescription = account.strDescription,
+            intActivityCount = allActivities.Count,
+            intOverdueActivityCount = overdueCount,
+            dtLastActivityOn = lastActivityDate,
             Contacts = contacts,
             Opportunities = opportunities,
-            RecentActivities = activities
+            RecentActivities = activities,
+            AllActivities = allActivities,
+            Timeline = timeline
         };
     }
 
@@ -443,5 +511,122 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
 
         await _unitOfWork.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<bool> BulkAssignAsync(BulkAssignDto dto)
+    {
+        if (dto.Guids.Count == 0)
+            return true;
+
+        var accounts = await _unitOfWork.Accounts.Query()
+            .Where(a => dto.Guids.Contains(a.strAccountGUID))
+            .ToListAsync();
+
+        var userId = GetCurrentUserId();
+        var now = DateTime.UtcNow;
+
+        foreach (var account in accounts)
+        {
+            account.strAssignedToGUID = dto.strAssignedToGUID;
+            account.strUpdatedByGUID = userId;
+            account.dtUpdatedOn = now;
+            _unitOfWork.Accounts.Update(account);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+        _logger.LogInformation("Bulk assigned {Count} accounts to {UserId}", accounts.Count, dto.strAssignedToGUID);
+        return true;
+    }
+
+    public async Task<List<AccountTimelineEntryDto>> GetAccountTimelineAsync(Guid accountId)
+    {
+        var now = DateTime.UtcNow;
+        var timeline = new List<AccountTimelineEntryDto>();
+
+        // Get all activities linked to this account with schema mismatch fallback
+        List<MstActivity> activities;
+        try
+        {
+            activities = await _unitOfWork.ActivityLinks.Query()
+                .AsNoTracking()
+                .Where(al => al.strEntityType == EntityTypeConstants.Account && al.strEntityGUID == accountId)
+                .OrderByDescending(al => al.Activity.dtCreatedOn)
+                .Select(al => al.Activity)
+                .ToListAsync();
+        }
+        catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 207)
+        {
+            // Column not found - database schema mismatch, return empty activity list
+            activities = new List<MstActivity>();
+        }
+
+        //Add activities to timeline
+        foreach (var activity in activities)
+        {
+            timeline.Add(new AccountTimelineEntryDto
+            {
+                strEventType = "Activity",
+                strDescription = $"{activity.strActivityType}: {activity.strSubject}",
+                dtOccurredOn = activity.dtCreatedOn,
+                strPerformedByGUID = activity.strCreatedByGUID,
+                strPerformedByName = null
+            });
+
+            // Add status change events if activity was completed
+            if (activity.dtCompletedOn.HasValue)
+            {
+                timeline.Add(new AccountTimelineEntryDto
+                {
+                    strEventType = "ActivityCompleted",
+                    strDescription = $"Activity completed: {activity.strSubject}",
+                    dtOccurredOn = activity.dtCompletedOn.Value,
+                    strPerformedByGUID = activity.strUpdatedByGUID,
+                    strPerformedByName = null
+                });
+            }
+        }
+
+        // Get opportunities for this account (as related changes)
+        var opportunities = await _unitOfWork.Opportunities.Query()
+            .AsNoTracking()
+            .Where(o => o.strAccountGUID == accountId)
+            .OrderByDescending(o => o.dtUpdatedOn ?? o.dtCreatedOn)
+            .Take(50)
+            .ToListAsync();
+
+        foreach (var opp in opportunities)
+        {
+            timeline.Add(new AccountTimelineEntryDto
+            {
+                strEventType = "Opportunity",
+                strDescription = $"Opportunity moved to {opp.strStatus}: {opp.strOpportunityName}",
+                dtOccurredOn = opp.dtUpdatedOn ?? opp.dtCreatedOn,
+                strPerformedByGUID = null,
+                strPerformedByName = null
+            });
+        }
+
+        // Get contacts added to this account
+        var contacts = await _unitOfWork.Contacts.Query()
+            .AsNoTracking()
+            .Where(c => c.strAccountGUID == accountId)
+            .OrderByDescending(c => c.dtCreatedOn)
+            .Take(50)
+            .ToListAsync();
+
+        foreach (var contact in contacts)
+        {
+            timeline.Add(new AccountTimelineEntryDto
+            {
+                strEventType = "ContactAdded",
+                strDescription = $"Contact added: {contact.strFirstName} {contact.strLastName}",
+                dtOccurredOn = contact.dtCreatedOn,
+                strPerformedByGUID = contact.strCreatedByGUID,
+                strPerformedByName = null
+            });
+        }
+
+        // Sort by date descending
+        return timeline.OrderByDescending(t => t.dtOccurredOn).ToList();
     }
 }

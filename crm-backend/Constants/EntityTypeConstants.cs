@@ -14,6 +14,7 @@ public static class EntityTypeConstants
     public const string ImportJob = "ImportJob";
     public const string Communication = "Communication";
     public const string LeadDuplicate = "LeadDuplicate";
+    public const string Activity = "Activity";
 
-    public static readonly string[] AllTypes = { Lead, Contact, Account, Opportunity, Pipeline, ScoringRule, AssignmentRule, WorkflowRule, WebForm, ImportJob, Communication, LeadDuplicate };
+    public static readonly string[] AllTypes = { Lead, Contact, Account, Opportunity, Pipeline, ScoringRule, AssignmentRule, WorkflowRule, WebForm, ImportJob, Communication, LeadDuplicate, Activity };
 }

@@ -25,6 +25,7 @@ import { useTableLayout } from "@/hooks/common/use-table-layout";
 import { useUserRights } from "@/hooks/common/use-user-rights";
 import { useDebounce } from "@/hooks/common/use-debounce";
 import { useMenuIcon } from "@/hooks/common/use-menu-icon";
+import { useModuleUsers } from "@/hooks/api/central/use-users";
 import { Actions, FormModules, ListModules, canAccess } from "@/lib/permissions";
 import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 
@@ -154,6 +155,12 @@ const ContactList: React.FC = () => {
 
   // Data fetch
   const { data: contactsResponse, isLoading } = useContacts(filterParams);
+  const { data: users } = useModuleUsers();
+
+  const userMap = useMemo(() => {
+    if (!users) return new Map<string, string>();
+    return new Map(users.map((u) => [u.strUserGUID, u.strName]));
+  }, [users]);
 
   // Map response to standardized format
   const pagedData = useMemo(() => {
@@ -223,28 +230,28 @@ const ContactList: React.FC = () => {
   const columns: DataTableColumn<ContactListDto>[] = useMemo(
     () => [
       ...(canAccess(menuItems, FormModules.CRM_CONTACT, Actions.EDIT) ||
-      canAccess(menuItems, FormModules.CRM_CONTACT, Actions.DELETE)
+        canAccess(menuItems, FormModules.CRM_CONTACT, Actions.DELETE)
         ? [
-            {
-              key: "actions",
-              header: "Actions",
-              cell: (item: ContactListDto) => (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canAccess(
-                      menuItems,
-                      FormModules.CRM_CONTACT,
-                      Actions.EDIT
-                    ) && (
+          {
+            key: "actions",
+            header: "Actions",
+            cell: (item: ContactListDto) => (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canAccess(
+                    menuItems,
+                    FormModules.CRM_CONTACT,
+                    Actions.EDIT
+                  ) && (
                       <DropdownMenuItem
                         onClick={() =>
                           openEditInNewTab(
@@ -256,11 +263,11 @@ const ContactList: React.FC = () => {
                         Edit
                       </DropdownMenuItem>
                     )}
-                    {canAccess(
-                      menuItems,
-                      FormModules.CRM_CONTACT,
-                      Actions.DELETE
-                    ) && (
+                  {canAccess(
+                    menuItems,
+                    FormModules.CRM_CONTACT,
+                    Actions.DELETE
+                  ) && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -272,13 +279,13 @@ const ContactList: React.FC = () => {
                         </DropdownMenuItem>
                       </>
                     )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ),
-              sortable: false,
-              width: "70px",
-            } as DataTableColumn<ContactListDto>,
-          ]
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ),
+            sortable: false,
+            width: "70px",
+          } as DataTableColumn<ContactListDto>,
+        ]
         : []),
       {
         key: "strName",
@@ -346,7 +353,7 @@ const ContactList: React.FC = () => {
         header: "Assigned To",
         cell: (item: ContactListDto) => (
           <span className="text-sm text-foreground">
-            {item.strAssignedToName || "-"}
+            {item.strAssignedToName || userMap.get(item.strAssignedToGUID || "") || "-"}
           </span>
         ),
         sortable: true,
@@ -370,11 +377,10 @@ const ContactList: React.FC = () => {
         header: "Active",
         cell: (item: ContactListDto) => (
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              item.bolIsActive
+            className={`px-2 py-1 rounded-full text-xs font-medium ${item.bolIsActive
                 ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
                 : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-            }`}
+              }`}
           >
             {item.bolIsActive ? "Active" : "Inactive"}
           </span>
@@ -383,7 +389,7 @@ const ContactList: React.FC = () => {
         width: "100px",
       },
     ],
-    [menuItems, openEditInNewTab]
+    [menuItems, openEditInNewTab, userMap]
   );
 
   return (
