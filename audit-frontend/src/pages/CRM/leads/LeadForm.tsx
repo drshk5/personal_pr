@@ -869,7 +869,7 @@ const LeadForm: React.FC = () => {
                             type="checkbox"
                             checked={activityIsCompleted}
                             onChange={(e) => setActivityIsCompleted(e.target.checked)}
-                            className="rounded border-gray-300 h-3.5 w-3.5"
+                            className="rounded border-border h-3.5 w-3.5"
                           />
                           <CheckCircle2 className={`h-3 w-3 ${activityIsCompleted ? "text-green-500" : "text-muted-foreground"}`} />
                           Completed

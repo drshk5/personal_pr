@@ -312,7 +312,7 @@ const AccountList: React.FC = () => {
                     type="checkbox"
                     checked={allVisibleSelected}
                     onChange={toggleAllSelection}
-                    className="rounded border-gray-300"
+                    className="rounded border-border"
                     aria-label="Select all visible accounts"
                   />
                   <span>Actions</span>
@@ -324,7 +324,7 @@ const AccountList: React.FC = () => {
                     type="checkbox"
                     checked={selectedAccounts.has(item.strAccountGUID)}
                     onChange={() => toggleAccountSelection(item.strAccountGUID)}
-                    className="rounded border-gray-300"
+                    className="rounded border-border"
                     aria-label={`Select account ${item.strAccountName}`}
                   />
                   <DropdownMenu>
@@ -666,14 +666,14 @@ const AccountList: React.FC = () => {
                     Industry
                   </label>
                   <Select
-                    value={filterIndustry}
-                    onValueChange={setFilterIndustry}
+                    value={filterIndustry || "__all__"}
+                    onValueChange={(v) => setFilterIndustry(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All Industries" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Industries</SelectItem>
+                      <SelectItem value="__all__">All Industries</SelectItem>
                       {ACCOUNT_INDUSTRIES.map((ind) => (
                         <SelectItem key={ind} value={ind}>
                           {ind}
@@ -688,14 +688,14 @@ const AccountList: React.FC = () => {
                     Active Status
                   </label>
                   <Select
-                    value={filterIsActive}
-                    onValueChange={setFilterIsActive}
+                    value={filterIsActive || "__all__"}
+                    onValueChange={(v) => setFilterIsActive(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="__all__">All</SelectItem>
                       <SelectItem value="true">Active</SelectItem>
                       <SelectItem value="false">Inactive</SelectItem>
                     </SelectContent>

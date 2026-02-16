@@ -98,7 +98,7 @@ const LeadConvertDialog: React.FC<LeadConvertDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border-border-color/80 bg-gradient-to-b from-background via-background to-muted/20 shadow-2xl">
+      <DialogContent className="max-w-md border-border/80 bg-gradient-to-b from-background via-background to-muted/20 shadow-2xl">
         <DialogHeader className="space-y-2">
           <DialogTitle className="flex items-center gap-2 text-xl tracking-tight text-foreground">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary ring-1 ring-primary/30">
@@ -113,7 +113,7 @@ const LeadConvertDialog: React.FC<LeadConvertDialogProps> = ({
         </DialogHeader>
 
         {/* What happens summary */}
-        <div className="space-y-2 rounded-xl border border-border-color/70 bg-gradient-to-br from-muted/55 to-muted/25 p-4 shadow-sm">
+        <div className="space-y-2 rounded-xl border border-border/70 bg-gradient-to-br from-muted/55 to-muted/25 p-4 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-primary/15 text-primary">
               <Sparkles className="h-3.5 w-3.5" />
@@ -150,7 +150,7 @@ const LeadConvertDialog: React.FC<LeadConvertDialogProps> = ({
               control={form.control}
               name="bolCreateAccount"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center gap-3 space-y-0 rounded-lg border border-border-color/60 bg-muted/20 px-3 py-2 transition-colors hover:bg-muted/35">
+                <FormItem className="flex flex-row items-center gap-3 space-y-0 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 transition-colors hover:bg-muted/35">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -169,7 +169,7 @@ const LeadConvertDialog: React.FC<LeadConvertDialogProps> = ({
                 control={form.control}
                 name="strExistingAccountGUID"
                 render={({ field }) => (
-                  <FormItem className="rounded-lg border border-border-color/55 bg-muted/15 p-3">
+                  <FormItem className="rounded-lg border border-border/55 bg-muted/15 p-3">
                     <FormLabel className="text-sm font-semibold text-foreground/90">
                       Link to Existing Account
                     </FormLabel>
@@ -191,7 +191,7 @@ const LeadConvertDialog: React.FC<LeadConvertDialogProps> = ({
               control={form.control}
               name="bolCreateOpportunity"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center gap-3 space-y-0 rounded-lg border border-border-color/60 bg-muted/20 px-3 py-2 transition-colors hover:bg-muted/35">
+                <FormItem className="flex flex-row items-center gap-3 space-y-0 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 transition-colors hover:bg-muted/35">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -206,7 +206,7 @@ const LeadConvertDialog: React.FC<LeadConvertDialogProps> = ({
             />
 
             {watchCreateOpportunity && (
-              <div className="space-y-3 rounded-lg border border-border-color/60 bg-muted/15 p-3">
+              <div className="space-y-3 rounded-lg border border-border/60 bg-muted/15 p-3">
                 <FormField
                   control={form.control}
                   name="strOpportunityName"
@@ -288,7 +288,7 @@ const LeadConvertDialog: React.FC<LeadConvertDialogProps> = ({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isPending}
-            className="min-w-24 border-border-color/80 bg-background/80 text-foreground hover:bg-muted/40"
+            className="min-w-24 border-border/80 bg-background/80 text-foreground hover:bg-muted/40"
           >
             Cancel
           </Button>

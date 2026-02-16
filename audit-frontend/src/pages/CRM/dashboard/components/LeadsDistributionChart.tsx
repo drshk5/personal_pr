@@ -46,7 +46,7 @@ export function LeadsDistributionChart({
     if (active && payload && payload.length) {
       const data = payload[0];
       return (
-        <div className="bg-popover text-popover-foreground p-2 border border-border-color rounded-lg shadow-lg">
+        <div className="bg-popover text-popover-foreground p-2 border border-border rounded-lg shadow-lg">
           <p className="text-sm font-semibold text-foreground">{data.name}</p>
           <p className="text-sm text-muted-foreground">Count: {data.value}</p>
           <p className="text-xs text-muted-foreground">

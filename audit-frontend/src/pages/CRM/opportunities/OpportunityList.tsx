@@ -542,14 +542,14 @@ const OpportunityList: React.FC = () => {
                     Status
                   </label>
                   <Select
-                    value={filterStatus}
-                    onValueChange={setFilterStatus}
+                    value={filterStatus || "__all__"}
+                    onValueChange={(v) => setFilterStatus(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Statuses</SelectItem>
+                      <SelectItem value="__all__">All Statuses</SelectItem>
                       {OPPORTUNITY_STATUSES.map((status) => (
                         <SelectItem key={status} value={status}>
                           {status}
@@ -564,14 +564,14 @@ const OpportunityList: React.FC = () => {
                     Pipeline
                   </label>
                   <Select
-                    value={filterPipeline}
-                    onValueChange={setFilterPipeline}
+                    value={filterPipeline || "__all__"}
+                    onValueChange={(v) => setFilterPipeline(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All Pipelines" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Pipelines</SelectItem>
+                      <SelectItem value="__all__">All Pipelines</SelectItem>
                       {pipelines?.map((p) => (
                         <SelectItem
                           key={p.strPipelineGUID}
@@ -589,14 +589,14 @@ const OpportunityList: React.FC = () => {
                     Deal Health
                   </label>
                   <Select
-                    value={filterIsRotting}
-                    onValueChange={setFilterIsRotting}
+                    value={filterIsRotting || "__all__"}
+                    onValueChange={(v) => setFilterIsRotting(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="__all__">All</SelectItem>
                       <SelectItem value="true">Rotting</SelectItem>
                       <SelectItem value="false">Healthy</SelectItem>
                     </SelectContent>
@@ -637,8 +637,8 @@ const OpportunityList: React.FC = () => {
         pagination={{
           pageNumber: pagination.pageNumber,
           pageSize: pagination.pageSize,
-          totalCount: pagination.totalCount,
-          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount ?? 0,
+          totalPages: pagination.totalPages ?? 0,
           onPageChange: (page) => setPagination({ pageNumber: page }),
           onPageSizeChange: (size) =>
             setPagination({ pageSize: size, pageNumber: 1 }),

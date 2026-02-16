@@ -505,14 +505,14 @@ const ContactList: React.FC = () => {
                     Lifecycle Stage
                   </label>
                   <Select
-                    value={filterLifecycleStage}
-                    onValueChange={setFilterLifecycleStage}
+                    value={filterLifecycleStage || "__all__"}
+                    onValueChange={(v) => setFilterLifecycleStage(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All Stages" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Stages</SelectItem>
+                      <SelectItem value="__all__">All Stages</SelectItem>
                       {CONTACT_LIFECYCLE_STAGES.map((s) => (
                         <SelectItem key={s} value={s}>
                           {s}
@@ -527,14 +527,14 @@ const ContactList: React.FC = () => {
                     Active Status
                   </label>
                   <Select
-                    value={filterIsActive}
-                    onValueChange={setFilterIsActive}
+                    value={filterIsActive || "__all__"}
+                    onValueChange={(v) => setFilterIsActive(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="__all__">All</SelectItem>
                       <SelectItem value="true">Active</SelectItem>
                       <SelectItem value="false">Inactive</SelectItem>
                     </SelectContent>

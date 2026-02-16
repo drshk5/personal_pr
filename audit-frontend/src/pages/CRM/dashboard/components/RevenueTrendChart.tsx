@@ -24,7 +24,7 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-popover text-popover-foreground p-3 border border-border-color rounded-lg shadow-lg">
+        <div className="bg-popover text-popover-foreground p-3 border border-border rounded-lg shadow-lg">
           <p className="font-semibold text-sm text-foreground">{payload[0].payload.strMonth}</p>
           <p className="text-sm text-green-600 dark:text-green-400">
             Won: ₹{payload[0].value.toLocaleString("en-IN")}

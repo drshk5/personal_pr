@@ -42,6 +42,7 @@ import {
 import { useAccounts } from "@/hooks/api/CRM/use-accounts";
 import { useContacts } from "@/hooks/api/CRM/use-contacts";
 import { usePipelines, usePipeline } from "@/hooks/api/CRM/use-pipelines";
+import { useActiveUsers } from "@/hooks/api/central/use-users";
 import { useMenuIcon } from "@/hooks/common/use-menu-icon";
 import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 import { opportunityService } from "@/services/CRM/opportunity.service";
@@ -111,6 +112,7 @@ const OpportunityForm: React.FC = () => {
 
   // Pipeline & Stages
   const { data: pipelines } = usePipelines();
+  const { data: activeUsers = [] } = useActiveUsers();
   const [selectedPipelineId, setSelectedPipelineId] = React.useState<string>("");
   const { data: pipelineDetail } = usePipeline(
     selectedPipelineId || undefined
@@ -558,13 +560,28 @@ const OpportunityForm: React.FC = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Assigned To</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Assigned user GUID"
-                                  {...field}
-                                  value={field.value || ""}
-                                />
-                              </FormControl>
+                              <Select
+                                value={field.value || "__none__"}
+                                onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select team member" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="__none__">Unassigned</SelectItem>
+                                  {activeUsers.map((user) => (
+                                    <SelectItem
+                                      key={user.strUserGUID}
+                                      value={user.strUserGUID}
+                                    >
+                                      {user.strName}
+                                      {user.strEmailId ? ` (${user.strEmailId})` : ""}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}

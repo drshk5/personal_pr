@@ -303,7 +303,7 @@ const LeadList: React.FC = () => {
                     type="checkbox"
                     checked={selectedLeads.has(item.strLeadGUID)}
                     onChange={() => toggleLeadSelection(item.strLeadGUID)}
-                    className="rounded border-gray-300"
+                    className="rounded border-border"
                   />
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

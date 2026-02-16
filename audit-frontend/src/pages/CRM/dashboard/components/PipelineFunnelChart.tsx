@@ -26,7 +26,7 @@ export function PipelineFunnelChart({ data }: PipelineFunnelChartProps) {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-popover text-popover-foreground p-3 border border-border-color rounded-lg shadow-lg">
+        <div className="bg-popover text-popover-foreground p-3 border border-border rounded-lg shadow-lg">
           <p className="font-semibold text-sm text-foreground">{data.name}</p>
           <p className="text-sm text-blue-600 dark:text-blue-400">
             Value: ₹{data.value.toLocaleString("en-IN")}
