@@ -43,7 +43,7 @@ export function KpiCard({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{value}</div>
+          <div className="text-2xl font-bold text-foreground">{value}</div>
           {subtitle && (
             <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
           )}
@@ -51,7 +51,7 @@ export function KpiCard({
             <div
               className={cn(
                 "flex items-center text-xs mt-2",
-                trend.isPositive ? "text-green-600" : "text-red-600"
+                trend.isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
               )}
             >
               <span>

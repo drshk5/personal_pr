@@ -15,19 +15,19 @@ export function PerformanceBadge({ performance, className }: PerformanceBadgePro
   const getCacheColor = () => {
     switch (cacheStatus) {
       case "HIT":
-        return "bg-green-100 text-green-700 border-green-300";
+        return "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700";
       case "REFRESHED":
-        return "bg-blue-100 text-blue-700 border-blue-300";
+        return "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
       default:
-        return "bg-orange-100 text-orange-700 border-orange-300";
+        return "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700";
     }
   };
 
   const getPerformanceColor = () => {
-    if (responseTimeMs < 50) return "text-green-600";
-    if (responseTimeMs < 200) return "text-blue-600";
-    if (responseTimeMs < 500) return "text-orange-600";
-    return "text-red-600";
+    if (responseTimeMs < 50) return "text-green-600 dark:text-green-400";
+    if (responseTimeMs < 200) return "text-blue-600 dark:text-blue-400";
+    if (responseTimeMs < 500) return "text-orange-600 dark:text-orange-400";
+    return "text-red-600 dark:text-red-400";
   };
 
   const getPerformanceIcon = () => {

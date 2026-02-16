@@ -135,7 +135,7 @@ const LeadMergeDialog: React.FC<LeadMergeDialogProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{primaryLeadName}</span>
+                  <span className="font-medium text-foreground">{primaryLeadName}</span>
                   <Badge variant="outline" className="text-xs border-primary text-primary">
                     Primary
                   </Badge>
@@ -149,7 +149,7 @@ const LeadMergeDialog: React.FC<LeadMergeDialogProps> = ({
 
           {/* Duplicate leads to merge */}
           <div>
-            <h4 className="text-sm font-medium mb-2">
+            <h4 className="text-sm font-medium mb-2 text-foreground">
               Duplicates to Merge
             </h4>
             <div className="space-y-2">
@@ -177,7 +177,7 @@ const LeadMergeDialog: React.FC<LeadMergeDialogProps> = ({
                         )}
                       </div>
                       <div>
-                        <span className="font-medium text-sm">
+                        <span className="font-medium text-sm text-foreground">
                           {dup.strFirstName} {dup.strLastName}
                         </span>
                         <p className="text-xs text-muted-foreground">
@@ -193,10 +193,10 @@ const LeadMergeDialog: React.FC<LeadMergeDialogProps> = ({
                       <span
                         className={`text-xs font-medium ${
                           dup.dblMatchScore >= 90
-                            ? "text-red-600"
+                            ? "text-red-600 dark:text-red-400"
                             : dup.dblMatchScore >= 70
-                              ? "text-orange-600"
-                              : "text-amber-600"
+                              ? "text-orange-600 dark:text-orange-400"
+                              : "text-amber-600 dark:text-amber-400"
                         }`}
                       >
                         {Math.round(dup.dblMatchScore)}%
@@ -211,7 +211,7 @@ const LeadMergeDialog: React.FC<LeadMergeDialogProps> = ({
           {/* Field-level comparison */}
           {mergeFields.length > 0 && selectedDuplicates.size > 0 && (
             <div>
-              <h4 className="text-sm font-medium mb-2">
+              <h4 className="text-sm font-medium mb-2 text-foreground">
                 Field Resolution
               </h4>
               <p className="text-xs text-muted-foreground mb-3">
@@ -222,10 +222,10 @@ const LeadMergeDialog: React.FC<LeadMergeDialogProps> = ({
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="text-left px-3 py-2 font-medium w-28">
+                      <th className="text-left px-3 py-2 font-medium text-foreground w-28">
                         Field
                       </th>
-                      <th className="text-left px-3 py-2 font-medium">
+                      <th className="text-left px-3 py-2 font-medium text-foreground">
                         Primary
                       </th>
                       {duplicates
@@ -235,7 +235,7 @@ const LeadMergeDialog: React.FC<LeadMergeDialogProps> = ({
                         .map((dup) => (
                           <th
                             key={dup.strLeadGUID}
-                            className="text-left px-3 py-2 font-medium"
+                            className="text-left px-3 py-2 font-medium text-foreground"
                           >
                             {dup.strFirstName}
                           </th>

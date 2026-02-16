@@ -34,16 +34,16 @@ services:
     extra_hosts:
       - 'host.docker.internal:host-gateway'
 
-  # Optional: Include SQL Server container if you want to run it in Docker
+  # SQL Server container
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sqlserver
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
+      - SA_PASSWORD=Darshak@5804
       - MSSQL_PID=Developer
     ports:
-      - '1433:1433'
+      - '14333:1433'
     volumes:
       - sqlserver-data:/var/opt/mssql
     networks:

@@ -26,15 +26,15 @@ const getActivityIcon = (type: string) => {
 const getActivityColor = (type: string) => {
   switch (type.toLowerCase()) {
     case "call":
-      return "text-blue-600 bg-blue-100";
+      return "text-blue-600 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30";
     case "email":
-      return "text-purple-600 bg-purple-100";
+      return "text-purple-600 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/30";
     case "meeting":
-      return "text-green-600 bg-green-100";
+      return "text-green-600 bg-green-100 dark:text-green-300 dark:bg-green-900/30";
     case "task":
-      return "text-orange-600 bg-orange-100";
+      return "text-orange-600 bg-orange-100 dark:text-orange-300 dark:bg-orange-900/30";
     default:
-      return "text-gray-600 bg-gray-100";
+      return "text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-700/50";
   }
 };
 

@@ -399,7 +399,7 @@ const AccountList: React.FC = () => {
         key: "strIndustry",
         header: "Industry",
         cell: (item: AccountListDto) => (
-          <span className="text-sm">{item.strIndustry || "-"}</span>
+          <span className="text-sm text-foreground">{item.strIndustry || "-"}</span>
         ),
         sortable: true,
         width: "150px",
@@ -408,7 +408,7 @@ const AccountList: React.FC = () => {
         key: "strPhone",
         header: "Phone",
         cell: (item: AccountListDto) => (
-          <span className="text-sm">{item.strPhone || "-"}</span>
+          <span className="text-sm text-foreground">{item.strPhone || "-"}</span>
         ),
         sortable: false,
         width: "140px",
@@ -417,7 +417,7 @@ const AccountList: React.FC = () => {
         key: "strEmail",
         header: "Email",
         cell: (item: AccountListDto) => (
-          <span className="text-sm">{item.strEmail || "-"}</span>
+          <span className="text-sm text-foreground">{item.strEmail || "-"}</span>
         ),
         sortable: true,
         width: "220px",
@@ -426,7 +426,7 @@ const AccountList: React.FC = () => {
         key: "intContactCount",
         header: "Contacts",
         cell: (item: AccountListDto) => (
-          <span className="text-sm font-medium">{item.intContactCount}</span>
+          <span className="text-sm font-medium text-foreground">{item.intContactCount}</span>
         ),
         sortable: true,
         width: "100px",
@@ -435,7 +435,7 @@ const AccountList: React.FC = () => {
         key: "intOpenOpportunityCount",
         header: "Open Opps",
         cell: (item: AccountListDto) => (
-          <span className="text-sm font-medium">
+          <span className="text-sm font-medium text-foreground">
             {item.intOpenOpportunityCount}
           </span>
         ),
@@ -446,7 +446,7 @@ const AccountList: React.FC = () => {
         key: "dblTotalOpportunityValue",
         header: "Pipeline Value",
         cell: (item: AccountListDto) => (
-          <span className="text-sm font-medium">
+          <span className="text-sm font-medium text-foreground">
             {item.dblTotalOpportunityValue > 0
               ? formatCurrency(item.dblTotalOpportunityValue)
               : "-"}
@@ -459,7 +459,7 @@ const AccountList: React.FC = () => {
         key: "strAssignedToName",
         header: "Assigned To",
         cell: (item: AccountListDto) => (
-          <span className="text-sm">
+          <span className="text-sm text-foreground">
             {item.strAssignedToName || item.strAssignedToGUID || "-"}
           </span>
         ),
@@ -470,7 +470,7 @@ const AccountList: React.FC = () => {
         key: "dtCreatedOn",
         header: "Created On",
         cell: (item: AccountListDto) => (
-          <div className="whitespace-nowrap text-sm">
+          <div className="whitespace-nowrap text-sm text-foreground">
             {item.dtCreatedOn
               ? format(new Date(item.dtCreatedOn), "MMM d, yyyy, h:mm a")
               : "-"}

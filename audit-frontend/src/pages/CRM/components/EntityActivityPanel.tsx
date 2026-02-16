@@ -63,7 +63,7 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
       <Card>
         <CardHeader className="py-3 px-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Clock className="h-4 w-4 text-muted-foreground" />
               Activities
               {activities.length > 0 && (

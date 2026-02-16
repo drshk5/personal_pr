@@ -67,6 +67,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -708,13 +709,11 @@ const OpportunityForm: React.FC = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Expected Close Date</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="date"
-                                  {...field}
-                                  value={field.value || ""}
-                                />
-                              </FormControl>
+                              <DatePicker
+                                value={field.value ? new Date(field.value + "T12:00:00") : undefined}
+                                onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                                placeholder="Select expected close date"
+                              />
                               <FormMessage />
                             </FormItem>
                           )}
@@ -813,7 +812,7 @@ const OpportunityForm: React.FC = () => {
             {/* Deal Overview Card */}
             <Card>
               <CardHeader className="py-3">
-                <CardTitle className="text-sm">Deal Overview</CardTitle>
+                <CardTitle className="text-sm text-foreground">Deal Overview</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -832,7 +831,7 @@ const OpportunityForm: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Stage</span>
-                  <span className="text-xs font-medium">
+                  <span className="text-xs font-medium text-foreground">
                     {opportunity.strStageName}
                   </span>
                 </div>
@@ -840,7 +839,7 @@ const OpportunityForm: React.FC = () => {
                   <span className="text-xs text-muted-foreground">
                     Pipeline
                   </span>
-                  <span className="text-xs font-medium">
+                  <span className="text-xs font-medium text-foreground">
                     {opportunity.strPipelineName}
                   </span>
                 </div>
@@ -848,7 +847,7 @@ const OpportunityForm: React.FC = () => {
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <DollarSign className="h-3 w-3" /> Amount
                   </span>
-                  <span className="text-xs font-medium">
+                  <span className="text-xs font-medium text-foreground">
                     {opportunity.dblAmount != null
                       ? `${opportunity.strCurrency} ${opportunity.dblAmount.toLocaleString()}`
                       : "-"}
@@ -858,7 +857,7 @@ const OpportunityForm: React.FC = () => {
                   <span className="text-xs text-muted-foreground">
                     Probability
                   </span>
-                  <span className="text-xs font-medium">
+                  <span className="text-xs font-medium text-foreground">
                     {opportunity.intProbability}%
                   </span>
                 </div>
@@ -866,7 +865,7 @@ const OpportunityForm: React.FC = () => {
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock className="h-3 w-3" /> Days in Stage
                   </span>
-                  <span className="text-xs font-medium">
+                  <span className="text-xs font-medium text-foreground">
                     {opportunity.intDaysInStage}
                   </span>
                 </div>
@@ -883,7 +882,7 @@ const OpportunityForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground">
                       Account
                     </span>
-                    <span className="text-xs font-medium">
+                    <span className="text-xs font-medium text-foreground">
                       {opportunity.strAccountName}
                     </span>
                   </div>
@@ -893,14 +892,14 @@ const OpportunityForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground">
                       Assigned To
                     </span>
-                    <span className="text-xs">
+                    <span className="text-xs text-foreground">
                       {opportunity.strAssignedToName}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Created</span>
-                  <span className="text-xs">
+                  <span className="text-xs text-foreground">
                     {format(new Date(opportunity.dtCreatedOn), "MMM d, yyyy")}
                   </span>
                 </div>
@@ -909,7 +908,7 @@ const OpportunityForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground">
                       Expected Close
                     </span>
-                    <span className="text-xs">
+                    <span className="text-xs text-foreground">
                       {format(
                         new Date(opportunity.dtExpectedCloseDate),
                         "MMM d, yyyy"
@@ -922,7 +921,7 @@ const OpportunityForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground">
                       Actual Close
                     </span>
-                    <span className="text-xs">
+                    <span className="text-xs text-foreground">
                       {format(
                         new Date(opportunity.dtActualCloseDate),
                         "MMM d, yyyy"
@@ -960,7 +959,7 @@ const OpportunityForm: React.FC = () => {
                         className="flex items-center justify-between"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium truncate">
+                          <p className="text-xs font-medium text-foreground truncate">
                             {contact.strContactName}
                             {contact.bolIsPrimary && (
                               <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary">

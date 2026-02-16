@@ -179,11 +179,11 @@ const PipelineList: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Stages</p>
-                  <p className="text-2xl font-bold">{pipeline.intStageCount}</p>
+                  <p className="text-2xl font-bold text-foreground">{pipeline.intStageCount}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Opportunities</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-bold text-foreground">
                     {pipeline.intOpportunityCount}
                   </p>
                 </div>
@@ -204,7 +204,7 @@ const PipelineList: React.FC = () => {
           <Card className="col-span-full">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Settings className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No pipelines found</h3>
+              <h3 className="text-lg font-semibold mb-2 text-foreground">No pipelines found</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Get started by creating your first pipeline
               </p>

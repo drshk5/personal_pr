@@ -29,10 +29,10 @@ function getCategoryIcon(category: string) {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 76) return "text-emerald-600";
-  if (score >= 51) return "text-blue-600";
-  if (score >= 26) return "text-amber-600";
-  return "text-red-600";
+  if (score >= 76) return "text-emerald-600 dark:text-emerald-400";
+  if (score >= 51) return "text-blue-600 dark:text-blue-400";
+  if (score >= 26) return "text-amber-600 dark:text-amber-400";
+  return "text-red-600 dark:text-red-400";
 }
 
 function getScoreBarColor(score: number): string {
@@ -71,7 +71,7 @@ const LeadScoreBreakdown: React.FC<LeadScoreBreakdownProps> = ({
     <div className="rounded-lg border bg-card p-4">
       {/* Score header */}
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-sm font-semibold">Lead Score</h4>
+        <h4 className="text-sm font-semibold text-foreground">Lead Score</h4>
         <div className="flex items-center gap-2">
           <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
             {score}
@@ -108,9 +108,9 @@ const LeadScoreBreakdown: React.FC<LeadScoreBreakdownProps> = ({
                   <span
                     className={`text-xs font-semibold ${
                       subtotal > 0
-                        ? "text-emerald-600"
+                        ? "text-emerald-600 dark:text-emerald-400"
                         : subtotal < 0
-                          ? "text-red-600"
+                          ? "text-red-600 dark:text-red-400"
                           : "text-muted-foreground"
                     }`}
                   >
@@ -130,9 +130,9 @@ const LeadScoreBreakdown: React.FC<LeadScoreBreakdownProps> = ({
                       <span
                         className={
                           factor.intPoints > 0
-                            ? "text-emerald-600"
+                            ? "text-emerald-600 dark:text-emerald-400"
                             : factor.intPoints < 0
-                              ? "text-red-600"
+                              ? "text-red-600 dark:text-red-400"
                               : "text-muted-foreground"
                         }
                       >

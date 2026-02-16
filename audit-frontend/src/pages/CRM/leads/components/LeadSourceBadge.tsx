@@ -58,7 +58,7 @@ const LeadSourceBadge: React.FC<LeadSourceBadgeProps> = ({ source }) => {
   return (
     <div className="flex items-center gap-1.5">
       <Icon className={`h-3.5 w-3.5 ${config.className}`} />
-      <span className="text-sm">{source === "ColdCall" ? "Cold Call" : source === "TradeShow" ? "Trade Show" : source}</span>
+      <span className="text-sm text-foreground">{source === "ColdCall" ? "Cold Call" : source === "TradeShow" ? "Trade Show" : source}</span>
     </div>
   );
 };

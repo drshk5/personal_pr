@@ -61,7 +61,7 @@ export function TopOpportunitiesList({ data }: TopOpportunitiesListProps) {
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-bold text-sm text-green-600">
+                <p className="font-bold text-sm text-green-600 dark:text-green-400">
                   ₹{opp.dblAmount?.toLocaleString("en-IN") || "0"}
                 </p>
               </div>

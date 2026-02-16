@@ -590,7 +590,7 @@ const AccountForm: React.FC = () => {
             {/* Account Info Card */}
             <Card>
               <CardHeader className="py-3">
-                <CardTitle className="text-sm">Account Overview</CardTitle>
+                <CardTitle className="text-sm text-foreground">Account Overview</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {account.strIndustry && (
@@ -598,7 +598,7 @@ const AccountForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground">
                       Industry
                     </span>
-                    <span className="text-xs font-medium">
+                    <span className="text-xs font-medium text-foreground">
                       {account.strIndustry}
                     </span>
                   </div>
@@ -607,7 +607,7 @@ const AccountForm: React.FC = () => {
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Users className="h-3 w-3" /> Contacts
                   </span>
-                  <span className="text-xs font-medium">
+                  <span className="text-xs font-medium text-foreground">
                     {account.intContactCount}
                   </span>
                 </div>
@@ -615,7 +615,7 @@ const AccountForm: React.FC = () => {
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <TrendingUp className="h-3 w-3" /> Open Opportunities
                   </span>
-                  <span className="text-xs font-medium">
+                  <span className="text-xs font-medium text-foreground">
                     {account.intOpenOpportunityCount}
                   </span>
                 </div>
@@ -624,7 +624,7 @@ const AccountForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <DollarSign className="h-3 w-3" /> Pipeline Value
                     </span>
-                    <span className="text-xs font-medium">
+                    <span className="text-xs font-medium text-foreground">
                       {formatCurrency(account.dblTotalOpportunityValue)}
                     </span>
                   </div>
@@ -635,7 +635,7 @@ const AccountForm: React.FC = () => {
                       <span className="text-xs text-muted-foreground">
                         Annual Revenue
                       </span>
-                      <span className="text-xs font-medium">
+                      <span className="text-xs font-medium text-foreground">
                         {formatCurrency(account.dblAnnualRevenue)}
                       </span>
                     </div>
@@ -646,7 +646,7 @@ const AccountForm: React.FC = () => {
                       <span className="text-xs text-muted-foreground">
                         Employees
                       </span>
-                      <span className="text-xs font-medium">
+                      <span className="text-xs font-medium text-foreground">
                         {account.intEmployeeCount.toLocaleString()}
                       </span>
                     </div>
@@ -674,7 +674,7 @@ const AccountForm: React.FC = () => {
                   <span className="text-xs text-muted-foreground">
                     Created
                   </span>
-                  <span className="text-xs">
+                  <span className="text-xs text-foreground">
                     {format(new Date(account.dtCreatedOn), "MMM d, yyyy")}
                   </span>
                 </div>
@@ -683,7 +683,7 @@ const AccountForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground">
                       Assigned To
                     </span>
-                    <span className="text-xs">{account.strAssignedToName}</span>
+                    <span className="text-xs text-foreground">{account.strAssignedToName}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
@@ -718,7 +718,7 @@ const AccountForm: React.FC = () => {
                         className="flex items-center justify-between"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium truncate">
+                          <p className="text-xs font-medium text-foreground truncate">
                             {contact.strFirstName} {contact.strLastName}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
@@ -754,7 +754,7 @@ const AccountForm: React.FC = () => {
                         className="flex items-center justify-between"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium truncate">
+                          <p className="text-xs font-medium text-foreground truncate">
                             {opp.strOpportunityName}
                           </p>
                           <p className="text-xs text-muted-foreground">
@@ -767,7 +767,7 @@ const AccountForm: React.FC = () => {
                           </p>
                         </div>
                         {opp.dblAmount != null && (
-                          <span className="text-xs font-medium ml-2">
+                          <span className="text-xs font-medium text-foreground ml-2">
                             {opp.strCurrency}{" "}
                             {opp.dblAmount.toLocaleString()}
                           </span>

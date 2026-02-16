@@ -280,8 +280,12 @@ export const getCentralRouteElement = (
     case "schedule_form":
       return wrapWithSuspense(ScheduleForm);
 
+    case "module_list":
+      return wrapWithSuspense(ModuleList);
     case "module_list_super":
       return wrapWithSuspense(ModuleList);
+    case "module_form":
+      return wrapWithSuspense(ModuleForm);
     case "module_form_super":
       return wrapWithSuspense(ModuleForm);
 

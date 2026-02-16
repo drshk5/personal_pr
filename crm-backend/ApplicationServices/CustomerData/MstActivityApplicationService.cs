@@ -244,6 +244,22 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
         // Single SaveChanges — activity + all links atomically
         await _unitOfWork.SaveChangesAsync();
 
+        // Auto-update lead status: if activity is logged for a "New" lead, move it to "Contacted"
+        var leadLinks = dto.Links.Where(l => l.strEntityType == EntityTypeConstants.Lead).ToList();
+        foreach (var leadLink in leadLinks)
+        {
+            var linkedLead = await _unitOfWork.Leads.GetByIdAsync(leadLink.strEntityGUID);
+            if (linkedLead != null && linkedLead.strStatus == LeadStatusConstants.New)
+            {
+                linkedLead.strStatus = LeadStatusConstants.Contacted;
+                linkedLead.strUpdatedByGUID = userId;
+                linkedLead.dtUpdatedOn = now;
+                _unitOfWork.Leads.Update(linkedLead);
+            }
+        }
+        if (leadLinks.Count > 0)
+            await _unitOfWork.SaveChangesAsync();
+
         // Audit log
         await _auditLogService.LogAsync(
             "Activity",

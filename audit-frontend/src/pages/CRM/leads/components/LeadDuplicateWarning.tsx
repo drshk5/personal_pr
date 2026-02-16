@@ -80,7 +80,7 @@ const LeadDuplicateWarning: React.FC<LeadDuplicateWarningProps> = ({
   return (
     <div className="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20 p-4">
       <div className="flex items-center gap-2 mb-3">
-        <AlertCircle className="h-4 w-4 text-orange-600" />
+        <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
         <h4 className="text-sm font-semibold text-orange-800 dark:text-orange-300">
           Potential Duplicates Detected
         </h4>
@@ -94,7 +94,7 @@ const LeadDuplicateWarning: React.FC<LeadDuplicateWarningProps> = ({
               className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-md px-3 py-2 text-sm"
             >
               <div className="flex items-center gap-2">
-                <span className="font-medium">
+                <span className="font-medium text-foreground">
                   {dup.strFirstName} {dup.strLastName}
                 </span>
                 <span className="text-muted-foreground text-xs">
@@ -113,10 +113,10 @@ const LeadDuplicateWarning: React.FC<LeadDuplicateWarningProps> = ({
                 <span
                   className={`text-xs font-medium ${
                     dup.dblMatchScore >= 90
-                      ? "text-red-600"
+                      ? "text-red-600 dark:text-red-400"
                       : dup.dblMatchScore >= 70
-                        ? "text-orange-600"
-                        : "text-amber-600"
+                        ? "text-orange-600 dark:text-orange-400"
+                        : "text-amber-600 dark:text-amber-400"
                   }`}
                 >
                   {Math.round(dup.dblMatchScore)}% match

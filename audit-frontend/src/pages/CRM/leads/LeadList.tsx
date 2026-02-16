@@ -478,8 +478,8 @@ const LeadList: React.FC = () => {
         key: "strAssignedToName",
         header: "Assigned To",
         cell: (item: LeadListDto) => (
-          <span className="text-sm">
-            {item.strAssignedToName || item.strAssignedToGUID || "-"}
+          <span className="text-sm text-foreground">
+            {item.strAssignedToName || (item.strAssignedToGUID ? "—" : "—")}
           </span>
         ),
         sortable: true,
@@ -562,7 +562,7 @@ const LeadList: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
               {analytics.funnel.map((stage) => (
                 <div key={stage.strStatus} className="text-center">
-                  <p className="text-2xl font-bold">{stage.intCount}</p>
+                  <p className="text-2xl font-bold text-foreground">{stage.intCount}</p>
                   <p className="text-xs text-muted-foreground">
                     {stage.strStatus}
                   </p>
@@ -572,7 +572,7 @@ const LeadList: React.FC = () => {
                 </div>
               ))}
               <div className="text-center border-l pl-4">
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                   {analytics.dblConversionRate.toFixed(1)}%
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -580,7 +580,7 @@ const LeadList: React.FC = () => {
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold">
+                <p className="text-2xl font-bold text-foreground">
                   {analytics.dblAvgTimeToConversionDays.toFixed(1)}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -732,14 +732,14 @@ const LeadList: React.FC = () => {
                     Lead Status
                   </label>
                   <Select
-                    value={filterStatus}
-                    onValueChange={setFilterStatus}
+                    value={filterStatus || "__all__"}
+                    onValueChange={(v) => setFilterStatus(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Statuses</SelectItem>
+                      <SelectItem value="__all__">All Statuses</SelectItem>
                       {LEAD_STATUSES.map((s) => (
                         <SelectItem key={s} value={s}>
                           {s}
@@ -754,14 +754,14 @@ const LeadList: React.FC = () => {
                     Source
                   </label>
                   <Select
-                    value={filterSource}
-                    onValueChange={setFilterSource}
+                    value={filterSource || "__all__"}
+                    onValueChange={(v) => setFilterSource(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All Sources" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Sources</SelectItem>
+                      <SelectItem value="__all__">All Sources</SelectItem>
                       {LEAD_SOURCES.map((s) => (
                         <SelectItem key={s} value={s}>
                           {s === "ColdCall"
@@ -780,14 +780,14 @@ const LeadList: React.FC = () => {
                     Active Status
                   </label>
                   <Select
-                    value={filterIsActive}
-                    onValueChange={setFilterIsActive}
+                    value={filterIsActive || "__all__"}
+                    onValueChange={(v) => setFilterIsActive(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="__all__">All</SelectItem>
                       <SelectItem value="true">Active</SelectItem>
                       <SelectItem value="false">Inactive</SelectItem>
                     </SelectContent>
@@ -799,14 +799,14 @@ const LeadList: React.FC = () => {
                     SLA Status
                   </label>
                   <Select
-                    value={filterSLABreached}
-                    onValueChange={setFilterSLABreached}
+                    value={filterSLABreached || "__all__"}
+                    onValueChange={(v) => setFilterSLABreached(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="__all__">All</SelectItem>
                       <SelectItem value="true">SLA Breached</SelectItem>
                       <SelectItem value="false">Within SLA</SelectItem>
                     </SelectContent>
@@ -818,14 +818,14 @@ const LeadList: React.FC = () => {
                     Duplicates
                   </label>
                   <Select
-                    value={filterHasDuplicates}
-                    onValueChange={setFilterHasDuplicates}
+                    value={filterHasDuplicates || "__all__"}
+                    onValueChange={(v) => setFilterHasDuplicates(v === "__all__" ? "" : v)}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="__all__">All</SelectItem>
                       <SelectItem value="true">Has Duplicates</SelectItem>
                       <SelectItem value="false">No Duplicates</SelectItem>
                     </SelectContent>

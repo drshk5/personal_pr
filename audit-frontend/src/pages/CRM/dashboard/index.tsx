@@ -158,8 +158,8 @@ export default function CrmDashboard() {
               value={dashboardData.intTotalLeads.toLocaleString()}
               subtitle="All leads in pipeline"
               icon={Users}
-              iconColor="text-blue-600"
-              iconBgColor="bg-blue-100"
+              iconColor="text-blue-600 dark:text-blue-400"
+              iconBgColor="bg-blue-100 dark:bg-blue-900/30"
             />
             <KpiCard
               title="Qualified Leads"
@@ -168,24 +168,24 @@ export default function CrmDashboard() {
                 ? ((dashboardData.intQualifiedLeads / dashboardData.intTotalLeads) * 100).toFixed(1)
                 : "0.0"}% of total`}
               icon={Target}
-              iconColor="text-green-600"
-              iconBgColor="bg-green-100"
+              iconColor="text-green-600 dark:text-green-400"
+              iconBgColor="bg-green-100 dark:bg-green-900/30"
             />
             <KpiCard
               title="Open Opportunities"
               value={dashboardData.intTotalOpenOpportunities.toLocaleString()}
               subtitle="Active deals"
               icon={TrendingUp}
-              iconColor="text-purple-600"
-              iconBgColor="bg-purple-100"
+              iconColor="text-purple-600 dark:text-purple-400"
+              iconBgColor="bg-purple-100 dark:bg-purple-900/30"
             />
             <KpiCard
               title="Rotting Deals"
               value={dashboardData.intRottingOpportunities.toLocaleString()}
               subtitle="Needs attention"
               icon={AlertCircle}
-              iconColor="text-red-600"
-              iconBgColor="bg-red-100"
+              iconColor="text-red-600 dark:text-red-400"
+              iconBgColor="bg-red-100 dark:bg-red-900/30"
             />
           </div>
 
@@ -196,32 +196,32 @@ export default function CrmDashboard() {
               value={`₹${dashboardData.dblTotalPipelineValue.toLocaleString("en-IN")}`}
               subtitle="Open opportunities"
               icon={DollarSign}
-              iconColor="text-emerald-600"
-              iconBgColor="bg-emerald-100"
+              iconColor="text-emerald-600 dark:text-emerald-400"
+              iconBgColor="bg-emerald-100 dark:bg-emerald-900/30"
             />
             <KpiCard
               title="Weighted Pipeline"
               value={`₹${dashboardData.dblWeightedPipelineValue.toLocaleString("en-IN")}`}
               subtitle="Probability-adjusted"
               icon={DollarSign}
-              iconColor="text-teal-600"
-              iconBgColor="bg-teal-100"
+              iconColor="text-teal-600 dark:text-teal-400"
+              iconBgColor="bg-teal-100 dark:bg-teal-900/30"
             />
             <KpiCard
               title="Won Revenue"
               value={`₹${dashboardData.dblWonRevenue.toLocaleString("en-IN")}`}
               subtitle="Closed deals"
               icon={TrendingUp}
-              iconColor="text-green-600"
-              iconBgColor="bg-green-100"
+              iconColor="text-green-600 dark:text-green-400"
+              iconBgColor="bg-green-100 dark:bg-green-900/30"
             />
             <KpiCard
               title="Win Rate"
               value={`${dashboardData.dblWinRate.toFixed(1)}%`}
               subtitle={`Lost: ₹${dashboardData.dblLostRevenue.toLocaleString("en-IN")}`}
               icon={Target}
-              iconColor="text-blue-600"
-              iconBgColor="bg-blue-100"
+              iconColor="text-blue-600 dark:text-blue-400"
+              iconBgColor="bg-blue-100 dark:bg-blue-900/30"
             />
           </div>
 
@@ -232,24 +232,24 @@ export default function CrmDashboard() {
               value={`${dashboardData.dblAvgSalesCycleDays.toFixed(0)} days`}
               subtitle="Time to close"
               icon={Calendar}
-              iconColor="text-orange-600"
-              iconBgColor="bg-orange-100"
+              iconColor="text-orange-600 dark:text-orange-400"
+              iconBgColor="bg-orange-100 dark:bg-orange-900/30"
             />
             <KpiCard
               title="Sales Velocity"
               value={`₹${dashboardData.dblSalesVelocity.toLocaleString("en-IN")}`}
               subtitle="Revenue per day"
               icon={Zap}
-              iconColor="text-yellow-600"
-              iconBgColor="bg-yellow-100"
+              iconColor="text-yellow-600 dark:text-yellow-400"
+              iconBgColor="bg-yellow-100 dark:bg-yellow-900/30"
             />
             <KpiCard
               title="Activities This Week"
               value={dashboardData.intActivitiesThisWeek.toLocaleString()}
               subtitle="Scheduled activities"
               icon={Calendar}
-              iconColor="text-indigo-600"
-              iconBgColor="bg-indigo-100"
+              iconColor="text-indigo-600 dark:text-indigo-400"
+              iconBgColor="bg-indigo-100 dark:bg-indigo-900/30"
             />
           </div>
 

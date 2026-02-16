@@ -27,15 +27,15 @@ export function PipelineFunnelChart({ data }: PipelineFunnelChartProps) {
       const data = payload[0].payload;
       return (
         <div className="bg-popover text-popover-foreground p-3 border border-border-color rounded-lg shadow-lg">
-          <p className="font-semibold text-sm">{data.name}</p>
-          <p className="text-sm text-blue-600">
+          <p className="font-semibold text-sm text-foreground">{data.name}</p>
+          <p className="text-sm text-blue-600 dark:text-blue-400">
             Value: ₹{data.value.toLocaleString("en-IN")}
           </p>
           <p className="text-sm text-muted-foreground">
             Count: {data.count} deals
           </p>
           {data.rotting > 0 && (
-            <p className="text-sm text-red-600 flex items-center gap-1">
+            <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
               Rotting: {data.rotting}
             </p>

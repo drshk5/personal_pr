@@ -1,6 +1,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { Trophy, XCircle } from "lucide-react";
 
 import {
@@ -9,6 +10,7 @@ import {
 } from "@/validations/CRM/opportunity";
 import { useCloseOpportunity } from "@/hooks/api/CRM/use-opportunities";
 
+import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,7 +29,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 
 interface OpportunityCloseDialogProps {
   open: boolean;
@@ -126,13 +127,11 @@ const OpportunityCloseDialog: React.FC<OpportunityCloseDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Close Date</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
+                  <DatePicker
+                    value={field.value ? new Date(field.value + "T12:00:00") : undefined}
+                    onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    placeholder="Select close date"
+                  />
                   <FormMessage />
                 </FormItem>
               )}

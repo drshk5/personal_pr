@@ -300,7 +300,7 @@ const ContactList: React.FC = () => {
         key: "strEmail",
         header: "Email",
         cell: (item: ContactListDto) => (
-          <span className="text-sm">{item.strEmail}</span>
+          <span className="text-sm text-foreground">{item.strEmail}</span>
         ),
         sortable: true,
         width: "220px",
@@ -309,7 +309,7 @@ const ContactList: React.FC = () => {
         key: "strPhone",
         header: "Phone",
         cell: (item: ContactListDto) => (
-          <span className="text-sm">{item.strPhone || "-"}</span>
+          <span className="text-sm text-foreground">{item.strPhone || "-"}</span>
         ),
         sortable: false,
         width: "140px",
@@ -318,7 +318,7 @@ const ContactList: React.FC = () => {
         key: "strJobTitle",
         header: "Job Title",
         cell: (item: ContactListDto) => (
-          <span className="text-sm">{item.strJobTitle || "-"}</span>
+          <span className="text-sm text-foreground">{item.strJobTitle || "-"}</span>
         ),
         sortable: true,
         width: "160px",
@@ -327,7 +327,7 @@ const ContactList: React.FC = () => {
         key: "strAccountName",
         header: "Account",
         cell: (item: ContactListDto) => (
-          <span className="text-sm">{item.strAccountName || "-"}</span>
+          <span className="text-sm text-foreground">{item.strAccountName || "-"}</span>
         ),
         sortable: true,
         width: "180px",
@@ -345,7 +345,7 @@ const ContactList: React.FC = () => {
         key: "strAssignedToName",
         header: "Assigned To",
         cell: (item: ContactListDto) => (
-          <span className="text-sm">
+          <span className="text-sm text-foreground">
             {item.strAssignedToName || "-"}
           </span>
         ),
@@ -356,7 +356,7 @@ const ContactList: React.FC = () => {
         key: "dtCreatedOn",
         header: "Created On",
         cell: (item: ContactListDto) => (
-          <div className="whitespace-nowrap text-sm">
+          <div className="whitespace-nowrap text-sm text-foreground">
             {item.dtCreatedOn
               ? format(new Date(item.dtCreatedOn), "MMM d, yyyy, h:mm a")
               : "-"}

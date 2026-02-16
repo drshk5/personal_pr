@@ -18,15 +18,18 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
 {
     private readonly ILeadService _leadService;
     private readonly IAuditLogService _auditLogService;
+    private readonly MasterDbContext _masterDbContext;
 
     public MstLeadApplicationService(
         IUnitOfWork unitOfWork,
         ITenantContextProvider tenantContextProvider,
+        MasterDbContext masterDbContext,
         ILeadService leadService,
         IAuditLogService auditLogService,
         ILogger<MstLeadApplicationService> logger)
         : base(unitOfWork, tenantContextProvider, logger)
     {
+        _masterDbContext = masterDbContext;
         _leadService = leadService;
         _auditLogService = auditLogService;
     }
@@ -97,6 +100,9 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
 
         var leadDtos = items.Select(MapToListDto).ToList();
 
+        // Enrich with user names from master DB
+        await EnrichLeadDtosWithUserNamesAsync(leadDtos);
+
         return new PagedResponse<LeadListDto>
         {
             Items = leadDtos,
@@ -143,6 +149,22 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
 
         var detail = MapToDetailDto(lead);
         detail.RecentActivities = activities;
+
+        // Enrich lead detail with user names
+        var detailList = new List<LeadListDto> { detail };
+        await EnrichLeadDtosWithUserNamesAsync(detailList);
+
+        // Also populate createdBy name
+        var creatorIds = new List<Guid> { lead.strCreatedByGUID };
+        var creators = await _masterDbContext.MstUsers
+            .AsNoTracking()
+            .Where(u => u.strGroupGUID == GetTenantId() && creatorIds.Contains(u.strUserGUID))
+            .Select(u => new { u.strUserGUID, u.strName })
+            .ToListAsync();
+        var creator = creators.FirstOrDefault(u => u.strUserGUID == lead.strCreatedByGUID);
+        if (creator != null)
+            detail.strCreatedByName = creator.strName;
+
         return detail;
     }
 
@@ -640,5 +662,37 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
             dtUpdatedOn = lead.dtUpdatedOn,
             RecentActivities = new List<ActivityListDto>()
         };
+    }
+
+    /// <summary>
+    /// Enrich lead DTOs with assigned user names from master DB (single batch query).
+    /// </summary>
+    private async Task EnrichLeadDtosWithUserNamesAsync(List<LeadListDto> leads)
+    {
+        var assigneeIds = leads
+            .Where(l => l.strAssignedToGUID.HasValue)
+            .Select(l => l.strAssignedToGUID!.Value)
+            .Distinct()
+            .ToList();
+
+        if (assigneeIds.Count == 0)
+            return;
+
+        var users = await _masterDbContext.MstUsers
+            .AsNoTracking()
+            .Where(u => u.strGroupGUID == GetTenantId() && assigneeIds.Contains(u.strUserGUID))
+            .Select(u => new { u.strUserGUID, u.strName })
+            .ToListAsync();
+
+        var nameById = users.ToDictionary(u => u.strUserGUID, u => u.strName);
+
+        foreach (var lead in leads)
+        {
+            if (lead.strAssignedToGUID.HasValue
+                && nameById.TryGetValue(lead.strAssignedToGUID.Value, out var name))
+            {
+                lead.strAssignedToName = name;
+            }
+        }
     }
 }

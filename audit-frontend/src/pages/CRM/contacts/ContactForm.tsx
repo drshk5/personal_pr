@@ -649,7 +649,7 @@ const ContactForm: React.FC = () => {
             {/* Contact Info Card */}
             <Card>
               <CardHeader className="py-3">
-                <CardTitle className="text-sm">Contact Info</CardTitle>
+                <CardTitle className="text-sm text-foreground">Contact Info</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -663,7 +663,7 @@ const ContactForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground">
                       Account
                     </span>
-                    <span className="text-xs font-medium">
+                    <span className="text-xs font-medium text-foreground">
                       {contact.strAccountName}
                     </span>
                   </div>
@@ -672,7 +672,7 @@ const ContactForm: React.FC = () => {
                   <span className="text-xs text-muted-foreground">
                     Created
                   </span>
-                  <span className="text-xs">
+                  <span className="text-xs text-foreground">
                     {format(new Date(contact.dtCreatedOn), "MMM d, yyyy")}
                   </span>
                 </div>
@@ -681,7 +681,7 @@ const ContactForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground">
                       Last Contacted
                     </span>
-                    <span className="text-xs">
+                    <span className="text-xs text-foreground">
                       {format(
                         new Date(contact.dtLastContactedOn),
                         "MMM d, yyyy"
@@ -694,7 +694,7 @@ const ContactForm: React.FC = () => {
                     <span className="text-xs text-muted-foreground">
                       Assigned To
                     </span>
-                    <span className="text-xs">{contact.strAssignedToName}</span>
+                    <span className="text-xs text-foreground">{contact.strAssignedToName}</span>
                   </div>
                 )}
               </CardContent>
@@ -704,7 +704,7 @@ const ContactForm: React.FC = () => {
             {contact.opportunities && contact.opportunities.length > 0 && (
               <Card>
                 <CardHeader className="py-3">
-                  <CardTitle className="text-sm">Opportunities</CardTitle>
+                  <CardTitle className="text-sm text-foreground">Opportunities</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -714,7 +714,7 @@ const ContactForm: React.FC = () => {
                         className="flex items-center justify-between"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium truncate">
+                          <p className="text-xs font-medium text-foreground truncate">
                             {opp.strOpportunityName}
                           </p>
                           <p className="text-xs text-muted-foreground">
@@ -722,7 +722,7 @@ const ContactForm: React.FC = () => {
                           </p>
                         </div>
                         {opp.dblAmount != null && (
-                          <span className="text-xs font-medium ml-2">
+                          <span className="text-xs font-medium text-foreground ml-2">
                             {opp.strCurrency}{" "}
                             {opp.dblAmount.toLocaleString()}
                           </span>
@@ -739,7 +739,7 @@ const ContactForm: React.FC = () => {
               contact.recentActivities.length > 0 && (
                 <Card>
                   <CardHeader className="py-3">
-                    <CardTitle className="text-sm flex items-center gap-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-foreground">
                       <Clock className="h-4 w-4" />
                       Recent Activities
                     </CardTitle>

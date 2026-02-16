@@ -30,6 +30,7 @@ import { useMenuIcon } from "@/hooks/common/use-menu-icon";
 import { ListModules, FormModules, Actions, canAccess } from "@/lib/permissions";
 import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 
+import { DatePicker } from "@/components/ui/date-picker";
 import CustomContainer from "@/components/layout/custom-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { DataTable } from "@/components/data-display/data-tables/DataTable";
@@ -520,11 +521,10 @@ const ActivityTimeline: React.FC = () => {
                   <label className="text-sm font-medium text-foreground/90">
                     From Date
                   </label>
-                  <Input
-                    type="date"
-                    value={filterFromDate}
-                    onChange={(e) => setFilterFromDate(e.target.value)}
-                    className="h-9"
+                  <DatePicker
+                    value={filterFromDate ? new Date(filterFromDate + "T12:00:00") : undefined}
+                    onChange={(date) => setFilterFromDate(date ? format(date, "yyyy-MM-dd") : "")}
+                    placeholder="From date"
                   />
                 </div>
 
@@ -532,11 +532,10 @@ const ActivityTimeline: React.FC = () => {
                   <label className="text-sm font-medium text-foreground/90">
                     To Date
                   </label>
-                  <Input
-                    type="date"
-                    value={filterToDate}
-                    onChange={(e) => setFilterToDate(e.target.value)}
-                    className="h-9"
+                  <DatePicker
+                    value={filterToDate ? new Date(filterToDate + "T12:00:00") : undefined}
+                    onChange={(date) => setFilterToDate(date ? format(date, "yyyy-MM-dd") : "")}
+                    placeholder="To date"
                   />
                 </div>
 

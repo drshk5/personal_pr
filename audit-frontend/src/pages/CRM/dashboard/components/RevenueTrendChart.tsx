@@ -25,14 +25,14 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
     if (active && payload && payload.length) {
       return (
         <div className="bg-popover text-popover-foreground p-3 border border-border-color rounded-lg shadow-lg">
-          <p className="font-semibold text-sm">{payload[0].payload.strMonth}</p>
-          <p className="text-sm text-green-600">
+          <p className="font-semibold text-sm text-foreground">{payload[0].payload.strMonth}</p>
+          <p className="text-sm text-green-600 dark:text-green-400">
             Won: ₹{payload[0].value.toLocaleString("en-IN")}
           </p>
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-red-600 dark:text-red-400">
             Lost: ₹{payload[1].value.toLocaleString("en-IN")}
           </p>
-          <p className="text-sm text-blue-600 font-medium mt-1">
+          <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mt-1">
             Net: ₹{(payload[0].value - payload[1].value).toLocaleString("en-IN")}
           </p>
         </div>
@@ -51,12 +51,12 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
           </div>
           <div className="flex items-center gap-2">
             {netRevenue > 0 ? (
-              <div className="flex items-center text-green-600 text-sm font-medium">
+              <div className="flex items-center text-green-600 dark:text-green-400 text-sm font-medium">
                 <TrendingUp className="h-4 w-4 mr-1" />
                 +₹{netRevenue.toLocaleString("en-IN")}
               </div>
             ) : (
-              <div className="flex items-center text-red-600 text-sm font-medium">
+              <div className="flex items-center text-red-600 dark:text-red-400 text-sm font-medium">
                 <TrendingDown className="h-4 w-4 mr-1" />
                 ₹{Math.abs(netRevenue).toLocaleString("en-IN")}
               </div>

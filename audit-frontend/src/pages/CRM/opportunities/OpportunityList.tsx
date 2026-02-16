@@ -335,7 +335,7 @@ const OpportunityList: React.FC = () => {
         key: "strAccountName",
         header: "Account",
         cell: (item: OpportunityListDto) => (
-          <span className="text-sm">{item.strAccountName || "-"}</span>
+          <span className="text-sm text-foreground">{item.strAccountName || "-"}</span>
         ),
         sortable: true,
         width: "180px",
@@ -368,7 +368,7 @@ const OpportunityList: React.FC = () => {
         key: "dblAmount",
         header: "Amount",
         cell: (item: OpportunityListDto) => (
-          <span className="text-sm font-medium">
+          <span className="text-sm font-medium text-foreground">
             {item.dblAmount != null
               ? formatCurrency(item.dblAmount, item.strCurrency)
               : "-"}
@@ -381,7 +381,7 @@ const OpportunityList: React.FC = () => {
         key: "intProbability",
         header: "Probability",
         cell: (item: OpportunityListDto) => (
-          <span className="text-sm">{item.intProbability}%</span>
+          <span className="text-sm text-foreground">{item.intProbability}%</span>
         ),
         sortable: true,
         width: "110px",
@@ -390,7 +390,7 @@ const OpportunityList: React.FC = () => {
         key: "dtExpectedCloseDate",
         header: "Expected Close",
         cell: (item: OpportunityListDto) => (
-          <div className="whitespace-nowrap text-sm">
+          <div className="whitespace-nowrap text-sm text-foreground">
             {item.dtExpectedCloseDate
               ? format(
                   new Date(item.dtExpectedCloseDate),
@@ -423,7 +423,7 @@ const OpportunityList: React.FC = () => {
         key: "strAssignedToName",
         header: "Assigned To",
         cell: (item: OpportunityListDto) => (
-          <span className="text-sm">{item.strAssignedToName || "-"}</span>
+          <span className="text-sm text-foreground">{item.strAssignedToName || "-"}</span>
         ),
         sortable: true,
         width: "160px",
@@ -432,7 +432,7 @@ const OpportunityList: React.FC = () => {
         key: "dtCreatedOn",
         header: "Created On",
         cell: (item: OpportunityListDto) => (
-          <div className="whitespace-nowrap text-sm">
+          <div className="whitespace-nowrap text-sm text-foreground">
             {item.dtCreatedOn
               ? format(new Date(item.dtCreatedOn), "MMM d, yyyy, h:mm a")
               : "-"}

@@ -133,7 +133,7 @@ const LeadAssignmentDialog: React.FC<LeadAssignmentDialogProps> = ({
           {/* Manual Assignment */}
           <TabsContent value="manual" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Assign To</label>
+              <label className="text-sm font-medium text-foreground">Assign To</label>
               <Input
                 placeholder="Search team member..."
                 value={assignToSearch}
@@ -192,7 +192,7 @@ const LeadAssignmentDialog: React.FC<LeadAssignmentDialogProps> = ({
           {/* Auto Assignment */}
           <TabsContent value="auto" className="space-y-4 mt-4">
             <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-              <h4 className="text-sm font-medium">Active Assignment Rules</h4>
+              <h4 className="text-sm font-medium text-foreground">Active Assignment Rules</h4>
               {isRulesLoading ? (
                 <p className="text-sm text-muted-foreground">
                   Loading assignment rules...
@@ -210,7 +210,7 @@ const LeadAssignmentDialog: React.FC<LeadAssignmentDialogProps> = ({
                       className="flex items-center justify-between bg-background rounded-md px-3 py-2"
                     >
                       <div>
-                        <p className="text-sm font-medium">
+                        <p className="text-sm font-medium text-foreground">
                           {rule.strRuleName}
                         </p>
                         {rule.strDescription && (

@@ -238,7 +238,7 @@ const AccountImportDialog: React.FC<AccountImportDialogProps> = ({
           <div className="space-y-4 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">File: {file?.name}</p>
+                <p className="text-sm font-medium text-foreground">File: {file?.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {csvHeaders.length} columns detected
                 </p>
@@ -301,14 +301,14 @@ const AccountImportDialog: React.FC<AccountImportDialogProps> = ({
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left px-4 py-2 font-medium">CSV Column</th>
-                    <th className="text-left px-4 py-2 font-medium">Maps To</th>
+                    <th className="text-left px-4 py-2 font-medium text-foreground">CSV Column</th>
+                    <th className="text-left px-4 py-2 font-medium text-foreground">Maps To</th>
                   </tr>
                 </thead>
                 <tbody>
                   {csvHeaders.map((header) => (
                     <tr key={header} className="border-t">
-                      <td className="px-4 py-2 font-mono text-xs">{header}</td>
+                      <td className="px-4 py-2 font-mono text-xs text-foreground">{header}</td>
                       <td className="px-4 py-2">
                         <Select
                           value={mappings[header] ?? SKIP_VALUE}
@@ -351,30 +351,30 @@ const AccountImportDialog: React.FC<AccountImportDialogProps> = ({
           <div className="space-y-4 py-4">
             <div className="text-center">
               <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-                <Check className="h-8 w-8 text-green-600" />
+                <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="text-lg font-semibold">Import Complete</h3>
+              <h3 className="text-lg font-semibold text-foreground">Import Complete</h3>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="text-center p-3 rounded-lg bg-muted/50">
-                <p className="text-2xl font-bold">{importResult.intTotalRows}</p>
+                <p className="text-2xl font-bold text-foreground">{importResult.intTotalRows}</p>
                 <p className="text-xs text-muted-foreground">Total Rows</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {importResult.intSuccessRows}
                 </p>
                 <p className="text-xs text-muted-foreground">Success</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20">
-                <p className="text-2xl font-bold text-amber-600">
+                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
                   {importResult.intDuplicateRows}
                 </p>
                 <p className="text-xs text-muted-foreground">Duplicates</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-red-50 dark:bg-red-950/20">
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                   {importResult.intErrorRows}
                 </p>
                 <p className="text-xs text-muted-foreground">Errors</p>

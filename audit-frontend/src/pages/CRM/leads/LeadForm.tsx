@@ -14,12 +14,20 @@ import {
   Mail,
   MessageSquare,
   CalendarDays,
+  Plus,
+  CheckCircle2,
+  ListTodo,
+  RefreshCw,
+  X,
 } from "lucide-react";
 
 import type { CreateLeadDto, UpdateLeadDto } from "@/types/CRM/lead";
 import { LEAD_SOURCES, LEAD_STATUSES, LEAD_CONVERTIBLE_STATUSES } from "@/types/CRM/lead";
+import { ACTIVITY_TYPES } from "@/types/CRM/activity";
+import type { CreateActivityDto } from "@/types/CRM/activity";
 import { leadSchema, type LeadFormValues } from "@/validations/CRM/lead";
 import { Actions, FormModules } from "@/lib/permissions";
+import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 
 import {
   useLead,
@@ -28,6 +36,7 @@ import {
   useDeleteLead,
   useCheckDuplicates,
 } from "@/hooks/api/CRM/use-leads";
+import { useCreateActivity, useEntityActivities } from "@/hooks/api/CRM/use-activities";
 import { useMenuIcon } from "@/hooks/common/use-menu-icon";
 import { useDebounce } from "@/hooks/common/use-debounce";
 
@@ -47,6 +56,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -63,11 +73,23 @@ import LeadStatusBadge from "./components/LeadStatusBadge";
 import LeadConvertDialog from "./components/LeadConvertDialog";
 import LeadMergeDialog from "./components/LeadMergeDialog";
 
-const activityIcons: Record<string, React.ElementType> = {
+// Activity type icon map
+const activityTypeIcons: Record<string, React.ElementType> = {
   Call: Phone,
   Email: Mail,
   Meeting: CalendarDays,
   Note: MessageSquare,
+  Task: ListTodo,
+  FollowUp: RefreshCw,
+};
+
+const activityTypeColors: Record<string, string> = {
+  Call: "text-blue-500",
+  Email: "text-purple-500",
+  Meeting: "text-green-500",
+  Note: "text-yellow-500",
+  Task: "text-orange-500",
+  FollowUp: "text-pink-500",
 };
 
 const LeadForm: React.FC = () => {
@@ -76,6 +98,12 @@ const LeadForm: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [showConvertDialog, setShowConvertDialog] = React.useState(false);
   const [showMergeDialog, setShowMergeDialog] = React.useState(false);
+  const [showLogActivity, setShowLogActivity] = React.useState(false);
+  const [activityType, setActivityType] = React.useState("Call");
+  const [activitySubject, setActivitySubject] = React.useState("");
+  const [activityDescription, setActivityDescription] = React.useState("");
+  const [activityOutcome, setActivityOutcome] = React.useState("");
+  const [activityIsCompleted, setActivityIsCompleted] = React.useState(false);
   const HeaderIcon = useMenuIcon(FormModules.CRM_LEAD, Users);
   const isEditMode = !!id && id !== "create";
 
@@ -84,10 +112,25 @@ const LeadForm: React.FC = () => {
     data: lead,
     isFetching: isFetchingLead,
     error: leadError,
+    refetch: refetchLead,
   } = useLead(isEditMode && id ? id : undefined);
   const { mutate: createLead, isPending: isCreating } = useCreateLead();
   const { mutate: updateLead, isPending: isUpdating } = useUpdateLead();
   const { mutate: deleteLead, isPending: isDeleting } = useDeleteLead();
+  const { mutate: createActivity, isPending: isLoggingActivity } = useCreateActivity();
+
+  // Entity activities (full list for this lead)
+  const { data: entityActivitiesRaw, refetch: refetchActivities } = useEntityActivities(
+    "Lead",
+    isEditMode && id ? id : "",
+  );
+  const entityActivities = React.useMemo(() => {
+    if (!entityActivitiesRaw) return { items: [], totalCount: 0 };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const raw = entityActivitiesRaw as any;
+    const paged = mapToStandardPagedResponse(raw.data ?? raw);
+    return paged;
+  }, [entityActivitiesRaw]);
 
   // Form
   const form = useForm<LeadFormValues>({
@@ -159,6 +202,32 @@ const LeadForm: React.FC = () => {
       form.setValue("strAssignedToGUID", lead.strAssignedToGUID || "");
     }
   }, [lead, form, isEditMode]);
+
+  // Handle log activity
+  const handleLogActivity = () => {
+    if (!id || !activitySubject.trim()) return;
+    const now = new Date().toISOString();
+    const dto: CreateActivityDto = {
+      strActivityType: activityType,
+      strSubject: activitySubject.trim(),
+      strDescription: activityDescription.trim() || undefined,
+      strOutcome: activityOutcome.trim() || undefined,
+      dtCompletedOn: activityIsCompleted ? now : undefined,
+      links: [{ strEntityType: "Lead", strEntityGUID: id }],
+    };
+    createActivity(dto, {
+      onSuccess: () => {
+        setShowLogActivity(false);
+        setActivitySubject("");
+        setActivityDescription("");
+        setActivityOutcome("");
+        setActivityIsCompleted(false);
+        setActivityType("Call");
+        refetchLead();
+        refetchActivities();
+      },
+    });
+  };
 
   // Handle delete
   const handleDelete = () => {
@@ -493,28 +562,34 @@ const LeadForm: React.FC = () => {
                                   Status{" "}
                                   <span className="text-red-500">*</span>
                                 </FormLabel>
-                                <Select
-                                  value={field.value || "New"}
-                                  onValueChange={field.onChange}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select status" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {LEAD_STATUSES.filter(
-                                      (s) => s !== "Converted"
-                                    ).map((status) => (
-                                      <SelectItem
-                                        key={status}
-                                        value={status}
-                                      >
-                                        {status}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                {lead?.strStatus === "Converted" ? (
+                                  <div className="flex items-center h-10 px-3 rounded-md border border-input bg-muted/50">
+                                    <span className="text-sm text-muted-foreground">Converted (read-only)</span>
+                                  </div>
+                                ) : (
+                                  <Select
+                                    value={field.value || "New"}
+                                    onValueChange={field.onChange}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {LEAD_STATUSES.filter(
+                                        (s) => s !== "Converted"
+                                      ).map((status) => (
+                                        <SelectItem
+                                          key={status}
+                                          value={status}
+                                        >
+                                          {status}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                )}
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -703,7 +778,7 @@ const LeadForm: React.FC = () => {
             {/* Lead Info Card */}
             <Card>
               <CardHeader className="py-3">
-                <CardTitle className="text-sm">Lead Info</CardTitle>
+                <CardTitle className="text-sm text-foreground">Lead Info</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -711,43 +786,33 @@ const LeadForm: React.FC = () => {
                   <LeadStatusBadge status={lead.strStatus} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    Created
-                  </span>
-                  <span className="text-xs">
+                  <span className="text-xs text-muted-foreground">Created</span>
+                  <span className="text-xs text-foreground">
                     {format(new Date(lead.dtCreatedOn), "MMM d, yyyy")}
                   </span>
                 </div>
                 {lead.dtUpdatedOn && (
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      Updated
-                    </span>
-                    <span className="text-xs">
+                    <span className="text-xs text-muted-foreground">Updated</span>
+                    <span className="text-xs text-foreground">
                       {format(new Date(lead.dtUpdatedOn), "MMM d, yyyy")}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    Created By
-                  </span>
-                  <span className="text-xs">{lead.strCreatedByName}</span>
+                  <span className="text-xs text-muted-foreground">Created By</span>
+                  <span className="text-xs text-foreground">{lead.strCreatedByName || "—"}</span>
                 </div>
-                {lead.strAssignedToName && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      Assigned To
-                    </span>
-                    <span className="text-xs">{lead.strAssignedToName}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Assigned To</span>
+                  <span className="text-xs text-foreground">
+                    {lead.strAssignedToName || <span className="text-muted-foreground">Unassigned</span>}
+                  </span>
+                </div>
                 {lead.strStatus === "Converted" && lead.dtConvertedOn && (
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      Converted On
-                    </span>
-                    <span className="text-xs">
+                    <span className="text-xs text-muted-foreground">Converted On</span>
+                    <span className="text-xs text-foreground">
                       {format(new Date(lead.dtConvertedOn), "MMM d, yyyy")}
                     </span>
                   </div>
@@ -755,55 +820,160 @@ const LeadForm: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Recent Activities */}
-            {lead.recentActivities && lead.recentActivities.length > 0 && (
-              <Card>
-                <CardHeader className="py-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
+            {/* Activity Panel */}
+            <Card>
+              <CardHeader className="py-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2 text-foreground">
                     <Clock className="h-4 w-4" />
-                    Recent Activities
+                    Activities
+                    {entityActivities.totalCount > 0 && (
+                      <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0">
+                        {entityActivities.totalCount}
+                      </Badge>
+                    )}
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {lead.recentActivities.slice(0, 5).map((activity) => {
-                      const Icon =
-                        activityIcons[activity.strActivityType] ||
-                        MessageSquare;
-                      return (
-                        <div
-                          key={activity.strActivityGUID}
-                          className="flex items-start gap-3"
-                        >
-                          <div className="mt-0.5 rounded-full bg-muted p-1.5">
-                            <Icon className="h-3 w-3 text-muted-foreground" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-foreground truncate">
-                              {activity.strSubject}
-                            </p>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <span>{activity.strActivityType}</span>
-                              <span>
-                                {format(
-                                  new Date(activity.dtCreatedOn),
-                                  "MMM d, h:mm a"
-                                )}
-                              </span>
-                            </div>
-                            {activity.strOutcome && (
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                {activity.strOutcome}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => setShowLogActivity(!showLogActivity)}
+                  >
+                    {showLogActivity ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                    {showLogActivity ? "Cancel" : "Log"}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-0">
+                {/* Log Activity Inline Form */}
+                {showLogActivity && (
+                  <div className="border border-primary/20 rounded-lg p-3 space-y-2 bg-primary/5">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-muted-foreground block mb-1">Type</label>
+                        <Select value={activityType} onValueChange={setActivityType}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ACTIVITY_TYPES.map((t) => (
+                              <SelectItem key={t} value={t}>{t === "FollowUp" ? "Follow-up" : t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-end">
+                        <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={activityIsCompleted}
+                            onChange={(e) => setActivityIsCompleted(e.target.checked)}
+                            className="rounded border-gray-300 h-3.5 w-3.5"
+                          />
+                          <CheckCircle2 className={`h-3 w-3 ${activityIsCompleted ? "text-green-500" : "text-muted-foreground"}`} />
+                          Completed
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Subject *</label>
+                      <Input
+                        value={activitySubject}
+                        onChange={(e) => setActivitySubject(e.target.value)}
+                        placeholder="e.g., Called to discuss requirements"
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Description</label>
+                      <Textarea
+                        value={activityDescription}
+                        onChange={(e) => setActivityDescription(e.target.value)}
+                        placeholder="Details of the activity..."
+                        className="text-xs resize-none min-h-[60px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Outcome</label>
+                      <Input
+                        value={activityOutcome}
+                        onChange={(e) => setActivityOutcome(e.target.value)}
+                        placeholder="e.g., Interested, will follow up"
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="w-full h-8 text-xs"
+                      onClick={handleLogActivity}
+                      disabled={!activitySubject.trim() || isLoggingActivity}
+                    >
+                      {isLoggingActivity ? "Saving..." : "Save Activity"}
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+
+                {/* Activity Timeline */}
+                {(() => {
+                  const activities = entityActivities.items;
+                  if (activities.length === 0) {
+                    return (
+                      <div className="text-center py-4">
+                        <Clock className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
+                        <p className="text-xs text-muted-foreground">No activities yet</p>
+                        <p className="text-xs text-muted-foreground/70 mt-0.5">Log a call, email, or meeting</p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="space-y-3">
+                      {activities.map((activity) => {
+                        const Icon = activityTypeIcons[activity.strActivityType] || MessageSquare;
+                        const colorClass = activityTypeColors[activity.strActivityType] || "text-muted-foreground";
+                        const isCompleted = !!activity.dtCompletedOn;
+                        return (
+                          <div key={activity.strActivityGUID} className="flex items-start gap-2.5">
+                            <div className={`mt-0.5 rounded-full p-1.5 bg-muted shrink-0`}>
+                              <Icon className={`h-3 w-3 ${colorClass}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-xs font-medium text-foreground truncate flex-1">
+                                  {activity.strSubject}
+                                </p>
+                                {isCompleted && (
+                                  <CheckCircle2 className="h-3 w-3 text-green-500 shrink-0" />
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 text-foreground">
+                                  {activity.strActivityType === "FollowUp" ? "Follow-up" : activity.strActivityType}
+                                </Badge>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {format(new Date(activity.dtCreatedOn), "MMM d, h:mm a")}
+                                </span>
+                              </div>
+                              {activity.strOutcome && (
+                                <p className="text-[10px] text-muted-foreground mt-0.5 italic truncate">
+                                  {activity.strOutcome}
+                                </p>
+                              )}
+                              {activity.strCreatedByName && (
+                                <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+                                  by {activity.strCreatedByName}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>

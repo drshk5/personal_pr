@@ -337,7 +337,7 @@ export const PipelineFormDialog: React.FC<PipelineFormDialogProps> = ({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">Pipeline Stages</h3>
+                    <h3 className="text-lg font-semibold text-foreground">Pipeline Stages</h3>
                     <p className="text-sm text-muted-foreground">
                       Define the stages in your pipeline. Drag to reorder.
                     </p>

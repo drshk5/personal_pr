@@ -1,6 +1,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { Plus, X } from "lucide-react";
 
 import {
@@ -15,6 +16,7 @@ import {
 import { useCreateActivity } from "@/hooks/api/CRM/use-activities";
 import { getActivityTypeLabel } from "./ActivityTypeIcon";
 
+import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -227,36 +229,70 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 <FormField
                   control={form.control}
                   name="dtScheduledOn"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Scheduled</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="datetime-local"
-                          {...field}
-                          value={field.value ?? ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const dateVal = field.value ? new Date(field.value) : undefined;
+                    const timeVal = field.value ? field.value.substring(11, 16) : "";
+                    return (
+                      <FormItem>
+                        <FormLabel>Scheduled</FormLabel>
+                        <div className="space-y-2">
+                          <DatePicker
+                            value={dateVal}
+                            onChange={(date) => {
+                              if (!date) { field.onChange(null); return; }
+                              const time = timeVal || "09:00";
+                              field.onChange(`${format(date, "yyyy-MM-dd")}T${time}`);
+                            }}
+                            placeholder="Pick date"
+                          />
+                          {dateVal && (
+                            <Input
+                              type="time"
+                              value={timeVal}
+                              onChange={(e) => {
+                                field.onChange(`${format(dateVal, "yyyy-MM-dd")}T${e.target.value}`);
+                              }}
+                            />
+                          )}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
                 <FormField
                   control={form.control}
                   name="dtCompletedOn"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Completed</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="datetime-local"
-                          {...field}
-                          value={field.value ?? ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const dateVal = field.value ? new Date(field.value) : undefined;
+                    const timeVal = field.value ? field.value.substring(11, 16) : "";
+                    return (
+                      <FormItem>
+                        <FormLabel>Completed</FormLabel>
+                        <div className="space-y-2">
+                          <DatePicker
+                            value={dateVal}
+                            onChange={(date) => {
+                              if (!date) { field.onChange(null); return; }
+                              const time = timeVal || "09:00";
+                              field.onChange(`${format(date, "yyyy-MM-dd")}T${time}`);
+                            }}
+                            placeholder="Pick date"
+                          />
+                          {dateVal && (
+                            <Input
+                              type="time"
+                              value={timeVal}
+                              onChange={(e) => {
+                                field.onChange(`${format(dateVal, "yyyy-MM-dd")}T${e.target.value}`);
+                              }}
+                            />
+                          )}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
             )}
