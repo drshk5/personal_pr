@@ -1,0 +1,373 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using crm_backend.ApplicationServices.Interfaces;
+using crm_backend.Constants;
+using crm_backend.Data;
+using crm_backend.DataAccess.Repositories;
+using crm_backend.DTOs.CustomerData;
+using crm_backend.Exceptions;
+using crm_backend.Helpers;
+using crm_backend.Interfaces;
+using crm_backend.Models.Core.CustomerData;
+using crm_backend.Models.Wrappers;
+using System.Linq.Dynamic.Core;
+
+namespace crm_backend.ApplicationServices.CustomerData;
+
+public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplicationService
+{
+    private readonly ILeadService _leadService;
+    private readonly IAuditLogService _auditLogService;
+
+    public MstLeadApplicationService(
+        IUnitOfWork unitOfWork,
+        ITenantContextProvider tenantContextProvider,
+        ILeadService leadService,
+        IAuditLogService auditLogService,
+        ILogger<MstLeadApplicationService> logger)
+        : base(unitOfWork, tenantContextProvider, logger)
+    {
+        _leadService = leadService;
+        _auditLogService = auditLogService;
+    }
+
+    public async Task<PagedResponse<LeadListDto>> GetLeadsAsync(LeadFilterParams filter)
+    {
+        var query = _unitOfWork.Leads.Query();
+
+        // Apply archived filter
+        if (filter.bolIsActive.HasValue)
+            query = query.Where(l => l.bolIsActive == filter.bolIsActive.Value);
+
+        // Apply status filter
+        if (!string.IsNullOrWhiteSpace(filter.strStatus))
+            query = query.Where(l => l.strStatus == filter.strStatus);
+
+        // Apply source filter
+        if (!string.IsNullOrWhiteSpace(filter.strSource))
+            query = query.Where(l => l.strSource == filter.strSource);
+
+        // Apply assignee filter
+        if (filter.strAssignedToGUID.HasValue)
+            query = query.Where(l => l.strAssignedToGUID == filter.strAssignedToGUID.Value);
+
+        // Apply date range filter
+        if (filter.dtFromDate.HasValue)
+            query = query.Where(l => l.dtCreatedOn >= filter.dtFromDate.Value);
+        if (filter.dtToDate.HasValue)
+            query = query.Where(l => l.dtCreatedOn <= filter.dtToDate.Value);
+
+        // Apply score range filter
+        if (filter.intMinScore.HasValue)
+            query = query.Where(l => l.intLeadScore >= filter.intMinScore.Value);
+        if (filter.intMaxScore.HasValue)
+            query = query.Where(l => l.intLeadScore <= filter.intMaxScore.Value);
+
+        // Apply search
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var searchTerm = filter.Search.ToLower().Trim();
+            query = query.Where(l =>
+                l.strFirstName.ToLower().Contains(searchTerm) ||
+                l.strLastName.ToLower().Contains(searchTerm) ||
+                l.strEmail.ToLower().Contains(searchTerm) ||
+                (l.strCompanyName != null && l.strCompanyName.ToLower().Contains(searchTerm)) ||
+                (l.strPhone != null && l.strPhone.Contains(searchTerm)));
+        }
+
+        // Get total count
+        var totalCount = await query.CountAsync();
+
+        // Apply sorting
+        if (!string.IsNullOrWhiteSpace(filter.SortBy))
+        {
+            var direction = filter.Ascending ? "ascending" : "descending";
+            query = query.OrderBy($"{filter.SortBy} {direction}");
+        }
+        else
+        {
+            query = query.OrderByDescending(l => l.dtCreatedOn);
+        }
+
+        // Apply pagination
+        var items = await query
+            .Skip((filter.PageNumber - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .ToListAsync();
+
+        var leadDtos = items.Select(MapToListDto).ToList();
+
+        return new PagedResponse<LeadListDto>
+        {
+            Items = leadDtos,
+            TotalCount = totalCount,
+            PageNumber = filter.PageNumber,
+            PageSize = filter.PageSize,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize)
+        };
+    }
+
+    public async Task<LeadDetailDto> GetLeadByIdAsync(Guid id)
+    {
+        var lead = await _unitOfWork.Leads.GetByIdAsync(id);
+        if (lead == null)
+            throw new NotFoundException("Lead not found", LeadErrorCodes.LeadNotFound);
+
+        return MapToDetailDto(lead);
+    }
+
+    public async Task<LeadDetailDto> CreateLeadAsync(CreateLeadDto dto)
+    {
+        // Normalize data
+        var normalizedEmail = DataNormalizationHelper.NormalizeEmail(dto.strEmail);
+
+        // Check for duplicate email
+        var existingLead = await _unitOfWork.Leads.GetByEmailAsync(normalizedEmail, GetTenantId());
+        if (existingLead != null)
+            throw new BusinessException("A lead with this email already exists", LeadErrorCodes.DuplicateEmail);
+
+        var lead = new MstLead
+        {
+            strLeadGUID = Guid.NewGuid(),
+            strGroupGUID = GetTenantId(),
+            strFirstName = dto.strFirstName.Trim(),
+            strLastName = dto.strLastName.Trim(),
+            strEmail = normalizedEmail,
+            strPhone = DataNormalizationHelper.NormalizePhone(dto.strPhone),
+            strCompanyName = DataNormalizationHelper.TrimOrNull(dto.strCompanyName),
+            strJobTitle = DataNormalizationHelper.TrimOrNull(dto.strJobTitle),
+            strSource = dto.strSource,
+            strStatus = LeadStatusConstants.New,
+            strAddress = DataNormalizationHelper.TrimOrNull(dto.strAddress),
+            strCity = DataNormalizationHelper.TrimOrNull(dto.strCity),
+            strState = DataNormalizationHelper.TrimOrNull(dto.strState),
+            strCountry = DataNormalizationHelper.TrimOrNull(dto.strCountry),
+            strPostalCode = DataNormalizationHelper.TrimOrNull(dto.strPostalCode),
+            strNotes = DataNormalizationHelper.TrimOrNull(dto.strNotes),
+            strAssignedToGUID = dto.strAssignedToGUID,
+            strCreatedByGUID = GetCurrentUserId(),
+            dtCreatedOn = DateTime.UtcNow,
+            bolIsActive = true,
+            bolIsDeleted = false
+        };
+
+        // Calculate lead score
+        lead.intLeadScore = _leadService.CalculateScore(lead);
+
+        await _unitOfWork.Leads.AddAsync(lead);
+        await _unitOfWork.SaveChangesAsync();
+
+        // Audit log
+        await _auditLogService.LogAsync(
+            EntityTypeConstants.Lead,
+            lead.strLeadGUID,
+            "Create",
+            JsonSerializer.Serialize(new { dto.strFirstName, dto.strLastName, dto.strEmail, dto.strSource }),
+            GetCurrentUserId());
+
+        _logger.LogInformation("Lead created: {LeadGUID} by {UserGUID}", lead.strLeadGUID, GetCurrentUserId());
+
+        return MapToDetailDto(lead);
+    }
+
+    public async Task<LeadDetailDto> UpdateLeadAsync(Guid id, UpdateLeadDto dto)
+    {
+        var lead = await _unitOfWork.Leads.GetByIdAsync(id);
+        if (lead == null)
+            throw new NotFoundException("Lead not found", LeadErrorCodes.LeadNotFound);
+
+        // Normalize and check email uniqueness if changed
+        var normalizedEmail = DataNormalizationHelper.NormalizeEmail(dto.strEmail);
+        if (normalizedEmail != lead.strEmail.ToLowerInvariant())
+        {
+            var existingLead = await _unitOfWork.Leads.GetByEmailAsync(normalizedEmail, GetTenantId());
+            if (existingLead != null && existingLead.strLeadGUID != id)
+                throw new BusinessException("A lead with this email already exists", LeadErrorCodes.DuplicateEmail);
+        }
+
+        // Validate status transition if status changed
+        if (dto.strStatus != lead.strStatus)
+            _leadService.ValidateStatusTransition(lead.strStatus, dto.strStatus);
+
+        // Capture old values for audit
+        var oldValues = JsonSerializer.Serialize(new { lead.strFirstName, lead.strLastName, lead.strEmail, lead.strStatus });
+
+        // Update fields
+        lead.strFirstName = dto.strFirstName.Trim();
+        lead.strLastName = dto.strLastName.Trim();
+        lead.strEmail = normalizedEmail;
+        lead.strPhone = DataNormalizationHelper.NormalizePhone(dto.strPhone);
+        lead.strCompanyName = DataNormalizationHelper.TrimOrNull(dto.strCompanyName);
+        lead.strJobTitle = DataNormalizationHelper.TrimOrNull(dto.strJobTitle);
+        lead.strSource = dto.strSource;
+        lead.strStatus = dto.strStatus;
+        lead.strAddress = DataNormalizationHelper.TrimOrNull(dto.strAddress);
+        lead.strCity = DataNormalizationHelper.TrimOrNull(dto.strCity);
+        lead.strState = DataNormalizationHelper.TrimOrNull(dto.strState);
+        lead.strCountry = DataNormalizationHelper.TrimOrNull(dto.strCountry);
+        lead.strPostalCode = DataNormalizationHelper.TrimOrNull(dto.strPostalCode);
+        lead.strNotes = DataNormalizationHelper.TrimOrNull(dto.strNotes);
+        lead.strAssignedToGUID = dto.strAssignedToGUID;
+        lead.strUpdatedByGUID = GetCurrentUserId();
+        lead.dtUpdatedOn = DateTime.UtcNow;
+
+        // Recalculate score
+        lead.intLeadScore = _leadService.CalculateScore(lead);
+
+        _unitOfWork.Leads.Update(lead);
+        await _unitOfWork.SaveChangesAsync();
+
+        // Audit log
+        var newValues = JsonSerializer.Serialize(new { dto.strFirstName, dto.strLastName, dto.strEmail, dto.strStatus });
+        await _auditLogService.LogAsync(
+            EntityTypeConstants.Lead,
+            lead.strLeadGUID,
+            "Update",
+            JsonSerializer.Serialize(new { Old = oldValues, New = newValues }),
+            GetCurrentUserId());
+
+        return MapToDetailDto(lead);
+    }
+
+    public async Task<bool> DeleteLeadAsync(Guid id)
+    {
+        var lead = await _unitOfWork.Leads.GetByIdAsync(id);
+        if (lead == null)
+            throw new NotFoundException("Lead not found", LeadErrorCodes.LeadNotFound);
+
+        // Soft delete
+        lead.bolIsDeleted = true;
+        lead.bolIsActive = false;
+        lead.dtDeletedOn = DateTime.UtcNow;
+        lead.strUpdatedByGUID = GetCurrentUserId();
+        lead.dtUpdatedOn = DateTime.UtcNow;
+
+        _unitOfWork.Leads.Update(lead);
+        await _unitOfWork.SaveChangesAsync();
+
+        await _auditLogService.LogAsync(
+            EntityTypeConstants.Lead,
+            lead.strLeadGUID,
+            "Delete",
+            null,
+            GetCurrentUserId());
+
+        return true;
+    }
+
+    public async Task<LeadDetailDto> ChangeStatusAsync(Guid id, string newStatus)
+    {
+        var lead = await _unitOfWork.Leads.GetByIdAsync(id);
+        if (lead == null)
+            throw new NotFoundException("Lead not found", LeadErrorCodes.LeadNotFound);
+
+        var oldStatus = lead.strStatus;
+        _leadService.ValidateStatusTransition(oldStatus, newStatus);
+
+        lead.strStatus = newStatus;
+        lead.strUpdatedByGUID = GetCurrentUserId();
+        lead.dtUpdatedOn = DateTime.UtcNow;
+        lead.intLeadScore = _leadService.CalculateScore(lead);
+
+        _unitOfWork.Leads.Update(lead);
+        await _unitOfWork.SaveChangesAsync();
+
+        await _auditLogService.LogAsync(
+            EntityTypeConstants.Lead,
+            lead.strLeadGUID,
+            "Update",
+            JsonSerializer.Serialize(new { OldStatus = oldStatus, NewStatus = newStatus }),
+            GetCurrentUserId());
+
+        return MapToDetailDto(lead);
+    }
+
+    public async Task<bool> BulkArchiveAsync(LeadBulkArchiveDto dto)
+    {
+        foreach (var guid in dto.Guids)
+        {
+            var lead = await _unitOfWork.Leads.GetByIdAsync(guid);
+            if (lead != null)
+            {
+                lead.bolIsActive = false;
+                lead.strUpdatedByGUID = GetCurrentUserId();
+                lead.dtUpdatedOn = DateTime.UtcNow;
+                _unitOfWork.Leads.Update(lead);
+            }
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> BulkRestoreAsync(LeadBulkArchiveDto dto)
+    {
+        foreach (var guid in dto.Guids)
+        {
+            var lead = await _unitOfWork.Leads.GetByIdAsync(guid);
+            if (lead != null)
+            {
+                lead.bolIsActive = true;
+                lead.strUpdatedByGUID = GetCurrentUserId();
+                lead.dtUpdatedOn = DateTime.UtcNow;
+                _unitOfWork.Leads.Update(lead);
+            }
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+        return true;
+    }
+
+    // === Mapping Methods ===
+
+    private static LeadListDto MapToListDto(MstLead lead)
+    {
+        return new LeadListDto
+        {
+            strLeadGUID = lead.strLeadGUID,
+            strFirstName = lead.strFirstName,
+            strLastName = lead.strLastName,
+            strEmail = lead.strEmail,
+            strPhone = lead.strPhone,
+            strCompanyName = lead.strCompanyName,
+            strSource = lead.strSource,
+            strStatus = lead.strStatus,
+            intLeadScore = lead.intLeadScore,
+            strAssignedToGUID = lead.strAssignedToGUID,
+            dtCreatedOn = lead.dtCreatedOn,
+            bolIsActive = lead.bolIsActive
+        };
+    }
+
+    private static LeadDetailDto MapToDetailDto(MstLead lead)
+    {
+        return new LeadDetailDto
+        {
+            strLeadGUID = lead.strLeadGUID,
+            strFirstName = lead.strFirstName,
+            strLastName = lead.strLastName,
+            strEmail = lead.strEmail,
+            strPhone = lead.strPhone,
+            strCompanyName = lead.strCompanyName,
+            strSource = lead.strSource,
+            strStatus = lead.strStatus,
+            intLeadScore = lead.intLeadScore,
+            strAssignedToGUID = lead.strAssignedToGUID,
+            dtCreatedOn = lead.dtCreatedOn,
+            bolIsActive = lead.bolIsActive,
+            strJobTitle = lead.strJobTitle,
+            strAddress = lead.strAddress,
+            strCity = lead.strCity,
+            strState = lead.strState,
+            strCountry = lead.strCountry,
+            strPostalCode = lead.strPostalCode,
+            strNotes = lead.strNotes,
+            strConvertedAccountGUID = lead.strConvertedAccountGUID,
+            strConvertedContactGUID = lead.strConvertedContactGUID,
+            strConvertedOpportunityGUID = lead.strConvertedOpportunityGUID,
+            dtConvertedOn = lead.dtConvertedOn,
+            dtUpdatedOn = lead.dtUpdatedOn,
+            RecentActivities = new List<ActivityListDto>()
+        };
+    }
+}
