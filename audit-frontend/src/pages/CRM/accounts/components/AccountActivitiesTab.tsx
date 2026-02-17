@@ -33,11 +33,9 @@ import {
   Clock,
   Send,
 } from "lucide-react";
-import { useActivities, useCreateActivity, useBulkNotifyActivities } from "@/hooks/api/CRM/use-activities";
-import { useUsers } from "@/hooks/api/central/use-users";
+import { useActivities, useBulkNotifyActivities } from "@/hooks/api/CRM/use-activities";
 import { toast } from "sonner";
-import type { CreateActivityDto, ACTIVITY_TYPES, ACTIVITY_STATUSES } from "@/types/CRM/activity";
-import type { User } from "@/types/central/user";
+import ActivityForm from "@/pages/CRM/activities/components/ActivityForm";
 
 interface AccountActivitiesTabProps {
   accountId: string;
@@ -77,7 +75,7 @@ export default function AccountActivitiesTab({
 
   const activities = Array.isArray(activitiesData?.data)
     ? activitiesData.data
-    : (activitiesData?.data as any)?.items || (activitiesData as any)?.items || [];
+    : (activitiesData?.data as any)?.items || (activitiesData?.data as any)?.Items || (activitiesData as any)?.items || (activitiesData as any)?.Items || [];
   const filteredActivities = activities.filter((activity: any) => {
     const matchesSearch = activity.strSubject.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || activity.strActivityType === typeFilter;
@@ -280,11 +278,12 @@ export default function AccountActivitiesTab({
         </CardContent>
       </Card>
 
-      <CreateActivityDialog
+      <ActivityForm
         open={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
-        accountId={accountId}
-        accountName={accountName}
+        onOpenChange={(open) => { if (!open) setShowCreateDialog(false); }}
+        defaultLinks={[{ strEntityType: "Account", strEntityGUID: accountId }]}
+        entityContext={{ entityType: "Account", entityName: accountName }}
+        onSuccess={() => setShowCreateDialog(false)}
       />
 
       <BulkEmailDialog
@@ -296,173 +295,6 @@ export default function AccountActivitiesTab({
         selectedActivityIds={Array.from(selectedActivities)}
       />
     </>
-  );
-}
-
-interface CreateActivityDialogProps {
-  open: boolean;
-  onClose: () => void;
-  accountId: string;
-  accountName: string;
-}
-
-function CreateActivityDialog({
-  open,
-  onClose,
-  accountId,
-  accountName,
-}: CreateActivityDialogProps) {
-  const createMutation = useCreateActivity();
-  const { data: usersData } = useUsers();
-  const users: User[] = usersData?.data?.items || [];
-
-  const [formData, setFormData] = useState<CreateActivityDto>({
-    strActivityType: "Task",
-    strSubject: "",
-    strDescription: "",
-    dtDueDate: "",
-    strStatus: "Scheduled",
-    strAssignedToGUID: "",
-    links: [{ strEntityType: "Account", strEntityGUID: accountId }],
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await createMutation.mutateAsync(formData);
-      toast.success("Activity created successfully");
-      onClose();
-      setFormData({
-        strActivityType: "Task",
-        strSubject: "",
-        strDescription: "",
-        dtDueDate: "",
-        strStatus: "Scheduled",
-        strAssignedToGUID: "",
-        links: [{ strEntityType: "Account", strEntityGUID: accountId }],
-      });
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to create activity");
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Log Activity for {accountName}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="type">Activity Type *</Label>
-                <Select
-                  value={formData.strActivityType}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, strActivityType: value as typeof ACTIVITY_TYPES[number] })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Call">Call</SelectItem>
-                    <SelectItem value="Email">Email</SelectItem>
-                    <SelectItem value="Meeting">Meeting</SelectItem>
-                    <SelectItem value="Task">Task</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status *</Label>
-                <Select
-                  value={formData.strStatus ?? ""}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      strStatus: value as typeof ACTIVITY_STATUSES[number],
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Scheduled">Scheduled</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="subject">Subject *</Label>
-              <Input
-                id="subject"
-                required
-                value={formData.strSubject}
-                onChange={(e) => setFormData({ ...formData, strSubject: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                rows={4}
-                value={formData.strDescription || ""}
-                onChange={(e) => setFormData({ ...formData, strDescription: e.target.value })}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="dueDate">Due Date</Label>
-                <Input
-                  id="dueDate"
-                  type="datetime-local"
-                  value={formData.dtDueDate ?? ""}
-                  onChange={(e) => setFormData({ ...formData, dtDueDate: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="assignedTo">Assign To</Label>
-                <Select
-                  value={formData.strAssignedToGUID || ""}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, strAssignedToGUID: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select user..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user.strUserGUID} value={user.strUserGUID}>
-                        {user.strName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Creating..." : "Create Activity"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
   );
 }
 

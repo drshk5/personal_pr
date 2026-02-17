@@ -114,7 +114,7 @@ export default function AccountOpportunitiesTab({
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalValue.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-foreground">${totalValue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">{opportunities.length} opportunities</p>
             </CardContent>
           </Card>
@@ -124,7 +124,7 @@ export default function AccountOpportunitiesTab({
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 ${wonValue.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground">{wonOpportunities.length} closed won</p>
@@ -136,7 +136,7 @@ export default function AccountOpportunitiesTab({
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{openOpportunities.length}</div>
+              <div className="text-2xl font-bold text-foreground">{openOpportunities.length}</div>
               <p className="text-xs text-muted-foreground">In progress</p>
             </CardContent>
           </Card>
@@ -217,7 +217,7 @@ export default function AccountOpportunitiesTab({
                           <Badge variant="outline">{opportunity.strStageName}</Badge>
                         </div>
                       </TableCell>
-                      <TableCell className="font-semibold">
+                      <TableCell className="font-semibold text-foreground">
                         ${opportunity.dblAmount?.toLocaleString() || "0"}
                       </TableCell>
                       <TableCell>

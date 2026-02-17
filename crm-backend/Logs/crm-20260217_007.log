@@ -1,0 +1,201 @@
+2026-02-17 13:33:38.852 +05:30 [INF] CRM Backend starting on Development
+2026-02-17 13:33:39.178 +05:30 [WRN] Overriding address(es) 'http://localhost:5005'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-02-17 13:33:43.055 +05:30 [INF] → GET /api/crm/pipelines/8d267ce7-fc38-406b-a8b9-0d246c2f1987
+2026-02-17 13:33:43.257 +05:30 [INF] Querying MstGroupModule for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:33:44.472 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:33:44.477 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:33:45.657 +05:30 [WRN] SLOW REQUEST: GET /api/crm/pipelines/8d267ce7-fc38-406b-a8b9-0d246c2f1987 took 2597ms
+2026-02-17 13:33:45.664 +05:30 [INF] ← GET /api/crm/pipelines/8d267ce7-fc38-406b-a8b9-0d246c2f1987 200 (2609ms)
+2026-02-17 13:34:36.024 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-17 13:34:36.023 +05:30 [INF] → GET /api/crm/leads
+2026-02-17 13:34:36.036 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:34:36.037 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:34:36.110 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:34:36.111 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:34:36.718 +05:30 [INF] Generating lead dashboard for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:34:36.933 +05:30 [INF] Generating lead funnel analytics for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:34:36.941 +05:30 [INF] Generating time-to-conversion analytics for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:34:36.957 +05:30 [WRN] SLOW REQUEST: GET /api/crm/leads took 927ms
+2026-02-17 13:34:36.960 +05:30 [INF] ← GET /api/crm/leads 200 (936ms)
+2026-02-17 13:34:36.964 +05:30 [INF] Generating lead velocity analytics for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:34:37.009 +05:30 [INF] Generating conversion-by-rep analytics for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:34:37.194 +05:30 [WRN] SLOW REQUEST: GET /api/crm/leads/analytics took 1166ms
+2026-02-17 13:34:37.197 +05:30 [INF] ← GET /api/crm/leads/analytics 200 (1172ms)
+2026-02-17 13:34:51.087 +05:30 [INF] → GET /api/crm/leads/check-duplicates
+2026-02-17 13:34:51.090 +05:30 [INF] ← GET /api/crm/leads/check-duplicates 404 (3ms)
+2026-02-17 13:34:53.154 +05:30 [INF] → GET /api/crm/leads/check-duplicates
+2026-02-17 13:34:53.157 +05:30 [INF] ← GET /api/crm/leads/check-duplicates 404 (2ms)
+2026-02-17 13:34:54.720 +05:30 [INF] → GET /api/crm/leads/check-duplicates
+2026-02-17 13:34:54.723 +05:30 [INF] ← GET /api/crm/leads/check-duplicates 404 (2ms)
+2026-02-17 13:34:56.827 +05:30 [INF] → GET /api/crm/leads/check-duplicates
+2026-02-17 13:34:56.853 +05:30 [INF] ← GET /api/crm/leads/check-duplicates 404 (26ms)
+2026-02-17 13:36:04.311 +05:30 [INF] → POST /api/crm/leads
+2026-02-17 13:36:04.320 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:04.407 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:05.217 +05:30 [INF] Lead created: "1e049211-00c4-4a30-b282-cbbb430d8162" by "c68f797e-0b6a-412d-b1e8-b9896e88aa66"
+2026-02-17 13:36:05.272 +05:30 [WRN] SLOW REQUEST: POST /api/crm/leads took 957ms
+2026-02-17 13:36:05.276 +05:30 [INF] ← POST /api/crm/leads 201 (964ms)
+2026-02-17 13:36:16.603 +05:30 [INF] → GET /api/crm/leads
+2026-02-17 13:36:16.605 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-17 13:36:16.606 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:16.609 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:16.608 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:16.672 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:16.810 +05:30 [INF] Generating lead dashboard for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:36:16.941 +05:30 [INF] ← GET /api/crm/leads 200 (337ms)
+2026-02-17 13:36:16.952 +05:30 [INF] Generating lead funnel analytics for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:36:16.954 +05:30 [INF] Generating time-to-conversion analytics for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:36:16.961 +05:30 [INF] Generating lead velocity analytics for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:36:16.984 +05:30 [INF] Generating conversion-by-rep analytics for tenant "2f87652e-6040-4288-b64b-f483c32e44e6"
+2026-02-17 13:36:16.997 +05:30 [INF] ← GET /api/crm/leads/analytics 200 (392ms)
+2026-02-17 13:36:21.072 +05:30 [INF] → GET /api/crm/leads/1e049211-00c4-4a30-b282-cbbb430d8162
+2026-02-17 13:36:21.078 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:21.080 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:21.322 +05:30 [INF] ← GET /api/crm/leads/1e049211-00c4-4a30-b282-cbbb430d8162 200 (249ms)
+2026-02-17 13:36:21.640 +05:30 [INF] → GET /api/crm/activities/entity/Lead/1e049211-00c4-4a30-b282-cbbb430d8162
+2026-02-17 13:36:21.649 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:21.654 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:21.866 +05:30 [INF] ← GET /api/crm/activities/entity/Lead/1e049211-00c4-4a30-b282-cbbb430d8162 200 (225ms)
+2026-02-17 13:36:34.154 +05:30 [INF] → GET /api/crm/leads/assignment-rules
+2026-02-17 13:36:34.160 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:34.164 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:34.559 +05:30 [INF] ← GET /api/crm/leads/assignment-rules 200 (404ms)
+2026-02-17 13:36:42.172 +05:30 [INF] → POST /api/crm/leads/bulk-assign
+2026-02-17 13:36:42.178 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:42.181 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:42.408 +05:30 [INF] ← POST /api/crm/leads/bulk-assign 200 (236ms)
+2026-02-17 13:36:42.521 +05:30 [INF] → GET /api/crm/leads
+2026-02-17 13:36:42.529 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:42.532 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:42.738 +05:30 [INF] ← GET /api/crm/leads 200 (217ms)
+2026-02-17 13:36:42.768 +05:30 [INF] → GET /api/crm/leads
+2026-02-17 13:36:42.770 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:42.772 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:42.983 +05:30 [INF] ← GET /api/crm/leads 200 (214ms)
+2026-02-17 13:36:55.225 +05:30 [INF] → GET /api/crm/leads/1e049211-00c4-4a30-b282-cbbb430d8162
+2026-02-17 13:36:55.228 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:55.231 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:55.465 +05:30 [INF] ← GET /api/crm/leads/1e049211-00c4-4a30-b282-cbbb430d8162 200 (239ms)
+2026-02-17 13:36:55.806 +05:30 [INF] → GET /api/crm/activities/entity/Lead/1e049211-00c4-4a30-b282-cbbb430d8162
+2026-02-17 13:36:55.809 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:36:55.812 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:36:55.995 +05:30 [INF] ← GET /api/crm/activities/entity/Lead/1e049211-00c4-4a30-b282-cbbb430d8162 200 (189ms)
+2026-02-17 13:38:22.225 +05:30 [INF] → POST /api/crm/activities
+2026-02-17 13:38:22.233 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:38:22.236 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:38:22.798 +05:30 [INF] Activity created: "66b3873e-71ea-44e8-910e-5666ee2e3819" type=FollowUp by "c68f797e-0b6a-412d-b1e8-b9896e88aa66"
+2026-02-17 13:38:22.850 +05:30 [WRN] SLOW REQUEST: POST /api/crm/activities took 620ms
+2026-02-17 13:38:22.948 +05:30 [INF] ← POST /api/crm/activities 201 (722ms)
+2026-02-17 13:38:22.999 +05:30 [INF] → GET /api/crm/activities/entity/Lead/1e049211-00c4-4a30-b282-cbbb430d8162
+2026-02-17 13:38:23.002 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:38:23.004 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:38:23.217 +05:30 [INF] ← GET /api/crm/activities/entity/Lead/1e049211-00c4-4a30-b282-cbbb430d8162 200 (217ms)
+2026-02-17 13:38:23.238 +05:30 [INF] → GET /api/crm/activities/entity/Lead/1e049211-00c4-4a30-b282-cbbb430d8162
+2026-02-17 13:38:23.240 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:38:23.242 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:38:23.422 +05:30 [INF] ← GET /api/crm/activities/entity/Lead/1e049211-00c4-4a30-b282-cbbb430d8162 200 (184ms)
+2026-02-17 13:38:32.775 +05:30 [INF] → PATCH /api/crm/activities/66b3873e-71ea-44e8-910e-5666ee2e3819/status
+2026-02-17 13:38:32.782 +05:30 [INF] ← PATCH /api/crm/activities/66b3873e-71ea-44e8-910e-5666ee2e3819/status 400 (7ms)
+2026-02-17 13:38:37.177 +05:30 [INF] → PATCH /api/crm/activities/66b3873e-71ea-44e8-910e-5666ee2e3819/status
+2026-02-17 13:38:37.180 +05:30 [INF] ← PATCH /api/crm/activities/66b3873e-71ea-44e8-910e-5666ee2e3819/status 400 (3ms)
+2026-02-17 13:38:40.295 +05:30 [INF] → PATCH /api/crm/activities/66b3873e-71ea-44e8-910e-5666ee2e3819/status
+2026-02-17 13:38:40.298 +05:30 [INF] ← PATCH /api/crm/activities/66b3873e-71ea-44e8-910e-5666ee2e3819/status 400 (2ms)
+2026-02-17 13:39:04.443 +05:30 [INF] → GET /api/crm/activities
+2026-02-17 13:39:04.447 +05:30 [INF] → GET /api/crm/activities/today
+2026-02-17 13:39:04.449 +05:30 [INF] → GET /api/crm/activities/my-activities
+2026-02-17 13:39:04.449 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:39:04.451 +05:30 [INF] → GET /api/crm/activities/overdue
+2026-02-17 13:39:04.452 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:39:04.454 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:39:04.456 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:39:04.460 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:39:04.460 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 13:39:04.462 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:39:04.470 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 13:39:04.686 +05:30 [INF] ← GET /api/crm/activities 200 (242ms)
+2026-02-17 13:39:04.697 +05:30 [INF] ← GET /api/crm/activities/my-activities 200 (247ms)
+2026-02-17 13:39:04.711 +05:30 [INF] ← GET /api/crm/activities/today 200 (263ms)
+2026-02-17 13:39:04.723 +05:30 [INF] ← GET /api/crm/activities/overdue 200 (271ms)
+2026-02-17 13:39:17.157 +05:30 [INF] → PATCH /api/crm/activities/66b3873e-71ea-44e8-910e-5666ee2e3819/status
+2026-02-17 13:39:17.160 +05:30 [INF] ← PATCH /api/crm/activities/66b3873e-71ea-44e8-910e-5666ee2e3819/status 400 (3ms)
+2026-02-17 13:39:20.975 +05:30 [INF] → PATCH /api/crm/activities/7a3cba3f-67d4-4655-a22d-1d8cc7b24026/status
+2026-02-17 13:39:20.978 +05:30 [INF] ← PATCH /api/crm/activities/7a3cba3f-67d4-4655-a22d-1d8cc7b24026/status 400 (2ms)
+2026-02-17 14:15:21.366 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-17 14:15:21.366 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-17 14:15:21.372 +05:30 [INF] Querying MstGroupModule for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:21.374 +05:30 [INF] Querying MstGroupModule for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:21.382 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:21.384 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:15:21.384 +05:30 [INF] Successfully retrieved connection string from MstGroupModule for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:21.389 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:15:21.760 +05:30 [INF] ← GET /api/crm/pipelines 200 (393ms)
+2026-02-17 14:15:21.781 +05:30 [INF] ← GET /api/crm/opportunities 200 (414ms)
+2026-02-17 14:15:27.065 +05:30 [INF] → GET /api/crm/opportunities/c082ada1-c45f-42f2-80bc-f0972c722e34
+2026-02-17 14:15:27.071 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:27.073 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:15:27.436 +05:30 [INF] ← GET /api/crm/opportunities/c082ada1-c45f-42f2-80bc-f0972c722e34 200 (371ms)
+2026-02-17 14:15:30.760 +05:30 [INF] → GET /api/crm/contacts
+2026-02-17 14:15:30.768 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:30.769 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:15:30.994 +05:30 [INF] ← GET /api/crm/contacts 200 (234ms)
+2026-02-17 14:15:34.010 +05:30 [INF] → GET /api/crm/activities/entity/Opportunity/c082ada1-c45f-42f2-80bc-f0972c722e34
+2026-02-17 14:15:34.014 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:34.017 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:15:34.204 +05:30 [INF] ← GET /api/crm/activities/entity/Opportunity/c082ada1-c45f-42f2-80bc-f0972c722e34 200 (194ms)
+2026-02-17 14:15:49.593 +05:30 [INF] → GET /api/crm/accounts
+2026-02-17 14:15:49.599 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:49.602 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:15:49.929 +05:30 [INF] ← GET /api/crm/accounts 200 (336ms)
+2026-02-17 14:15:54.652 +05:30 [INF] → GET /api/crm/accounts/5d3bd0ae-8ffa-417d-8301-3294fd72b56b
+2026-02-17 14:15:54.658 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:54.666 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:15:55.234 +05:30 [WRN] SLOW REQUEST: GET /api/crm/accounts/5d3bd0ae-8ffa-417d-8301-3294fd72b56b took 579ms
+2026-02-17 14:15:55.237 +05:30 [INF] ← GET /api/crm/accounts/5d3bd0ae-8ffa-417d-8301-3294fd72b56b 200 (585ms)
+2026-02-17 14:15:57.697 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-17 14:15:57.700 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:15:57.702 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:15:57.889 +05:30 [INF] ← GET /api/crm/opportunities 200 (192ms)
+2026-02-17 14:16:00.688 +05:30 [INF] → GET /api/crm/activities/entity/Account/5d3bd0ae-8ffa-417d-8301-3294fd72b56b
+2026-02-17 14:16:00.784 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:16:00.788 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:16:00.878 +05:30 [INF] ← GET /api/crm/activities/entity/Account/5d3bd0ae-8ffa-417d-8301-3294fd72b56b 200 (190ms)
+2026-02-17 14:16:02.992 +05:30 [INF] → GET /api/crm/contacts
+2026-02-17 14:16:02.996 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:16:02.998 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:16:03.175 +05:30 [INF] ← GET /api/crm/contacts 200 (182ms)
+2026-02-17 14:16:17.438 +05:30 [INF] → GET /api/crm/pipelines/8d267ce7-fc38-406b-a8b9-0d246c2f1987
+2026-02-17 14:16:17.442 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:16:17.445 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:16:17.633 +05:30 [INF] ← GET /api/crm/pipelines/8d267ce7-fc38-406b-a8b9-0d246c2f1987 200 (195ms)
+2026-02-17 14:16:36.939 +05:30 [INF] → POST /api/crm/opportunities
+2026-02-17 14:16:36.976 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:16:36.980 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:16:37.429 +05:30 [INF] Opportunity created: "c3827368-f2ff-4537-a785-044171c71291" by "ce504077-83fd-450f-96b5-329e292ddd55"
+2026-02-17 14:16:37.553 +05:30 [WRN] SLOW REQUEST: POST /api/crm/opportunities took 579ms
+2026-02-17 14:16:37.558 +05:30 [INF] ← POST /api/crm/opportunities 201 (618ms)
+2026-02-17 14:16:37.610 +05:30 [INF] → GET /api/crm/accounts/5d3bd0ae-8ffa-417d-8301-3294fd72b56b
+2026-02-17 14:16:37.612 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-17 14:16:37.613 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:16:37.614 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:16:37.617 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:16:37.618 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:16:37.805 +05:30 [INF] ← GET /api/crm/opportunities 200 (193ms)
+2026-02-17 14:16:37.926 +05:30 [INF] ← GET /api/crm/accounts/5d3bd0ae-8ffa-417d-8301-3294fd72b56b 200 (316ms)
+2026-02-17 14:17:07.837 +05:30 [INF] → POST /api/crm/activities
+2026-02-17 14:17:07.842 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:17:07.845 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:17:08.093 +05:30 [INF] Activity created: "7c45767f-1c06-4bd8-94f6-c6fe29182fb9" type=Note by "ce504077-83fd-450f-96b5-329e292ddd55"
+2026-02-17 14:17:08.187 +05:30 [INF] ← POST /api/crm/activities 201 (349ms)
+2026-02-17 14:17:08.217 +05:30 [INF] → GET /api/crm/activities/entity/Account/5d3bd0ae-8ffa-417d-8301-3294fd72b56b
+2026-02-17 14:17:08.219 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:17:08.222 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:17:08.420 +05:30 [INF] ← GET /api/crm/activities/entity/Account/5d3bd0ae-8ffa-417d-8301-3294fd72b56b 200 (202ms)
+2026-02-17 14:17:34.854 +05:30 [INF] → GET /api/crm/contacts/e89b9ec0-637c-4d10-a6ee-187250afee05
+2026-02-17 14:17:34.860 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:17:34.863 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:17:35.611 +05:30 [WRN] SLOW REQUEST: GET /api/crm/contacts/e89b9ec0-637c-4d10-a6ee-187250afee05 took 754ms
+2026-02-17 14:17:35.617 +05:30 [INF] ← GET /api/crm/contacts/e89b9ec0-637c-4d10-a6ee-187250afee05 200 (762ms)
+2026-02-17 14:17:45.343 +05:30 [INF] → GET /api/crm/activities/entity/Contact/e89b9ec0-637c-4d10-a6ee-187250afee05
+2026-02-17 14:17:45.347 +05:30 [INF] Connection string found in cache for Group "2f87652e-6040-4288-b64b-f483c32e44e6" and Module "b177a047-1684-4014-8f07-ae489508d129"
+2026-02-17 14:17:45.350 +05:30 [INF] Resolved CRM context. GroupGUID: "2f87652e-6040-4288-b64b-f483c32e44e6", OrganizationGUID: "d3732b86-340d-44b6-b046-dfa494a89e9e", ModuleGUID: "b177a047-1684-4014-8f07-ae489508d129", Schema: ORG_d3732b86340d44b6b046dfa494a89e9e
+2026-02-17 14:17:45.611 +05:30 [INF] ← GET /api/crm/activities/entity/Contact/e89b9ec0-637c-4d10-a6ee-187250afee05 200 (267ms)

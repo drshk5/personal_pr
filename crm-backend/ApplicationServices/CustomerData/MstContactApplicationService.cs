@@ -16,17 +16,20 @@ namespace crm_backend.ApplicationServices.CustomerData;
 
 public class MstContactApplicationService : ApplicationServiceBase, IMstContactApplicationService
 {
+    private readonly MasterDbContext _masterDbContext;
     private readonly IContactService _contactService;
     private readonly IAuditLogService _auditLogService;
 
     public MstContactApplicationService(
         IUnitOfWork unitOfWork,
         ITenantContextProvider tenantContextProvider,
+        MasterDbContext masterDbContext,
         IContactService contactService,
         IAuditLogService auditLogService,
         ILogger<MstContactApplicationService> logger)
         : base(unitOfWork, tenantContextProvider, logger)
     {
+        _masterDbContext = masterDbContext;
         _contactService = contactService;
         _auditLogService = auditLogService;
     }
@@ -64,11 +67,32 @@ public class MstContactApplicationService : ApplicationServiceBase, IMstContactA
         // Get total count
         var totalCount = await query.CountAsync();
 
-        // Apply sorting
+        // Apply sorting — use allowlist to prevent crashes on derived DTO-only fields
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
-            var direction = filter.Ascending ? "ascending" : "descending";
-            query = query.OrderBy($"{filter.SortBy} {direction}");
+            var sortKey = filter.SortBy.Trim().ToLowerInvariant();
+            query = sortKey switch
+            {
+                "strfirstname" => filter.Ascending ? query.OrderBy(c => c.strFirstName) : query.OrderByDescending(c => c.strFirstName),
+                "strlastname" => filter.Ascending ? query.OrderBy(c => c.strLastName) : query.OrderByDescending(c => c.strLastName),
+                "stremail" => filter.Ascending ? query.OrderBy(c => c.strEmail) : query.OrderByDescending(c => c.strEmail),
+                "strphone" => filter.Ascending ? query.OrderBy(c => c.strPhone) : query.OrderByDescending(c => c.strPhone),
+                "strjobtitle" => filter.Ascending ? query.OrderBy(c => c.strJobTitle) : query.OrderByDescending(c => c.strJobTitle),
+                "strlifecyclestage" => filter.Ascending ? query.OrderBy(c => c.strLifecycleStage) : query.OrderByDescending(c => c.strLifecycleStage),
+                "straccountname" => filter.Ascending
+                    ? query.OrderBy(c => c.Account != null ? c.Account.strAccountName : null)
+                    : query.OrderByDescending(c => c.Account != null ? c.Account.strAccountName : null),
+                "strassignedtoguid" => filter.Ascending ? query.OrderBy(c => c.strAssignedToGUID) : query.OrderByDescending(c => c.strAssignedToGUID),
+                "dtcreatedon" => filter.Ascending ? query.OrderBy(c => c.dtCreatedOn) : query.OrderByDescending(c => c.dtCreatedOn),
+                "bolisactive" => filter.Ascending ? query.OrderBy(c => c.bolIsActive) : query.OrderByDescending(c => c.bolIsActive),
+                _ => query.OrderByDescending(c => c.dtCreatedOn)
+            };
+
+            if (sortKey is "strassignedtoname")
+            {
+                // strAssignedToName is enriched post-query; fall back to dtCreatedOn
+                _logger.LogWarning("SortBy '{SortBy}' is a derived field for contacts; falling back to dtCreatedOn.", filter.SortBy);
+            }
         }
         else
         {
@@ -94,6 +118,28 @@ public class MstContactApplicationService : ApplicationServiceBase, IMstContactA
                 bolIsActive = c.bolIsActive
             })
             .ToListAsync();
+
+        // Enrich assigned-to user names
+        var assignedUserIds = contactDtos
+            .Where(c => c.strAssignedToGUID.HasValue)
+            .Select(c => c.strAssignedToGUID!.Value)
+            .Distinct()
+            .ToList();
+        if (assignedUserIds.Count > 0)
+        {
+            var tenantId = GetTenantId();
+            var userNames = await _masterDbContext.MstUsers
+                .AsNoTracking()
+                .Where(u => u.strGroupGUID == tenantId && assignedUserIds.Contains(u.strUserGUID))
+                .Select(u => new { u.strUserGUID, u.strName })
+                .ToListAsync();
+            var nameById = userNames.ToDictionary(u => u.strUserGUID, u => u.strName);
+            foreach (var dto in contactDtos)
+            {
+                if (dto.strAssignedToGUID.HasValue && nameById.TryGetValue(dto.strAssignedToGUID.Value, out var name))
+                    dto.strAssignedToName = name;
+            }
+        }
 
         return new PagedResponse<ContactListDto>
         {
@@ -212,6 +258,19 @@ public class MstContactApplicationService : ApplicationServiceBase, IMstContactA
 
         contact.Opportunities = opportunities;
         contact.RecentActivities = activities;
+
+        // Enrich activity user names
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), activities);
+
+        // Resolve assigned-to user name for the contact itself
+        if (contact.strAssignedToGUID.HasValue)
+        {
+            contact.strAssignedToName = await _masterDbContext.MstUsers
+                .AsNoTracking()
+                .Where(u => u.strGroupGUID == GetTenantId() && u.strUserGUID == contact.strAssignedToGUID.Value)
+                .Select(u => u.strName)
+                .FirstOrDefaultAsync();
+        }
 
         return contact;
     }

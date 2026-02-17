@@ -44,7 +44,7 @@ export default function ContactOpportunitiesTab({
                 <p className="text-sm font-medium text-muted-foreground">
                   Total Opportunities
                 </p>
-                <h3 className="text-2xl font-bold">{opportunities.length}</h3>
+                <h3 className="text-2xl font-bold text-foreground">{opportunities.length}</h3>
               </div>
               <Target className="h-8 w-8 text-blue-500" />
             </div>
@@ -57,7 +57,7 @@ export default function ContactOpportunitiesTab({
                 <p className="text-sm font-medium text-muted-foreground">
                   Total Value
                 </p>
-                <h3 className="text-2xl font-bold">
+                <h3 className="text-2xl font-bold text-foreground">
                   ${totalValue.toLocaleString()}
                 </h3>
               </div>
@@ -72,7 +72,7 @@ export default function ContactOpportunitiesTab({
                 <p className="text-sm font-medium text-muted-foreground">
                   Win Rate
                 </p>
-                <h3 className="text-2xl font-bold">
+                <h3 className="text-2xl font-bold text-foreground">
                   {opportunities.length > 0
                     ? Math.round(
                         (wonOpps.length /

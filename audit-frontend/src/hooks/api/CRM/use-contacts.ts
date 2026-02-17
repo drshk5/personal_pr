@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createQueryKeys, handleMutationError } from "../common";
 import { contactService } from "@/services/CRM/contact.service";
+import { accountQueryKeys } from "./use-accounts";
 import type {
   CreateContactDto,
   UpdateContactDto,
@@ -37,9 +38,14 @@ export const useCreateContact = () => {
   return useMutation({
     mutationFn: (dto: CreateContactDto) => contactService.createContact(dto),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: contactQueryKeys.lists(),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: contactQueryKeys.lists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: accountQueryKeys.all,
+        }),
+      ]);
       toast.success("Contact created successfully");
     },
     onError: (error) => handleMutationError(error, "Failed to create contact"),
@@ -59,6 +65,9 @@ export const useUpdateContact = () => {
         queryClient.invalidateQueries({
           queryKey: contactQueryKeys.detail(variables.id),
         }),
+        queryClient.invalidateQueries({
+          queryKey: accountQueryKeys.all,
+        }),
       ]);
       toast.success("Contact updated successfully");
     },
@@ -71,9 +80,14 @@ export const useDeleteContact = () => {
   return useMutation({
     mutationFn: ({ id }: { id: string }) => contactService.deleteContact(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: contactQueryKeys.lists(),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: contactQueryKeys.lists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: accountQueryKeys.all,
+        }),
+      ]);
       toast.success("Contact deleted successfully");
     },
     onError: (error) => handleMutationError(error, "Failed to delete contact"),
@@ -88,9 +102,14 @@ export const useBulkArchiveContacts = () => {
     mutationFn: (dto: ContactBulkArchiveDto) =>
       contactService.bulkArchive(dto),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: contactQueryKeys.lists(),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: contactQueryKeys.lists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: accountQueryKeys.all,
+        }),
+      ]);
       toast.success("Contacts archived successfully");
     },
     onError: (error) =>
@@ -104,9 +123,14 @@ export const useBulkRestoreContacts = () => {
     mutationFn: (dto: ContactBulkArchiveDto) =>
       contactService.bulkRestore(dto),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: contactQueryKeys.lists(),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: contactQueryKeys.lists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: accountQueryKeys.all,
+        }),
+      ]);
       toast.success("Contacts restored successfully");
     },
     onError: (error) =>

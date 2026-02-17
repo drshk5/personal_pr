@@ -29,7 +29,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -62,8 +61,6 @@ import {
   useMyActivities,
   useOverdueActivities,
   useTodayActivities,
-  useCreateActivity,
-  useUpdateActivity,
   useDeleteActivity,
   useChangeActivityStatus,
   useBulkAssignActivities,
@@ -73,17 +70,14 @@ import { useUsers } from "@/hooks/api/central/use-users";
 import { useAuthContext } from "@/hooks/common/use-auth-context";
 import { useCrmPermissions } from "@/hooks/CRM/use-crm-permissions";
 import { toast } from "sonner";
-import type {
-  CreateActivityDto,
-  UpdateActivityDto,
-  ActivityListDto,
-} from "@/types/CRM/activity";
+import type { ActivityListDto } from "@/types/CRM/activity";
 import {
   ACTIVITY_TYPES,
   ACTIVITY_STATUSES,
   ACTIVITY_PRIORITIES,
 } from "@/types/CRM/activity";
 import { format } from "date-fns";
+import ActivityForm from "@/pages/CRM/activities/components/ActivityForm";
 
 const ACTIVITY_TYPE_ICONS: Record<string, any> = {
   Call: Phone,
@@ -138,16 +132,18 @@ export default function ActivityManagement() {
   const { data: todayData, isLoading: todayLoading } = useTodayActivities();
 
   const { data: usersData } = useUsers({ pageSize: 100 });
-  const users: any[] = (usersData as any)?.data?.items || (usersData as any)?.items || [];
+  const users: any[] = (usersData as any)?.data?.items || (usersData as any)?.data?.Items || (usersData as any)?.items || (usersData as any)?.Items || [];
 
-  // Helper to extract items array from paginated response
+  // Helper to extract items array from paginated response (handles PascalCase & camelCase)
   const extractItems = (response: any): ActivityListDto[] => {
     if (!response) return [];
     if (Array.isArray(response)) return response;
     const d = response?.data;
     if (Array.isArray(d)) return d;
     if (d?.items) return d.items;
+    if (d?.Items) return d.Items;
     if (response?.items) return response.items;
+    if (response?.Items) return response.Items;
     return [];
   };
 
@@ -231,13 +227,20 @@ export default function ActivityManagement() {
 
   const handleBulkStatusChange = async (status: string) => {
     const ids = Array.from(selectedIds);
+    let successCount = 0;
     for (const id of ids) {
       try {
         await changeStatus.mutateAsync({ id, dto: { strStatus: status } });
-      } catch {}
+        successCount++;
+      } catch {
+        // individual errors handled by hook
+      }
     }
     setSelectedIds(new Set());
-    toast.success(`${ids.length} activities updated to ${status}`);
+    if (successCount > 0 && ids.length > 1) {
+      const statusLabel = status === "InProgress" ? "In Progress" : status;
+      toast.success(`${successCount} of ${ids.length} activities updated to ${statusLabel}`);
+    }
   };
 
   return (
@@ -246,7 +249,7 @@ export default function ActivityManagement() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
+            <h1 className="text-3xl font-bold flex items-center gap-3 text-foreground">
               <Calendar className="h-8 w-8 text-primary" />
               Activity Management
             </h1>
@@ -555,12 +558,16 @@ export default function ActivityManagement() {
                                   </DropdownMenuItem>
                                   {activity.strStatus !== "Completed" && (
                                     <DropdownMenuItem
-                                      onClick={() =>
-                                        changeStatus.mutateAsync({
-                                          id: activity.strActivityGUID,
-                                          dto: { strStatus: "Completed" },
-                                        })
-                                      }
+                                      onClick={async () => {
+                                        try {
+                                          await changeStatus.mutateAsync({
+                                            id: activity.strActivityGUID,
+                                            dto: { strStatus: "Completed" },
+                                          });
+                                        } catch {
+                                          // error handled by hook
+                                        }
+                                      }}
                                     >
                                       <CheckCircle2 className="mr-2 h-4 w-4" />
                                       Complete
@@ -568,12 +575,16 @@ export default function ActivityManagement() {
                                   )}
                                   {activity.strStatus === "Pending" && (
                                     <DropdownMenuItem
-                                      onClick={() =>
-                                        changeStatus.mutateAsync({
-                                          id: activity.strActivityGUID,
-                                          dto: { strStatus: "InProgress" },
-                                        })
-                                      }
+                                      onClick={async () => {
+                                        try {
+                                          await changeStatus.mutateAsync({
+                                            id: activity.strActivityGUID,
+                                            dto: { strStatus: "InProgress" },
+                                          });
+                                        } catch {
+                                          // error handled by hook
+                                        }
+                                      }}
                                     >
                                       <AlertCircle className="mr-2 h-4 w-4" />
                                       Start
@@ -582,11 +593,15 @@ export default function ActivityManagement() {
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     className="text-destructive"
-                                    onClick={() => {
+                                    onClick={async () => {
                                       if (confirm("Delete this activity?")) {
-                                        deleteActivity.mutateAsync(
-                                          activity.strActivityGUID
-                                        );
+                                        try {
+                                          await deleteActivity.mutateAsync(
+                                            activity.strActivityGUID
+                                          );
+                                        } catch {
+                                          // error handled by hook
+                                        }
                                       }
                                     }}
                                   >
@@ -659,24 +674,50 @@ export default function ActivityManagement() {
                                     </DropdownMenuItem>
                                     {activity.strStatus !== "Completed" && (
                                       <DropdownMenuItem
-                                        onClick={() =>
-                                          changeStatus.mutateAsync({
-                                            id: activity.strActivityGUID,
-                                            dto: { strStatus: "Completed" },
-                                          })
-                                        }
+                                        onClick={async () => {
+                                          try {
+                                            await changeStatus.mutateAsync({
+                                              id: activity.strActivityGUID,
+                                              dto: { strStatus: "Completed" },
+                                            });
+                                          } catch {
+                                            // error handled by hook
+                                          }
+                                        }}
                                       >
                                         <CheckCircle2 className="mr-2 h-4 w-4" />
                                         Complete
                                       </DropdownMenuItem>
                                     )}
+                                    {activity.strStatus === "Pending" && (
+                                      <DropdownMenuItem
+                                        onClick={async () => {
+                                          try {
+                                            await changeStatus.mutateAsync({
+                                              id: activity.strActivityGUID,
+                                              dto: { strStatus: "InProgress" },
+                                            });
+                                          } catch {
+                                            // error handled by hook
+                                          }
+                                        }}
+                                      >
+                                        <AlertCircle className="mr-2 h-4 w-4" />
+                                        Start
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator />
                                     <DropdownMenuItem
                                       className="text-destructive"
-                                      onClick={() => {
-                                        if (confirm("Delete?")) {
-                                          deleteActivity.mutateAsync(
-                                            activity.strActivityGUID
-                                          );
+                                      onClick={async () => {
+                                        if (confirm("Delete this activity?")) {
+                                          try {
+                                            await deleteActivity.mutateAsync(
+                                              activity.strActivityGUID
+                                            );
+                                          } catch {
+                                            // error handled by hook
+                                          }
                                         }
                                       }}
                                     >
@@ -736,23 +777,19 @@ export default function ActivityManagement() {
       </div>
 
       {/* Create Dialog */}
-      <ActivityCreateEditDialog
+      <ActivityForm
         open={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
-        mode="create"
-        users={users}
+        onOpenChange={(open) => { if (!open) setShowCreateDialog(false); }}
+        onSuccess={() => setShowCreateDialog(false)}
       />
 
       {/* Edit Dialog */}
-      {editingActivity && (
-        <ActivityCreateEditDialog
-          open={!!editingActivity}
-          onClose={() => setEditingActivity(null)}
-          mode="edit"
-          activity={editingActivity}
-          users={users}
-        />
-      )}
+      <ActivityForm
+        open={!!editingActivity}
+        onOpenChange={(open) => { if (!open) setEditingActivity(null); }}
+        editActivity={editingActivity}
+        onSuccess={() => setEditingActivity(null)}
+      />
 
       {/* Bulk Assign Dialog */}
       <BulkAssignDialog
@@ -783,272 +820,12 @@ function StatCard({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-muted-foreground">{title}</p>
-            <h3 className="text-xl font-bold">{value}</h3>
+            <h3 className="text-xl font-bold text-foreground">{value}</h3>
           </div>
           <Icon className={`h-6 w-6 ${color}`} />
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-// ────────────────────────────────────────────────────────────────
-// Activity Create / Edit Dialog
-// ────────────────────────────────────────────────────────────────
-
-function ActivityCreateEditDialog({
-  open,
-  onClose,
-  mode,
-  activity,
-  users,
-}: {
-  open: boolean;
-  onClose: () => void;
-  mode: "create" | "edit";
-  activity?: ActivityListDto;
-  users: any[];
-}) {
-  const createMutation = useCreateActivity();
-  const updateMutation = useUpdateActivity();
-
-  const [formData, setFormData] = useState<CreateActivityDto>({
-    strActivityType: activity?.strActivityType || "Task",
-    strSubject: activity?.strSubject || "",
-    strDescription: activity?.strDescription || "",
-    strStatus: activity?.strStatus || "Pending",
-    strPriority: activity?.strPriority || "Medium",
-    dtScheduledOn: activity?.dtScheduledOn
-      ? new Date(activity.dtScheduledOn).toISOString().slice(0, 16)
-      : "",
-    dtDueDate: activity?.dtDueDate
-      ? new Date(activity.dtDueDate).toISOString().slice(0, 10)
-      : "",
-    intDurationMinutes: activity?.intDurationMinutes || 30,
-    strAssignedToGUID: activity?.strAssignedToGUID || "",
-    strOutcome: activity?.strOutcome || "",
-    links: activity?.links || [],
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        ...formData,
-        dtScheduledOn: formData.dtScheduledOn
-          ? new Date(formData.dtScheduledOn).toISOString()
-          : null,
-        dtDueDate: formData.dtDueDate
-          ? new Date(formData.dtDueDate).toISOString()
-          : null,
-        strAssignedToGUID: formData.strAssignedToGUID || null,
-      };
-
-      if (mode === "edit" && activity) {
-        await updateMutation.mutateAsync({
-          id: activity.strActivityGUID,
-          dto: payload as UpdateActivityDto,
-        });
-      } else {
-        await createMutation.mutateAsync(payload);
-      }
-      onClose();
-    } catch (error: any) {
-      toast.error(error?.message || `Failed to ${mode} activity`);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>
-            {mode === "create" ? "Create New Activity" : `Edit: ${activity?.strSubject}`}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Type *</Label>
-                <Select
-                  value={formData.strActivityType}
-                  onValueChange={(v) =>
-                    setFormData({ ...formData, strActivityType: v })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ACTIVITY_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Priority</Label>
-                <Select
-                  value={formData.strPriority || "Medium"}
-                  onValueChange={(v) =>
-                    setFormData({ ...formData, strPriority: v })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ACTIVITY_PRIORITIES.map((p) => (
-                      <SelectItem key={p} value={p}>
-                        {p}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Subject *</Label>
-              <Input
-                required
-                value={formData.strSubject}
-                onChange={(e) =>
-                  setFormData({ ...formData, strSubject: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea
-                value={formData.strDescription || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, strDescription: e.target.value })
-                }
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select
-                  value={formData.strStatus || "Pending"}
-                  onValueChange={(v) =>
-                    setFormData({ ...formData, strStatus: v })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ACTIVITY_STATUSES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Scheduled On</Label>
-                <Input
-                  type="datetime-local"
-                  value={formData.dtScheduledOn || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, dtScheduledOn: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Due Date</Label>
-                <Input
-                  type="date"
-                  value={formData.dtDueDate || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, dtDueDate: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Duration (min)</Label>
-                <Input
-                  type="number"
-                  value={formData.intDurationMinutes || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      intDurationMinutes: parseInt(e.target.value) || null,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Assign To</Label>
-                <Select
-                  value={formData.strAssignedToGUID || "unassigned"}
-                  onValueChange={(v) =>
-                    setFormData({
-                      ...formData,
-                      strAssignedToGUID: v === "unassigned" ? null : v,
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Assign to..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {users.map((u: any) => (
-                      <SelectItem key={u.strUserGUID} value={u.strUserGUID}>
-                        {u.strName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {mode === "edit" && (
-              <div className="space-y-2">
-                <Label>Outcome</Label>
-                <Textarea
-                  value={formData.strOutcome || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, strOutcome: e.target.value })
-                  }
-                  rows={2}
-                  placeholder="Activity outcome..."
-                />
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={createMutation.isPending || updateMutation.isPending}
-            >
-              {createMutation.isPending || updateMutation.isPending
-                ? "Saving..."
-                : mode === "create"
-                ? "Create"
-                : "Update"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
   );
 }
 

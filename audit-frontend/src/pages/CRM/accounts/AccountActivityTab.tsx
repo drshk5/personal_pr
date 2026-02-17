@@ -38,7 +38,10 @@ export const AccountActivityTab: React.FC<AccountActivityTabProps> = ({
   const { data: activitiesResponse, isLoading, refetch } =
     useActivitiesExtended(filterParams);
 
-  const activities = activitiesResponse?.data || [];
+  const rawData = activitiesResponse?.data;
+  const activities: ActivityListDto[] = Array.isArray(rawData)
+    ? rawData
+    : (rawData as any)?.items || (rawData as any)?.Items || (activitiesResponse as any)?.items || (activitiesResponse as any)?.Items || [];
   const completedActivities = activities.filter(
     (a) => a.dtCompletedOn !== null
   );

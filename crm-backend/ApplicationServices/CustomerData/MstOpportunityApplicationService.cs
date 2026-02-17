@@ -15,17 +15,20 @@ namespace crm_backend.ApplicationServices.CustomerData;
 
 public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOpportunityApplicationService
 {
+    private readonly MasterDbContext _masterDbContext;
     private readonly IOpportunityService _opportunityService;
     private readonly IAuditLogService _auditLogService;
 
     public MstOpportunityApplicationService(
         IUnitOfWork unitOfWork,
         ITenantContextProvider tenantContextProvider,
+        MasterDbContext masterDbContext,
         IOpportunityService opportunityService,
         IAuditLogService auditLogService,
         ILogger<MstOpportunityApplicationService> logger)
         : base(unitOfWork, tenantContextProvider, logger)
     {
+        _masterDbContext = masterDbContext;
         _opportunityService = opportunityService;
         _auditLogService = auditLogService;
     }
@@ -147,6 +150,10 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
                     ? query.OrderBy(o => o.dtCreatedOn)
                     : query.OrderByDescending(o => o.dtCreatedOn),
 
+                "strassignedtoguid" => filter.Ascending
+                    ? query.OrderBy(o => o.strAssignedToGUID)
+                    : query.OrderByDescending(o => o.strAssignedToGUID),
+
                 // Sorting by computed "rotting" flag (same logic as projection)
                 "bolisrotting" => filter.Ascending
                     ? query.OrderBy(o =>
@@ -181,7 +188,7 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
 
             if (sortKey is not (
                 "stropportunityname" or "straccountname" or "strstagename" or "strstatus" or
-                "dblamount" or "intprobability" or "dtexpectedclosedate" or "dtcreatedon" or "bolisrotting"))
+                "dblamount" or "intprobability" or "dtexpectedclosedate" or "dtcreatedon" or "bolisrotting" or "strassignedtoguid"))
             {
                 _logger.LogWarning("Unsupported SortBy '{SortBy}' for opportunities; falling back to dtCreatedOn.", filter.SortBy);
             }
@@ -223,6 +230,28 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
                 bolIsActive = o.bolIsActive
             })
             .ToListAsync();
+
+        // Enrich assigned-to user names for opportunities
+        var assignedUserIds = opportunityDtos
+            .Where(o => o.strAssignedToGUID.HasValue)
+            .Select(o => o.strAssignedToGUID!.Value)
+            .Distinct()
+            .ToList();
+        if (assignedUserIds.Count > 0)
+        {
+            var tenantId = GetTenantId();
+            var userNames = await _masterDbContext.MstUsers
+                .AsNoTracking()
+                .Where(u => u.strGroupGUID == tenantId && assignedUserIds.Contains(u.strUserGUID))
+                .Select(u => new { u.strUserGUID, u.strName })
+                .ToListAsync();
+            var nameById = userNames.ToDictionary(u => u.strUserGUID, u => u.strName);
+            foreach (var dto in opportunityDtos)
+            {
+                if (dto.strAssignedToGUID.HasValue && nameById.TryGetValue(dto.strAssignedToGUID.Value, out var name))
+                    dto.strAssignedToName = name;
+            }
+        }
 
         return new PagedResponse<OpportunityListDto>
         {
@@ -337,6 +366,20 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
                     && (int)(DateTime.UtcNow - opp.dtLastActivityOn.Value).TotalDays > opp.StageDaysToRot)
                 || (!opp.dtLastActivityOn.HasValue && daysInStage > opp.StageDaysToRot));
 
+        // Enrich activity user names
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), activities);
+
+        // Resolve assigned-to user name for the opportunity
+        string? oppAssignedToName = null;
+        if (opp.strAssignedToGUID.HasValue)
+        {
+            oppAssignedToName = await _masterDbContext.MstUsers
+                .AsNoTracking()
+                .Where(u => u.strGroupGUID == GetTenantId() && u.strUserGUID == opp.strAssignedToGUID.Value)
+                .Select(u => u.strName)
+                .FirstOrDefaultAsync();
+        }
+
         return new OpportunityDetailDto
         {
             strOpportunityGUID = opp.strOpportunityGUID,
@@ -360,6 +403,7 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
             intDaysInStage = daysInStage,
             bolIsRotting = isRotting,
             strAssignedToGUID = opp.strAssignedToGUID,
+            strAssignedToName = oppAssignedToName,
             dtCreatedOn = opp.dtCreatedOn,
             bolIsActive = opp.bolIsActive,
             Contacts = contacts,

@@ -23,7 +23,7 @@ import {
 import AccountOverviewTab from "./components/AccountOverviewTab";
 import AccountContactsTab from "./components/AccountContactsTab";
 import AccountOpportunitiesTab from "./components/AccountOpportunitiesTab";
-import AccountActivitiesTab from "./components/AccountActivitiesTab";
+import RelatedActivitiesTab from "@/pages/CRM/components/RelatedActivitiesTab";
 import AccountFilesTab from "./components/AccountFilesTab";
 
 export default function AccountDetailPage() {
@@ -49,7 +49,7 @@ export default function AccountDetailPage() {
       <CustomContainer>
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
           <Building2 className="h-16 w-16 text-muted-foreground" />
-          <h2 className="text-2xl font-semibold">Account Not Found</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Account Not Found</h2>
           <p className="text-muted-foreground">
             The account you're looking for doesn't exist or you don't have access.
           </p>
@@ -82,7 +82,7 @@ export default function AccountDetailPage() {
               <div className="flex items-center gap-3">
                 <Building2 className="h-8 w-8 text-primary" />
                 <div>
-                  <h1 className="text-3xl font-bold">{account.strAccountName}</h1>
+                  <h1 className="text-3xl font-bold text-foreground">{account.strAccountName}</h1>
                   <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                     {account.strIndustry && (
                       <Badge variant="secondary">{account.strIndustry}</Badge>
@@ -126,7 +126,7 @@ export default function AccountDetailPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Contacts</p>
-                  <h3 className="text-2xl font-bold">{account.intContactCount}</h3>
+                  <h3 className="text-2xl font-bold text-foreground">{account.intContactCount}</h3>
                 </div>
                 <Users className="h-8 w-8 text-blue-500" />
               </div>
@@ -140,7 +140,7 @@ export default function AccountDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Open Opportunities
                   </p>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {account.intOpenOpportunityCount}
                   </h3>
                 </div>
@@ -156,7 +156,7 @@ export default function AccountDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Total Value
                   </p>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-2xl font-bold text-foreground">
                     ${account.dblTotalOpportunityValue?.toLocaleString() || 0}
                   </h3>
                 </div>
@@ -172,9 +172,8 @@ export default function AccountDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Activities
                   </p>
-                  <h3 className="text-2xl font-bold">
-                    {/* TODO: Add intActivityCount to AccountDetailDto */}
-                    0
+                  <h3 className="text-2xl font-bold text-foreground">
+                    {account.intActivityCount}
                   </h3>
                 </div>
                 <Activity className="h-8 w-8 text-purple-500" />
@@ -233,9 +232,11 @@ export default function AccountDetailPage() {
           </TabsContent>
 
           <TabsContent value="activities" className="space-y-6">
-            <AccountActivitiesTab
-              accountId={account.strAccountGUID}
-              accountName={account.strAccountName}
+            <RelatedActivitiesTab
+              entityType="Account"
+              entityId={account.strAccountGUID}
+              entityName={account.strAccountName}
+              canEdit={true}
             />
           </TabsContent>
 

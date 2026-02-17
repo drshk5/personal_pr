@@ -13,9 +13,9 @@ public class TenantContextMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Skip for health check and swagger
+        // Skip for health check and swagger (exact path match for health check)
         var path = context.Request.Path.Value?.ToLower() ?? "";
-        if (path.Contains("/status") || path.Contains("/swagger"))
+        if (path == "/status" || path == "/health" || path.StartsWith("/swagger"))
         {
             await _next(context);
             return;

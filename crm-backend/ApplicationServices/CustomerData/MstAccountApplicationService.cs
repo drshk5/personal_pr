@@ -16,17 +16,20 @@ namespace crm_backend.ApplicationServices.CustomerData;
 
 public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountApplicationService
 {
+    private readonly MasterDbContext _masterDbContext;
     private readonly IAccountService _accountService;
     private readonly IAuditLogService _auditLogService;
 
     public MstAccountApplicationService(
         IUnitOfWork unitOfWork,
         ITenantContextProvider tenantContextProvider,
+        MasterDbContext masterDbContext,
         IAccountService accountService,
         IAuditLogService auditLogService,
         ILogger<MstAccountApplicationService> logger)
         : base(unitOfWork, tenantContextProvider, logger)
     {
+        _masterDbContext = masterDbContext;
         _accountService = accountService;
         _auditLogService = auditLogService;
     }
@@ -60,11 +63,30 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
         // Get total count
         var totalCount = await query.CountAsync();
 
-        // Apply sorting
+        // Apply sorting — use allowlist to prevent crashes on derived DTO-only fields
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
-            var direction = filter.Ascending ? "ascending" : "descending";
-            query = query.OrderBy($"{filter.SortBy} {direction}");
+            var sortKey = filter.SortBy.Trim().ToLowerInvariant();
+            query = sortKey switch
+            {
+                "straccountname" => filter.Ascending ? query.OrderBy(a => a.strAccountName) : query.OrderByDescending(a => a.strAccountName),
+                "strindustry" => filter.Ascending ? query.OrderBy(a => a.strIndustry) : query.OrderByDescending(a => a.strIndustry),
+                "strphone" => filter.Ascending ? query.OrderBy(a => a.strPhone) : query.OrderByDescending(a => a.strPhone),
+                "stremail" => filter.Ascending ? query.OrderBy(a => a.strEmail) : query.OrderByDescending(a => a.strEmail),
+                "intemployeecount" => filter.Ascending ? query.OrderBy(a => a.intEmployeeCount) : query.OrderByDescending(a => a.intEmployeeCount),
+                "dblannualrevenue" => filter.Ascending ? query.OrderBy(a => a.dblAnnualRevenue) : query.OrderByDescending(a => a.dblAnnualRevenue),
+                "strcity" => filter.Ascending ? query.OrderBy(a => a.strCity) : query.OrderByDescending(a => a.strCity),
+                "strcountry" => filter.Ascending ? query.OrderBy(a => a.strCountry) : query.OrderByDescending(a => a.strCountry),
+                "strassignedtoguid" => filter.Ascending ? query.OrderBy(a => a.strAssignedToGUID) : query.OrderByDescending(a => a.strAssignedToGUID),
+                "dtcreatedon" => filter.Ascending ? query.OrderBy(a => a.dtCreatedOn) : query.OrderByDescending(a => a.dtCreatedOn),
+                "bolisactive" => filter.Ascending ? query.OrderBy(a => a.bolIsActive) : query.OrderByDescending(a => a.bolIsActive),
+                _ => query.OrderByDescending(a => a.dtCreatedOn)
+            };
+
+            if (sortKey is "strassignedtoname" or "intcontactcount" or "intopenopportunitycount" or "dbltotalopportunityvalue")
+            {
+                _logger.LogWarning("SortBy '{SortBy}' is a derived field for accounts; falling back to dtCreatedOn.", filter.SortBy);
+            }
         }
         else
         {
@@ -93,6 +115,28 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
                 bolIsActive = a.bolIsActive
             })
             .ToListAsync();
+
+        // Enrich assigned-to user names
+        var assignedUserIds = accountDtos
+            .Where(a => a.strAssignedToGUID.HasValue)
+            .Select(a => a.strAssignedToGUID!.Value)
+            .Distinct()
+            .ToList();
+        if (assignedUserIds.Count > 0)
+        {
+            var tenantId = GetTenantId();
+            var userNames = await _masterDbContext.MstUsers
+                .AsNoTracking()
+                .Where(u => u.strGroupGUID == tenantId && assignedUserIds.Contains(u.strUserGUID))
+                .Select(u => new { u.strUserGUID, u.strName })
+                .ToListAsync();
+            var nameById = userNames.ToDictionary(u => u.strUserGUID, u => u.strName);
+            foreach (var dto in accountDtos)
+            {
+                if (dto.strAssignedToGUID.HasValue && nameById.TryGetValue(dto.strAssignedToGUID.Value, out var name))
+                    dto.strAssignedToName = name;
+            }
+        }
 
         return new PagedResponse<AccountListDto>
         {
@@ -278,6 +322,21 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
         var overdueCount = allActivities.Count(a => a.bolIsOverdue);
         var lastActivityDate = allActivities.FirstOrDefault()?.dtCreatedOn;
 
+        // Enrich activity user names
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), activities);
+        await ActivityDtoEnricher.PopulateUserNamesAsync(_masterDbContext, GetTenantId(), allActivities);
+
+        // Resolve assigned-to user name for the account itself
+        string? accountAssignedToName = null;
+        if (account.strAssignedToGUID.HasValue)
+        {
+            accountAssignedToName = await _masterDbContext.MstUsers
+                .AsNoTracking()
+                .Where(u => u.strGroupGUID == GetTenantId() && u.strUserGUID == account.strAssignedToGUID.Value)
+                .Select(u => u.strName)
+                .FirstOrDefaultAsync();
+        }
+
         // Get timeline
         var timeline = await GetAccountTimelineAsync(id);
 
@@ -292,6 +351,7 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
             intOpenOpportunityCount = openOpps.Count,
             dblTotalOpportunityValue = openOpps.Sum(o => o.dblAmount ?? 0),
             strAssignedToGUID = account.strAssignedToGUID,
+            strAssignedToName = accountAssignedToName,
             dtCreatedOn = account.dtCreatedOn,
             bolIsActive = account.bolIsActive,
             strWebsite = account.strWebsite,

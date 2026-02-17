@@ -71,11 +71,19 @@ public class MstImportExportApplicationService : ApplicationServiceBase, IMstImp
         // Get total count
         var totalCount = await query.CountAsync();
 
-        // Apply sorting
+        // Apply sorting — use allowlist to prevent crashes on invalid sort fields
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
-            var direction = filter.Ascending ? "ascending" : "descending";
-            query = query.OrderBy($"{filter.SortBy} {direction}");
+            var sortKey = filter.SortBy.Trim().ToLowerInvariant();
+            query = sortKey switch
+            {
+                "strfilename" => filter.Ascending ? query.OrderBy(j => j.strFileName) : query.OrderByDescending(j => j.strFileName),
+                "strstatus" => filter.Ascending ? query.OrderBy(j => j.strStatus) : query.OrderByDescending(j => j.strStatus),
+                "inttotalrows" => filter.Ascending ? query.OrderBy(j => j.intTotalRows) : query.OrderByDescending(j => j.intTotalRows),
+                "dtcreatedon" => filter.Ascending ? query.OrderBy(j => j.dtCreatedOn) : query.OrderByDescending(j => j.dtCreatedOn),
+                "dtcompletedon" => filter.Ascending ? query.OrderBy(j => j.dtCompletedOn) : query.OrderByDescending(j => j.dtCompletedOn),
+                _ => query.OrderByDescending(j => j.dtCreatedOn)
+            };
         }
         else
         {

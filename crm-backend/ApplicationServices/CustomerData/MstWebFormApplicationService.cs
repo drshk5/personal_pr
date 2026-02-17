@@ -53,11 +53,18 @@ public class MstWebFormApplicationService : ApplicationServiceBase, IMstWebFormA
         // Get total count
         var totalCount = await query.CountAsync();
 
-        // Apply sorting
+        // Apply sorting — use allowlist to prevent crashes on invalid sort fields
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
-            var direction = filter.Ascending ? "ascending" : "descending";
-            query = query.OrderBy($"{filter.SortBy} {direction}");
+            var sortKey = filter.SortBy.Trim().ToLowerInvariant();
+            query = sortKey switch
+            {
+                "strformname" => filter.Ascending ? query.OrderBy(f => f.strFormName) : query.OrderByDescending(f => f.strFormName),
+                "bolisactive" => filter.Ascending ? query.OrderBy(f => f.bolIsActive) : query.OrderByDescending(f => f.bolIsActive),
+                "bolcaptchaenabled" => filter.Ascending ? query.OrderBy(f => f.bolCaptchaEnabled) : query.OrderByDescending(f => f.bolCaptchaEnabled),
+                "dtcreatedon" => filter.Ascending ? query.OrderBy(f => f.dtCreatedOn) : query.OrderByDescending(f => f.dtCreatedOn),
+                _ => query.OrderByDescending(f => f.dtCreatedOn)
+            };
         }
         else
         {
@@ -351,11 +358,17 @@ public class MstWebFormApplicationService : ApplicationServiceBase, IMstWebFormA
         // Get total count
         var totalCount = await query.CountAsync();
 
-        // Apply sorting
+        // Apply sorting — use allowlist to prevent crashes on invalid sort fields
         if (!string.IsNullOrWhiteSpace(paging.SortBy))
         {
-            var direction = paging.Ascending ? "ascending" : "descending";
-            query = query.OrderBy($"{paging.SortBy} {direction}");
+            var sortKey = paging.SortBy.Trim().ToLowerInvariant();
+            query = sortKey switch
+            {
+                "strstatus" => paging.Ascending ? query.OrderBy(s => s.strStatus) : query.OrderByDescending(s => s.strStatus),
+                "stripaddress" => paging.Ascending ? query.OrderBy(s => s.strIpAddress) : query.OrderByDescending(s => s.strIpAddress),
+                "dtcreatedon" => paging.Ascending ? query.OrderBy(s => s.dtCreatedOn) : query.OrderByDescending(s => s.dtCreatedOn),
+                _ => query.OrderByDescending(s => s.dtCreatedOn)
+            };
         }
         else
         {

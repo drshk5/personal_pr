@@ -52,7 +52,7 @@ export default function AccountContactsTab({
 
   const contacts = Array.isArray(contactsData?.data)
     ? contactsData.data
-    : (contactsData?.data as any)?.items || (contactsData as any)?.items || [];
+    : (contactsData?.data as any)?.items || (contactsData?.data as any)?.Items || (contactsData as any)?.items || (contactsData as any)?.Items || [];
   const filteredContacts = contacts.filter(
     (contact) =>
       contact.strFirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||

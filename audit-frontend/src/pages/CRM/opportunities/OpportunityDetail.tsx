@@ -55,7 +55,7 @@ export default function OpportunityDetailPage() {
       <CustomContainer>
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
           <Target className="h-16 w-16 text-muted-foreground" />
-          <h2 className="text-2xl font-semibold">Opportunity Not Found</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Opportunity Not Found</h2>
           <p className="text-muted-foreground">
             The opportunity you're looking for doesn't exist or you don't have access.
           </p>
@@ -112,7 +112,7 @@ export default function OpportunityDetailPage() {
                   }`}
                 />
                 <div>
-                  <h1 className="text-3xl font-bold">
+                  <h1 className="text-3xl font-bold text-foreground">
                     {opportunity.strOpportunityName}
                   </h1>
                   <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -184,7 +184,7 @@ export default function OpportunityDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Deal Value
                   </p>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {opportunity.strCurrency}{" "}
                     {opportunity.dblAmount?.toLocaleString() || 0}
                   </h3>
@@ -201,7 +201,7 @@ export default function OpportunityDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Probability
                   </p>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {opportunity.intProbability}%
                   </h3>
                 </div>
@@ -217,7 +217,7 @@ export default function OpportunityDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Days in Stage
                   </p>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {opportunity.intDaysInStage}
                   </h3>
                 </div>
@@ -233,7 +233,7 @@ export default function OpportunityDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Contacts
                   </p>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {opportunity.contacts?.length || 0}
                   </h3>
                 </div>

@@ -47,7 +47,7 @@ export default function ContactDetailPage() {
       <CustomContainer>
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
           <User className="h-16 w-16 text-muted-foreground" />
-          <h2 className="text-2xl font-semibold">Contact Not Found</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Contact Not Found</h2>
           <p className="text-muted-foreground">
             The contact you're looking for doesn't exist or you don't have access.
           </p>
@@ -90,7 +90,7 @@ export default function ContactDetailPage() {
               <div className="flex items-center gap-3">
                 <User className="h-8 w-8 text-primary" />
                 <div>
-                  <h1 className="text-3xl font-bold">
+                  <h1 className="text-3xl font-bold text-foreground">
                     {contact.strFirstName} {contact.strLastName}
                   </h1>
                   <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -161,7 +161,7 @@ export default function ContactDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Account
                   </p>
-                  <h3 className="text-lg font-bold truncate">
+                  <h3 className="text-lg font-bold truncate text-foreground">
                     {contact.strAccountName || "None"}
                   </h3>
                 </div>
@@ -177,7 +177,7 @@ export default function ContactDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Opportunities
                   </p>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {contact.opportunities?.length || 0}
                   </h3>
                 </div>
@@ -193,7 +193,7 @@ export default function ContactDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Recent Activities
                   </p>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {contact.recentActivities?.length || 0}
                   </h3>
                 </div>

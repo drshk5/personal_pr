@@ -19,6 +19,7 @@ const ACCOUNTS_PREFIX = `${CRM_API_PREFIX}/accounts`;
 type AccountDetailApiResponse = AccountDetailDto & {
   Contacts?: AccountDetailDto["contacts"];
   Opportunities?: AccountDetailDto["opportunities"];
+  AllActivities?: AccountDetailDto["allActivities"];
   RecentActivities?: AccountDetailDto["recentActivities"];
 };
 
@@ -26,8 +27,11 @@ const normalizeAccountDetail = (
   detail: AccountDetailApiResponse
 ): AccountDetailDto => ({
   ...detail,
+  intActivityCount: detail.intActivityCount ?? 0,
+  intOverdueActivityCount: detail.intOverdueActivityCount ?? 0,
   contacts: detail.contacts ?? detail.Contacts ?? [],
   opportunities: detail.opportunities ?? detail.Opportunities ?? [],
+  allActivities: detail.allActivities ?? detail.AllActivities ?? [],
   recentActivities: detail.recentActivities ?? detail.RecentActivities ?? [],
 });
 

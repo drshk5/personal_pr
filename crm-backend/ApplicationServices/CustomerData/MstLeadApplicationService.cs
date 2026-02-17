@@ -81,11 +81,31 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
         // Get total count
         var totalCount = await query.CountAsync();
 
-        // Apply sorting
+        // Apply sorting — use allowlist to prevent crashes on derived DTO-only fields
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
-            var direction = filter.Ascending ? "ascending" : "descending";
-            query = query.OrderBy($"{filter.SortBy} {direction}");
+            var sortKey = filter.SortBy.Trim().ToLowerInvariant();
+            query = sortKey switch
+            {
+                "strfirstname" => filter.Ascending ? query.OrderBy(l => l.strFirstName) : query.OrderByDescending(l => l.strFirstName),
+                "strlastname" => filter.Ascending ? query.OrderBy(l => l.strLastName) : query.OrderByDescending(l => l.strLastName),
+                "stremail" => filter.Ascending ? query.OrderBy(l => l.strEmail) : query.OrderByDescending(l => l.strEmail),
+                "strphone" => filter.Ascending ? query.OrderBy(l => l.strPhone) : query.OrderByDescending(l => l.strPhone),
+                "strcompanyname" => filter.Ascending ? query.OrderBy(l => l.strCompanyName) : query.OrderByDescending(l => l.strCompanyName),
+                "strjobtitle" => filter.Ascending ? query.OrderBy(l => l.strJobTitle) : query.OrderByDescending(l => l.strJobTitle),
+                "strsource" => filter.Ascending ? query.OrderBy(l => l.strSource) : query.OrderByDescending(l => l.strSource),
+                "strstatus" => filter.Ascending ? query.OrderBy(l => l.strStatus) : query.OrderByDescending(l => l.strStatus),
+                "intleadscore" => filter.Ascending ? query.OrderBy(l => l.intLeadScore) : query.OrderByDescending(l => l.intLeadScore),
+                "strassignedtoguid" => filter.Ascending ? query.OrderBy(l => l.strAssignedToGUID) : query.OrderByDescending(l => l.strAssignedToGUID),
+                "dtcreatedon" => filter.Ascending ? query.OrderBy(l => l.dtCreatedOn) : query.OrderByDescending(l => l.dtCreatedOn),
+                "bolisactive" => filter.Ascending ? query.OrderBy(l => l.bolIsActive) : query.OrderByDescending(l => l.bolIsActive),
+                _ => query.OrderByDescending(l => l.dtCreatedOn)
+            };
+
+            if (sortKey is "strassignedtoname")
+            {
+                _logger.LogWarning("SortBy '{SortBy}' is a derived field for leads; falling back to dtCreatedOn.", filter.SortBy);
+            }
         }
         else
         {

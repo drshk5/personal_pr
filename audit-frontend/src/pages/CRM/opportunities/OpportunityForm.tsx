@@ -110,6 +110,7 @@ const OpportunityForm: React.FC = () => {
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [showCloseDialog, setShowCloseDialog] = React.useState(false);
+  const [assignedToOpen, setAssignedToOpen] = React.useState(false);
   const HeaderIcon = useMenuIcon(FormModules.CRM_OPPORTUNITY, TrendingUp);
   const isEditMode = !!id && id !== "create";
 
@@ -578,12 +579,13 @@ const OpportunityForm: React.FC = () => {
                           render={({ field }) => (
                             <FormItem className="flex flex-col">
                               <FormLabel>Assigned To</FormLabel>
-                              <Popover>
+                              <Popover open={assignedToOpen} onOpenChange={setAssignedToOpen} modal={true}>
                                 <PopoverTrigger asChild>
                                   <FormControl>
                                     <Button
                                       variant="outline"
                                       role="combobox"
+                                      aria-expanded={assignedToOpen}
                                       className={cn(
                                         "w-full justify-between font-normal",
                                         !field.value && "text-muted-foreground"
@@ -608,6 +610,7 @@ const OpportunityForm: React.FC = () => {
                                           value="__none__"
                                           onSelect={() => {
                                             field.onChange("");
+                                            setAssignedToOpen(false);
                                           }}
                                         >
                                           <Check
@@ -624,6 +627,7 @@ const OpportunityForm: React.FC = () => {
                                             value={`${user.strName} ${user.strEmailId}`}
                                             onSelect={() => {
                                               field.onChange(user.strUserGUID);
+                                              setAssignedToOpen(false);
                                             }}
                                           >
                                             <Check

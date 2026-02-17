@@ -86,11 +86,30 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
 
         var totalCount = await query.CountAsync();
 
-        // Sorting
+        // Sorting — use allowlist to prevent crashes on derived DTO-only fields
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
-            var direction = filter.Ascending ? "ascending" : "descending";
-            query = query.OrderBy($"{filter.SortBy} {direction}");
+            var sortKey = filter.SortBy.Trim().ToLowerInvariant();
+            query = sortKey switch
+            {
+                "strsubject" => filter.Ascending ? query.OrderBy(a => a.strSubject) : query.OrderByDescending(a => a.strSubject),
+                "stractivitytype" => filter.Ascending ? query.OrderBy(a => a.strActivityType) : query.OrderByDescending(a => a.strActivityType),
+                "strstatus" => filter.Ascending ? query.OrderBy(a => a.strStatus) : query.OrderByDescending(a => a.strStatus),
+                "strpriority" => filter.Ascending ? query.OrderBy(a => a.strPriority) : query.OrderByDescending(a => a.strPriority),
+                "dtscheduledon" => filter.Ascending ? query.OrderBy(a => a.dtScheduledOn) : query.OrderByDescending(a => a.dtScheduledOn),
+                "dtcompletedon" => filter.Ascending ? query.OrderBy(a => a.dtCompletedOn) : query.OrderByDescending(a => a.dtCompletedOn),
+                "dtduedate" => filter.Ascending ? query.OrderBy(a => a.dtDueDate) : query.OrderByDescending(a => a.dtDueDate),
+                "strcategory" => filter.Ascending ? query.OrderBy(a => a.strCategory) : query.OrderByDescending(a => a.strCategory),
+                "strassignedtoguid" => filter.Ascending ? query.OrderBy(a => a.strAssignedToGUID) : query.OrderByDescending(a => a.strAssignedToGUID),
+                "dtcreatedon" => filter.Ascending ? query.OrderBy(a => a.dtCreatedOn) : query.OrderByDescending(a => a.dtCreatedOn),
+                "bolisactive" => filter.Ascending ? query.OrderBy(a => a.bolIsActive) : query.OrderByDescending(a => a.bolIsActive),
+                _ => query.OrderByDescending(a => a.dtCreatedOn)
+            };
+
+            if (sortKey is "strassignedtoname" or "strcreatedbyname" or "bolisoverdue")
+            {
+                _logger.LogWarning("SortBy '{SortBy}' is a derived field for activities; falling back to dtCreatedOn.", filter.SortBy);
+            }
         }
         else
         {
@@ -679,8 +698,22 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
 
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
-            var direction = filter.Ascending ? "ascending" : "descending";
-            query = query.OrderBy($"{filter.SortBy} {direction}");
+            var sortKey = filter.SortBy.Trim().ToLowerInvariant();
+            query = sortKey switch
+            {
+                "strsubject" => filter.Ascending ? query.OrderBy(a => a.strSubject) : query.OrderByDescending(a => a.strSubject),
+                "stractivitytype" => filter.Ascending ? query.OrderBy(a => a.strActivityType) : query.OrderByDescending(a => a.strActivityType),
+                "strstatus" => filter.Ascending ? query.OrderBy(a => a.strStatus) : query.OrderByDescending(a => a.strStatus),
+                "strpriority" => filter.Ascending ? query.OrderBy(a => a.strPriority) : query.OrderByDescending(a => a.strPriority),
+                "dtscheduledon" => filter.Ascending ? query.OrderBy(a => a.dtScheduledOn) : query.OrderByDescending(a => a.dtScheduledOn),
+                "dtcompletedon" => filter.Ascending ? query.OrderBy(a => a.dtCompletedOn) : query.OrderByDescending(a => a.dtCompletedOn),
+                "dtduedate" => filter.Ascending ? query.OrderBy(a => a.dtDueDate) : query.OrderByDescending(a => a.dtDueDate),
+                "strcategory" => filter.Ascending ? query.OrderBy(a => a.strCategory) : query.OrderByDescending(a => a.strCategory),
+                "strassignedtoguid" => filter.Ascending ? query.OrderBy(a => a.strAssignedToGUID) : query.OrderByDescending(a => a.strAssignedToGUID),
+                "dtcreatedon" => filter.Ascending ? query.OrderBy(a => a.dtCreatedOn) : query.OrderByDescending(a => a.dtCreatedOn),
+                "bolisactive" => filter.Ascending ? query.OrderBy(a => a.bolIsActive) : query.OrderByDescending(a => a.bolIsActive),
+                _ => query.OrderByDescending(a => a.dtCreatedOn)
+            };
         }
         else
         {

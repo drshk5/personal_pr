@@ -2,7 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Plus, X, Phone, Mail, Users, StickyNote, CheckSquare, RotateCcw } from "lucide-react";
+import { Plus, X, Phone, Mail, Users, StickyNote, CheckSquare, RotateCcw, Building2, UserCircle, Target, Megaphone } from "lucide-react";
 
 import {
   activitySchema,
@@ -14,6 +14,7 @@ import {
   ACTIVITY_PRIORITIES,
   ENTITY_TYPES,
   type ActivityType,
+  type EntityType,
   type ActivityListDto,
 } from "@/types/CRM/activity";
 import { useCreateActivity, useUpdateActivity } from "@/hooks/api/CRM/use-activities-extended";
@@ -25,6 +26,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -52,10 +54,16 @@ import {
 interface ActivityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Pre-linked entities (from module context). These are shown as read-only badges. */
   defaultLinks?: ActivityFormValues["links"];
   defaultActivityType?: ActivityType;
   editActivity?: ActivityListDto | null;
   onSuccess?: () => void;
+  /** Optional entity context info for better display in linked entities */
+  entityContext?: {
+    entityType: EntityType;
+    entityName: string;
+  };
 }
 
 const EMPTY_ACTIVITY_LINKS: ActivityFormValues["links"] = [];
@@ -67,6 +75,20 @@ const TYPE_ICONS: Record<string, React.ReactNode> = {
   Note: <StickyNote className="h-4 w-4" />,
   Task: <CheckSquare className="h-4 w-4" />,
   FollowUp: <RotateCcw className="h-4 w-4" />,
+};
+
+const ENTITY_TYPE_ICONS: Record<string, React.ReactNode> = {
+  Lead: <Megaphone className="h-3.5 w-3.5" />,
+  Contact: <UserCircle className="h-3.5 w-3.5" />,
+  Account: <Building2 className="h-3.5 w-3.5" />,
+  Opportunity: <Target className="h-3.5 w-3.5" />,
+};
+
+const ENTITY_TYPE_COLORS: Record<string, string> = {
+  Lead: "bg-blue-500/10 text-blue-700 border-blue-500/30 dark:text-blue-300",
+  Contact: "bg-purple-500/10 text-purple-700 border-purple-500/30 dark:text-purple-300",
+  Account: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-300",
+  Opportunity: "bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-300",
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -92,6 +114,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   defaultActivityType = "Note",
   editActivity = null,
   onSuccess,
+  entityContext,
 }) => {
   const isEditing = !!editActivity;
   const { mutate: createActivity, isPending: isCreating } = useCreateActivity();
@@ -527,46 +550,76 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <FormLabel>Linked Entities</FormLabel>
-                <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={addLink}>
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add Link
-                </Button>
-              </div>
-              {links.length === 0 && (
-                <p className="text-xs text-muted-foreground">
-                  No linked entities. Click "Add Link" to connect this activity to a Lead, Contact, Account, or Opportunity.
-                </p>
-              )}
-              {links.map((_, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <FormField
-                    control={form.control}
-                    name={`links.${index}.strEntityType`}
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ENTITY_TYPES.map((et) => (
-                            <SelectItem key={et} value={et}>{et}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`links.${index}.strEntityGUID`}
-                    render={({ field }) => (
-                      <Input placeholder="Entity ID (GUID)" className="flex-1" {...field} />
-                    )}
-                  />
-                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => removeLink(index)}>
-                    <X className="h-4 w-4" />
+                {!entityContext && (
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={addLink}>
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Link
                   </Button>
+                )}
+              </div>
+
+              {/* Show entity context as read-only badge when opened from a module */}
+              {entityContext && defaultLinks.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {defaultLinks.map((link, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border ${ENTITY_TYPE_COLORS[link.strEntityType] || ""}`}
+                    >
+                      {ENTITY_TYPE_ICONS[link.strEntityType]}
+                      <span>{link.strEntityType}:</span>
+                      <span className="font-semibold">{entityContext.entityName}</span>
+                    </Badge>
+                  ))}
                 </div>
-              ))}
+              )}
+
+              {/* Show editable links only when NOT in entity context (standalone activity page) */}
+              {!entityContext && (
+                <>
+                  {links.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      No linked entities. Click "Add Link" to connect this activity to a Lead, Contact, Account, or Opportunity.
+                    </p>
+                  )}
+                  {links.map((link, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`links.${index}.strEntityType`}
+                        render={({ field }) => (
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger className="w-[160px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ENTITY_TYPES.map((et) => (
+                                <SelectItem key={et} value={et}>
+                                  <div className="flex items-center gap-2">
+                                    {ENTITY_TYPE_ICONS[et]}
+                                    <span>{et}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`links.${index}.strEntityGUID`}
+                        render={({ field }) => (
+                          <Input placeholder="Entity ID (GUID)" className="flex-1" {...field} />
+                        )}
+                      />
+                      <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => removeLink(index)}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
 
             <DialogFooter>

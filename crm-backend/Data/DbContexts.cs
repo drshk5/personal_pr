@@ -462,9 +462,15 @@ namespace crm_backend.Data
                 entity.Property(e => e.strActivityType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.strSubject).HasMaxLength(300).IsRequired();
                 entity.Property(e => e.strOutcome).HasMaxLength(200);
-                entity.Property(e => e.dtScheduledOn);
-                entity.Property(e => e.dtCompletedOn);
+                entity.Property(e => e.dtScheduledOn).HasColumnName("dtScheduledStart");
+                entity.Property(e => e.dtCompletedOn).HasColumnName("dtActualEnd");
                 entity.Property(e => e.intDurationMinutes);
+                entity.Property(e => e.strStatus).HasMaxLength(50).HasDefaultValue("Pending");
+                entity.Property(e => e.strPriority).HasMaxLength(50).HasDefaultValue("Normal");
+                entity.Property(e => e.dtDueDate);
+                entity.Property(e => e.strCategory).HasMaxLength(100);
+                entity.Property(e => e.bolIsDeleted).HasDefaultValue(false);
+                entity.Property(e => e.dtDeletedOn);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
             });
@@ -495,7 +501,7 @@ namespace crm_backend.Data
                 entity.Property(e => e.strAuditLogGUID).HasDefaultValueSql("NEWID()");
                 entity.Property(e => e.strEntityType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.strAction).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.strChanges);
+                entity.Property(e => e.strChanges).HasColumnName("strChanges");
                 entity.Property(e => e.dtPerformedOn).HasDefaultValueSql("GETUTCDATE()");
             });
         }
@@ -510,7 +516,7 @@ namespace crm_backend.Data
                 entity.Property(e => e.strConditionField).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.strConditionOperator).HasMaxLength(20).HasDefaultValue("Equals");
                 entity.Property(e => e.strConditionValue).HasMaxLength(500);
-                entity.Property(e => e.intScorePoints);
+                entity.Property(e => e.intScorePoints).HasColumnName("intScoreChange");
                 entity.Property(e => e.intDecayDays);
                 entity.Property(e => e.intSortOrder);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
@@ -526,6 +532,7 @@ namespace crm_backend.Data
             builder.Entity<MstLeadScoreHistory>(entity =>
             {
                 entity.Property(e => e.strScoreHistoryGUID).HasDefaultValueSql("NEWID()");
+                entity.Property(e => e.intPreviousScore).HasColumnName("intOldScore");
                 entity.Property(e => e.strChangeReason).HasMaxLength(500).IsRequired();
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
 
@@ -551,7 +558,7 @@ namespace crm_backend.Data
                 entity.Property(e => e.strAssignmentRuleGUID).HasDefaultValueSql("NEWID()");
                 entity.Property(e => e.strRuleName).HasMaxLength(200).IsRequired();
                 entity.Property(e => e.strAssignmentType).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.strConditionJson);
+                entity.Property(e => e.strConditionJson).HasColumnName("strCriteria");
                 entity.Property(e => e.intLastAssignedIndex);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
@@ -566,7 +573,7 @@ namespace crm_backend.Data
             builder.Entity<MstLeadAssignmentMember>(entity =>
             {
                 entity.Property(e => e.strAssignmentMemberGUID).HasDefaultValueSql("NEWID()");
-                entity.Property(e => e.intMaxCapacity);
+                entity.Property(e => e.intMaxCapacity).HasColumnName("intCapacityPercentage");
                 entity.Property(e => e.strSkillLevel).HasMaxLength(50);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
@@ -611,7 +618,7 @@ namespace crm_backend.Data
             builder.Entity<MstLeadMergeHistory>(entity =>
             {
                 entity.Property(e => e.strMergeHistoryGUID).HasDefaultValueSql("NEWID()");
-                entity.Property(e => e.strMergedDataJson);
+                entity.Property(e => e.strMergedDataJson).HasColumnName("strMergedLeadsJson");
                 entity.Property(e => e.strMergedLeadGUID);
                 entity.Property(e => e.dtMergedOn).HasDefaultValueSql("GETUTCDATE()");
 
@@ -631,9 +638,9 @@ namespace crm_backend.Data
                 entity.Property(e => e.strEntityType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.strTriggerEvent).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.strActionType).HasMaxLength(100).IsRequired();
-                entity.Property(e => e.strTriggerConditionJson);
-                entity.Property(e => e.strActionConfigJson);
-                entity.Property(e => e.intDelayMinutes);
+                entity.Property(e => e.strTriggerConditionJson).HasColumnName("strConditions");
+                entity.Property(e => e.strActionConfigJson).HasColumnName("strActionConfig");
+                entity.Property(e => e.intDelayMinutes).HasColumnName("intExecutionOrder");
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
                 entity.Property(e => e.bolIsDeleted).HasDefaultValue(false);
@@ -646,9 +653,9 @@ namespace crm_backend.Data
             {
                 entity.Property(e => e.strExecutionGUID).HasDefaultValueSql("NEWID()");
                 entity.Property(e => e.strStatus).HasMaxLength(30).IsRequired();
-                entity.Property(e => e.dtScheduledFor);
-                entity.Property(e => e.dtExecutedOn);
-                entity.Property(e => e.strResultJson);
+                entity.Property(e => e.dtScheduledFor).HasColumnName("dtStartedOn");
+                entity.Property(e => e.dtExecutedOn).HasColumnName("dtCompletedOn");
+                entity.Property(e => e.strResultJson).HasColumnName("strErrorMessage");
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasOne(e => e.WorkflowRule)
@@ -687,7 +694,7 @@ namespace crm_backend.Data
                 entity.Property(e => e.strMappedLeadField).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.strDefaultValue).HasMaxLength(500);
                 entity.Property(e => e.strOptionsJson);
-                entity.Property(e => e.intSortOrder);
+                entity.Property(e => e.intSortOrder).HasColumnName("intDisplayOrder");
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasOne(e => e.WebForm)
@@ -734,9 +741,9 @@ namespace crm_backend.Data
                 entity.Property(e => e.strImportJobGUID).HasDefaultValueSql("NEWID()");
                 entity.Property(e => e.strFileName).HasMaxLength(300).IsRequired();
                 entity.Property(e => e.strStatus).HasMaxLength(30).HasDefaultValue("Pending");
-                entity.Property(e => e.intTotalRows);
-                entity.Property(e => e.intSuccessRows);
-                entity.Property(e => e.intErrorRows);
+                entity.Property(e => e.intTotalRows).HasColumnName("intTotalRecords");
+                entity.Property(e => e.intSuccessRows).HasColumnName("intSuccessRecords");
+                entity.Property(e => e.intErrorRows).HasColumnName("intFailedRecords");
                 entity.Property(e => e.intProcessedRows);
                 entity.Property(e => e.intDuplicateRows);
                 entity.Property(e => e.strDuplicateHandling).HasMaxLength(30).HasDefaultValue("Skip");
@@ -750,7 +757,7 @@ namespace crm_backend.Data
             builder.Entity<MstImportJobError>(entity =>
             {
                 entity.Property(e => e.strImportJobErrorGUID).HasDefaultValueSql("NEWID()");
-                entity.Property(e => e.strRawDataJson);
+                entity.Property(e => e.strRawDataJson).HasColumnName("strRowDataJson");
                 entity.Property(e => e.strErrorMessage).HasMaxLength(500).IsRequired();
                 entity.Property(e => e.strErrorType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");

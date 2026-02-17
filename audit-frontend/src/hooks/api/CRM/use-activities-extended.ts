@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { activityExtendedService } from "@/services/CRM/activity-extended.service";
 import type {
@@ -8,6 +8,19 @@ import type {
   ActivityStatusChangeDto,
   ActivityAssignDto,
 } from "@/types/CRM/activity";
+
+/** Invalidate every activity-related query so all tabs/views refresh. */
+function invalidateAllActivityQueries(qc: QueryClient) {
+  qc.invalidateQueries({ queryKey: ["activities"] });
+  qc.invalidateQueries({ queryKey: ["activity"] });
+  qc.invalidateQueries({ queryKey: ["my-activities"] });
+  qc.invalidateQueries({ queryKey: ["activities-today"] });
+  qc.invalidateQueries({ queryKey: ["overdue-activities"] });
+  qc.invalidateQueries({ queryKey: ["upcoming-activities"] });
+  qc.invalidateQueries({ queryKey: ["crm-activities"] });
+  qc.invalidateQueries({ queryKey: ["crm-entity-activities"] });
+  qc.invalidateQueries({ queryKey: ["crm-upcoming-activities"] });
+}
 
 export const useActivitiesExtended = (params?: ActivityFilterParams) => {
   return useQuery({
@@ -65,17 +78,11 @@ export const useCreateActivity = () => {
     mutationFn: (dto: CreateActivityDto) =>
       activityExtendedService.createActivity(dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-entity-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-upcoming-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["upcoming-activities"] });
+      invalidateAllActivityQueries(queryClient);
       toast.success("Activity created successfully");
     },
     onError: (error: any) => {
-      toast.error(
-        error?.message || "Failed to create activity"
-      );
+      toast.error(error?.response?.data?.message || error?.message || "Failed to create activity");
     },
   });
 };
@@ -87,16 +94,11 @@ export const useUpdateActivity = () => {
     mutationFn: ({ id, dto }: { id: string; dto: UpdateActivityDto }) =>
       activityExtendedService.updateActivity(id, dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-entity-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["upcoming-activities"] });
+      invalidateAllActivityQueries(queryClient);
       toast.success("Activity updated successfully");
     },
     onError: (error: any) => {
-      toast.error(
-        error?.message || "Failed to update activity"
-      );
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update activity");
     },
   });
 };
@@ -107,15 +109,11 @@ export const useDeleteActivity = () => {
   return useMutation({
     mutationFn: (id: string) => activityExtendedService.deleteActivity(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-entity-activities"] });
+      invalidateAllActivityQueries(queryClient);
       toast.success("Activity deleted successfully");
     },
     onError: (error: any) => {
-      toast.error(
-        error?.message || "Failed to delete activity"
-      );
+      toast.error(error?.response?.data?.message || error?.message || "Failed to delete activity");
     },
   });
 };
@@ -126,17 +124,13 @@ export const useChangeActivityStatus = () => {
   return useMutation({
     mutationFn: ({ id, dto }: { id: string; dto: ActivityStatusChangeDto }) =>
       activityExtendedService.changeStatus(id, dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-entity-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["upcoming-activities"] });
-      toast.success("Activity status updated");
+    onSuccess: (_data, variables) => {
+      invalidateAllActivityQueries(queryClient);
+      const statusLabel = variables.dto.strStatus === "InProgress" ? "In Progress" : variables.dto.strStatus;
+      toast.success(`Activity marked as ${statusLabel}`);
     },
     onError: (error: any) => {
-      toast.error(
-        error?.message || "Failed to update activity status"
-      );
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update activity status");
     },
   });
 };
@@ -148,15 +142,11 @@ export const useAssignActivity = () => {
     mutationFn: ({ id, dto }: { id: string; dto: ActivityAssignDto }) =>
       activityExtendedService.assignActivity(id, dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activities"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["upcoming-activities"] });
+      invalidateAllActivityQueries(queryClient);
       toast.success("Activity assigned successfully");
     },
     onError: (error: any) => {
-      toast.error(
-        error?.message || "Failed to assign activity"
-      );
+      toast.error(error?.response?.data?.message || error?.message || "Failed to assign activity");
     },
   });
 };
@@ -167,14 +157,12 @@ export const useBulkAssignActivities = () => {
   return useMutation({
     mutationFn: ({ ids, userId }: { ids: string[]; userId: string }) =>
       activityExtendedService.bulkAssign(ids, userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activities"] });
-      toast.success("Activities assigned successfully");
+    onSuccess: (_data, variables) => {
+      invalidateAllActivityQueries(queryClient);
+      toast.success(`${variables.ids.length} activities assigned successfully`);
     },
     onError: (error: any) => {
-      toast.error(
-        error?.message || "Failed to assign activities"
-      );
+      toast.error(error?.response?.data?.message || error?.message || "Failed to assign activities");
     },
   });
 };
@@ -185,14 +173,12 @@ export const useBulkDeleteActivities = () => {
   return useMutation({
     mutationFn: (ids: string[]) =>
       activityExtendedService.bulkDelete(ids),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activities"] });
-      toast.success("Activities deleted successfully");
+    onSuccess: (_data, variables) => {
+      invalidateAllActivityQueries(queryClient);
+      toast.success(`${variables.length} activities deleted successfully`);
     },
     onError: (error: any) => {
-      toast.error(
-        error?.message || "Failed to delete activities"
-      );
+      toast.error(error?.response?.data?.message || error?.message || "Failed to delete activities");
     },
   });
 };

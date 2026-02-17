@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createQueryKeys, handleMutationError } from "../common";
 import { opportunityService } from "@/services/CRM/opportunity.service";
+import { accountQueryKeys } from "./use-accounts";
 import type {
   CreateOpportunityDto,
   UpdateOpportunityDto,
@@ -38,10 +39,13 @@ export const useCreateOpportunity = () => {
     mutationFn: (dto: CreateOpportunityDto) =>
       opportunityService.createOpportunity(dto),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: opportunityQueryKeys.all,
-      });
-      await queryClient.invalidateQueries({ queryKey: boardKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: opportunityQueryKeys.all,
+        }),
+        queryClient.invalidateQueries({ queryKey: boardKeys.all }),
+        queryClient.invalidateQueries({ queryKey: accountQueryKeys.all }),
+      ]);
       toast.success("Opportunity created successfully");
     },
     onError: (error) =>
@@ -55,10 +59,13 @@ export const useUpdateOpportunity = () => {
     mutationFn: ({ id, data }: { id: string; data: UpdateOpportunityDto }) =>
       opportunityService.updateOpportunity(id, data),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: opportunityQueryKeys.all,
-      });
-      await queryClient.invalidateQueries({ queryKey: boardKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: opportunityQueryKeys.all,
+        }),
+        queryClient.invalidateQueries({ queryKey: boardKeys.all }),
+        queryClient.invalidateQueries({ queryKey: accountQueryKeys.all }),
+      ]);
       toast.success("Opportunity updated successfully");
     },
     onError: (error) =>
@@ -72,10 +79,13 @@ export const useDeleteOpportunity = () => {
     mutationFn: ({ id }: { id: string }) =>
       opportunityService.deleteOpportunity(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: opportunityQueryKeys.all,
-      });
-      await queryClient.invalidateQueries({ queryKey: boardKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: opportunityQueryKeys.all,
+        }),
+        queryClient.invalidateQueries({ queryKey: boardKeys.all }),
+        queryClient.invalidateQueries({ queryKey: accountQueryKeys.all }),
+      ]);
       toast.success("Opportunity deleted successfully");
     },
     onError: (error) =>
@@ -91,10 +101,13 @@ export const useMoveStage = () => {
     mutationFn: ({ id, data }: { id: string; data: MoveStageDto }) =>
       opportunityService.moveStage(id, data),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: opportunityQueryKeys.all,
-      });
-      await queryClient.invalidateQueries({ queryKey: boardKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: opportunityQueryKeys.all,
+        }),
+        queryClient.invalidateQueries({ queryKey: boardKeys.all }),
+        queryClient.invalidateQueries({ queryKey: accountQueryKeys.all }),
+      ]);
       toast.success("Stage updated successfully");
     },
     onError: (error) =>
@@ -108,10 +121,13 @@ export const useCloseOpportunity = () => {
     mutationFn: ({ id, data }: { id: string; data: CloseOpportunityDto }) =>
       opportunityService.closeOpportunity(id, data),
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({
-        queryKey: opportunityQueryKeys.all,
-      });
-      await queryClient.invalidateQueries({ queryKey: boardKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: opportunityQueryKeys.all,
+        }),
+        queryClient.invalidateQueries({ queryKey: boardKeys.all }),
+        queryClient.invalidateQueries({ queryKey: accountQueryKeys.all }),
+      ]);
       toast.success(
         `Opportunity closed as ${variables.data.strStatus}`
       );

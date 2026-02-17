@@ -89,8 +89,12 @@ export interface AccountDetailDto extends AccountListDto {
   strCountry?: string | null;
   strPostalCode?: string | null;
   strDescription?: string | null;
+  intActivityCount: number;
+  intOverdueActivityCount: number;
+  dtLastActivityOn?: string | null;
   contacts: ContactListDtoForAccount[];
   opportunities: OpportunityListDtoForAccount[];
+  allActivities: ActivityListDto[];
   recentActivities: ActivityListDto[];
 }
 
