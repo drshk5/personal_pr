@@ -12,6 +12,7 @@ import {
   ACTIVITY_TYPES,
   ACTIVITY_STATUSES,
   ACTIVITY_PRIORITIES,
+  ACTIVITY_CATEGORIES,
   ENTITY_TYPES,
   type ActivityType,
   type EntityType,
@@ -394,13 +395,26 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g. Sales, Support"
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
+                    <Select
+                      value={field.value ?? "none"}
+                      onValueChange={(v) => field.onChange(v === "none" ? null : v)}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">
+                          <span className="text-muted-foreground">None</span>
+                        </SelectItem>
+                        {ACTIVITY_CATEGORIES.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat === "FollowUp" ? "Follow Up" : cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

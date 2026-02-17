@@ -9,6 +9,27 @@ import type {
   ActivityAssignDto,
 } from "@/types/CRM/activity";
 
+/** Extract a user-friendly error message from API error responses.
+ *  Handles both standard ApiResponse format and ASP.NET ValidationProblemDetails (400). */
+function extractErrorMessage(error: any, fallback: string): string {
+  const data = error?.response?.data;
+  if (!data) return error?.message || fallback;
+
+  // Standard ApiResponse format
+  if (data.message) return data.message;
+
+  // ASP.NET ValidationProblemDetails (from FluentValidation + [ApiController])
+  if (data.errors && typeof data.errors === "object") {
+    const firstErrors = Object.values(data.errors).flat();
+    if (firstErrors.length > 0) return firstErrors[0] as string;
+  }
+
+  // title field from ProblemDetails
+  if (data.title) return data.title;
+
+  return error?.message || fallback;
+}
+
 /** Invalidate every activity-related query so all tabs/views refresh.
  *  Also invalidates lead queries because activity completion auto-changes lead status
  *  (New → Contacted, Contacted → Qualified). */
@@ -87,7 +108,7 @@ export const useCreateActivity = () => {
       toast.success("Activity created successfully");
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error?.message || "Failed to create activity");
+      toast.error(extractErrorMessage(error, "Failed to create activity"));
     },
   });
 };
@@ -103,7 +124,7 @@ export const useUpdateActivity = () => {
       toast.success("Activity updated successfully");
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error?.message || "Failed to update activity");
+      toast.error(extractErrorMessage(error, "Failed to update activity"));
     },
   });
 };

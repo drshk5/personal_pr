@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ACTIVITY_TYPES, ENTITY_TYPES, ACTIVITY_STATUSES, ACTIVITY_PRIORITIES } from "@/types/CRM/activity";
+import { ACTIVITY_TYPES, ENTITY_TYPES, ACTIVITY_STATUSES, ACTIVITY_PRIORITIES, ACTIVITY_CATEGORIES } from "@/types/CRM/activity";
 
 export const activityLinkSchema = z.object({
   strEntityType: z.enum(ENTITY_TYPES, {
@@ -17,10 +17,10 @@ export const activitySchema = z.object({
   strSubject: z
     .string()
     .min(1, { message: "Subject is required" })
-    .max(300, { message: "Subject cannot exceed 300 characters" }),
+    .max(200, { message: "Subject cannot exceed 200 characters" }),
   strDescription: z
     .string()
-    .max(4000, { message: "Description cannot exceed 4000 characters" })
+    .max(2000, { message: "Description cannot exceed 2000 characters" })
     .nullable()
     .optional(),
   dtScheduledOn: z.string().nullable().optional(),
@@ -34,13 +34,19 @@ export const activitySchema = z.object({
     .optional(),
   strOutcome: z
     .string()
-    .max(200, { message: "Outcome cannot exceed 200 characters" })
+    .max(500, { message: "Outcome cannot exceed 500 characters" })
     .nullable()
     .optional(),
   strStatus: z.enum(ACTIVITY_STATUSES).nullable().optional(),
   strPriority: z.enum(ACTIVITY_PRIORITIES).nullable().optional(),
   dtDueDate: z.string().nullable().optional(),
-  strCategory: z.string().max(100).nullable().optional(),
+  strCategory: z
+    .string()
+    .refine((val) => !val || (ACTIVITY_CATEGORIES as readonly string[]).includes(val), {
+      message: "Category must be one of: Sales, Support, FollowUp, Internal, Marketing",
+    })
+    .nullable()
+    .optional(),
   strAssignedToGUID: z.string().nullable().optional(),
   links: z.array(activityLinkSchema).default([]),
 });

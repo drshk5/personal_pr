@@ -34,6 +34,7 @@ import {
   Send,
 } from "lucide-react";
 import { useActivities, useBulkNotifyActivities } from "@/hooks/api/CRM/use-activities";
+import { ACTIVITY_TYPES, ACTIVITY_STATUSES } from "@/types/CRM/activity";
 import { toast } from "sonner";
 import ActivityForm from "@/pages/CRM/activities/components/ActivityForm";
 
@@ -46,15 +47,16 @@ const ACTIVITY_TYPE_ICONS = {
   Call: Phone,
   Email: Mail,
   Meeting: Video,
+  Note: FileText,
   Task: FileText,
-  Other: Calendar,
+  FollowUp: Calendar,
 };
 
 const STATUS_COLORS = {
-  Scheduled: "bg-blue-500",
+  Pending: "bg-yellow-500",
+  InProgress: "bg-blue-500",
   Completed: "bg-green-500",
   Cancelled: "bg-red-500",
-  "In Progress": "bg-yellow-500",
 };
 
 export default function AccountActivitiesTab({
@@ -144,11 +146,11 @@ export default function AccountActivitiesTab({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="Call">Call</SelectItem>
-                  <SelectItem value="Email">Email</SelectItem>
-                  <SelectItem value="Meeting">Meeting</SelectItem>
-                  <SelectItem value="Task">Task</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  {ACTIVITY_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t === "FollowUp" ? "Follow Up" : t}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -157,10 +159,11 @@ export default function AccountActivitiesTab({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Scheduled">Scheduled</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  {ACTIVITY_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s === "InProgress" ? "In Progress" : s}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button onClick={() => setShowCreateDialog(true)}>

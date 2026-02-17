@@ -42,6 +42,16 @@ export const ACTIVITY_PRIORITIES = [
 
 export type ActivityPriority = (typeof ACTIVITY_PRIORITIES)[number];
 
+export const ACTIVITY_CATEGORIES = [
+  "Sales",
+  "Support",
+  "FollowUp",
+  "Internal",
+  "Marketing",
+] as const;
+
+export type ActivityCategory = (typeof ACTIVITY_CATEGORIES)[number];
+
 // ============================================================
 // Activity Link DTO
 // ============================================================
