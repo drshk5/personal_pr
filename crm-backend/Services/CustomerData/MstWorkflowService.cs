@@ -6,6 +6,7 @@ using crm_backend.DataAccess.Repositories;
 using crm_backend.Hubs;
 using crm_backend.Interfaces;
 using crm_backend.Models.Core.CustomerData;
+using MstActivityModel = crm_backend.Models.Core.CustomerData.MstActivity;
 
 namespace crm_backend.Services.CustomerData;
 
@@ -202,7 +203,7 @@ public class MstWorkflowService : IWorkflowService
         var description = config.GetValueOrDefault("description", $"Auto-created by workflow rule: {rule.strRuleName}");
         var activityType = config.GetValueOrDefault("activityType", "Task");
 
-        var activity = new MstActivity
+        var activity = new MstActivityModel
         {
             strActivityGUID = Guid.NewGuid(),
             strGroupGUID = execution.strGroupGUID,
@@ -225,7 +226,7 @@ public class MstWorkflowService : IWorkflowService
             }
         }
 
-        await _unitOfWork.Activities.AddAsync(activity);
+        await _unitOfWork.Activities.AddAsync((MstActivity)activity);
 
         var activityLink = new MstActivityLink
         {
@@ -399,7 +400,7 @@ public class MstWorkflowService : IWorkflowService
         var description = config.GetValueOrDefault("description", $"Auto-created follow-up from workflow rule: {rule.strRuleName}");
         var daysAfter = int.TryParse(config.GetValueOrDefault("daysAfter", "1"), out var days) ? days : 1;
 
-        var followUpActivity = new MstActivity
+        var followUpActivity = new MstActivityModel
         {
             strActivityGUID = Guid.NewGuid(),
             strGroupGUID = execution.strGroupGUID,
@@ -429,7 +430,7 @@ public class MstWorkflowService : IWorkflowService
                 followUpActivity.strAssignedToGUID = opportunity.strAssignedToGUID;
         }
 
-        await _unitOfWork.Activities.AddAsync(followUpActivity);
+        await _unitOfWork.Activities.AddAsync((MstActivity)followUpActivity);
 
         var activityLink = new MstActivityLink
         {

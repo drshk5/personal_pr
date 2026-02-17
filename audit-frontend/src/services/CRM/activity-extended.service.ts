@@ -3,10 +3,13 @@ import { formatPaginationParams } from "@/lib/utils/pagination-utils";
 import { CRM_API_PREFIX } from "@/constants/api-prefix";
 import type {
   CreateActivityDto,
+  UpdateActivityDto,
   ActivityListDto,
   ActivityFilterParams,
   ActivityListResponse,
   UpcomingActivityDto,
+  ActivityStatusChangeDto,
+  ActivityAssignDto,
 } from "@/types/CRM/activity";
 
 const ACTIVITIES_PREFIX = `${CRM_API_PREFIX}/activities`;
@@ -35,7 +38,7 @@ export const activityExtendedService = {
   // ── Update Activity ────────────────────────────────────────
   updateActivity: async (
     id: string,
-    dto: CreateActivityDto
+    dto: UpdateActivityDto
   ): Promise<ActivityListDto> => {
     return await ApiService.put<ActivityListDto>(
       `${ACTIVITIES_PREFIX}/${id}`,
@@ -51,22 +54,22 @@ export const activityExtendedService = {
   // ── Change Activity Status ───────────────────────────────────
   changeStatus: async (
     id: string,
-    status: string
+    dto: ActivityStatusChangeDto
   ): Promise<ActivityListDto> => {
     return await ApiService.patch<ActivityListDto>(
       `${ACTIVITIES_PREFIX}/${id}/status`,
-      { status }
+      dto
     );
   },
 
   // ── Assign Activity to User ──────────────────────────────────
   assignActivity: async (
     id: string,
-    userId: string
+    dto: ActivityAssignDto
   ): Promise<ActivityListDto> => {
     return await ApiService.patch<ActivityListDto>(
       `${ACTIVITIES_PREFIX}/${id}/assign`,
-      { userId }
+      dto
     );
   },
 
@@ -74,14 +77,14 @@ export const activityExtendedService = {
   bulkAssign: async (ids: string[], userId: string): Promise<boolean> => {
     return await ApiService.post<boolean>(
       `${ACTIVITIES_PREFIX}/bulk-assign`,
-      { guids: ids, userId }
+      { guids: ids, strAssignedToGUID: userId }
     );
   },
 
   bulkChangeStatus: async (ids: string[], status: string): Promise<boolean> => {
     return await ApiService.post<boolean>(
       `${ACTIVITIES_PREFIX}/bulk-status`,
-      { guids: ids, status }
+      { guids: ids, strStatus: status }
     );
   },
 

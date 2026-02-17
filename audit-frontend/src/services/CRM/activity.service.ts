@@ -50,4 +50,15 @@ export const activityService = {
       `${ACTIVITIES_PREFIX}/upcoming`
     );
   },
-};
+  // ── Bulk notify activities ──────────────────────────────────────
+  bulkNotify: async (dto: {
+    activityGuids: string[];
+    message: string;
+    notifyAssignedUsers: boolean;
+  }): Promise<void> => {
+    await ApiService.post(`${ACTIVITIES_PREFIX}/bulk-notify`, {
+      ActivityGuids: dto.activityGuids,
+      Message: dto.message,
+      NotifyAssignedUsers: dto.notifyAssignedUsers,
+    });
+  },};

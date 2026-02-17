@@ -112,6 +112,13 @@ public class ActivityBulkDeleteDto
     public List<Guid> Guids { get; set; } = new();
 }
 
+public class ActivityBulkNotifyDto
+{
+    public List<Guid> ActivityGuids { get; set; } = new();
+    public string Message { get; set; } = string.Empty;
+    public bool NotifyAssignedUsers { get; set; } = true;
+}
+
 public class UpcomingActivityDto
 {
     public Guid strActivityGUID { get; set; }

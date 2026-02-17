@@ -5,12 +5,12 @@ const Dashboard = lazy(() => import("@/pages/CRM/dashboard"));
 const LeadList = lazy(() => import("@/pages/CRM/leads/LeadList"));
 const LeadForm = lazy(() => import("@/pages/CRM/leads/LeadForm"));
 const ContactList = lazy(() => import("@/pages/CRM/contacts/ContactList"));
-const ContactForm = lazy(() => import("@/pages/CRM/contacts/ContactForm"));
+const ContactFormRouter = lazy(() => import("@/pages/CRM/contacts/ContactFormRouter"));
 const AccountList = lazy(() => import("@/pages/CRM/accounts/AccountList"));
-const AccountForm = lazy(() => import("@/pages/CRM/accounts/AccountForm"));
-const ActivityTimeline = lazy(() => import("@/pages/CRM/activities/ActivityTimeline"));
+const AccountFormRouter = lazy(() => import("@/pages/CRM/accounts/AccountFormRouter"));
+const ActivityManagement = lazy(() => import("@/pages/CRM/activities/ActivityManagement"));
 const OpportunityList = lazy(() => import("@/pages/CRM/opportunities/OpportunityList"));
-const OpportunityForm = lazy(() => import("@/pages/CRM/opportunities/OpportunityForm"));
+const OpportunityFormRouter = lazy(() => import("@/pages/CRM/opportunities/OpportunityFormRouter"));
 const OpportunityBoard = lazy(() => import("@/pages/CRM/opportunities/OpportunityBoard"));
 const PipelineList = lazy(() => import("@/pages/CRM/pipelines/PipelineList"));
 
@@ -37,17 +37,17 @@ export const getCrmRouteElement = (
     case "crm_contact_list":
       return wrapWithSuspense(ContactList);
     case "crm_contact_form":
-      return wrapWithSuspense(ContactForm);
+      return wrapWithSuspense(ContactFormRouter);
     case "crm_account_list":
       return wrapWithSuspense(AccountList);
     case "crm_account_form":
-      return wrapWithSuspense(AccountForm);
+      return wrapWithSuspense(AccountFormRouter);
     case "crm_activity_list":
-      return wrapWithSuspense(ActivityTimeline);
+      return wrapWithSuspense(ActivityManagement);
     case "crm_opportunity_list":
       return wrapWithSuspense(OpportunityList);
     case "crm_opportunity_form":
-      return wrapWithSuspense(OpportunityForm);
+      return wrapWithSuspense(OpportunityFormRouter);
     case "crm_opportunity_board":
       return wrapWithSuspense(OpportunityBoard);
     case "crm_pipeline_list":

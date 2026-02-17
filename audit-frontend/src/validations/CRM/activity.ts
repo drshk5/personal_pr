@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ACTIVITY_TYPES, ENTITY_TYPES } from "@/types/CRM/activity";
+import { ACTIVITY_TYPES, ENTITY_TYPES, ACTIVITY_STATUSES, ACTIVITY_PRIORITIES } from "@/types/CRM/activity";
 
 export const activityLinkSchema = z.object({
   strEntityType: z.enum(ENTITY_TYPES, {
@@ -37,6 +37,10 @@ export const activitySchema = z.object({
     .max(200, { message: "Outcome cannot exceed 200 characters" })
     .nullable()
     .optional(),
+  strStatus: z.enum(ACTIVITY_STATUSES).nullable().optional(),
+  strPriority: z.enum(ACTIVITY_PRIORITIES).nullable().optional(),
+  dtDueDate: z.string().nullable().optional(),
+  strCategory: z.string().max(100).nullable().optional(),
   strAssignedToGUID: z.string().nullable().optional(),
   links: z.array(activityLinkSchema).default([]),
 });

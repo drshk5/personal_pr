@@ -29,4 +29,7 @@ public interface IMstActivityApplicationService : IApplicationService
     Task<List<ActivityListDto>> GetTodayActivitiesAsync();
     Task<PagedResponse<ActivityListDto>> GetMyActivitiesAsync(ActivityFilterParams filter);
     Task<List<ActivityListDto>> GetOverdueActivitiesAsync();
+
+    // ── New: Bulk Email Notifications ──
+    Task<bool> SendBulkActivityNotificationsAsync(ActivityBulkNotifyDto dto);
 }

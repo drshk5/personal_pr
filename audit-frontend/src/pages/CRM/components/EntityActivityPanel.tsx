@@ -1,25 +1,47 @@
 import React, { memo, useMemo, useState } from "react";
 import { format, formatDistanceToNow } from "date-fns";
-import { Plus, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Plus,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  Pencil,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
 
-import type { ActivityListDto, ActivityLinkDto } from "@/types/CRM/activity";
+import type { ActivityListDto, ActivityLinkDto, ActivityType } from "@/types/CRM/activity";
+import { ACTIVITY_STATUSES } from "@/types/CRM/activity";
 import { useEntityActivities } from "@/hooks/api/CRM/use-activities";
+import { useChangeActivityStatus } from "@/hooks/api/CRM/use-activities-extended";
 import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import ActivityTypeIcon, {
   getActivityTypeLabel,
 } from "../activities/components/ActivityTypeIcon";
 import ActivityForm from "../activities/components/ActivityForm";
 
+const STATUS_BADGE: Record<string, { className: string; label: string }> = {
+  Pending: { className: "border-yellow-500/50 text-yellow-600 bg-yellow-500/10", label: "Pending" },
+  InProgress: { className: "border-blue-500/50 text-blue-600 bg-blue-500/10", label: "In Progress" },
+  Completed: { className: "border-emerald-500/50 text-emerald-600 bg-emerald-500/10", label: "Completed" },
+  Cancelled: { className: "border-red-500/50 text-red-600 bg-red-500/10", label: "Cancelled" },
+};
+
 interface EntityActivityPanelProps {
   entityType: string;
   entityId: string;
-  /** Inline recent activities from detail endpoint (avoids extra API call) */
   recentActivities?: ActivityListDto[];
-  /** Compact mode shows fewer items */
   compact?: boolean;
 }
 
@@ -30,24 +52,23 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
   compact = false,
 }) => {
   const [showCreate, setShowCreate] = useState(false);
+  const [editTarget, setEditTarget] = useState<ActivityListDto | null>(null);
   const [expanded, setExpanded] = useState(!compact);
+  const [createType, setCreateType] = useState<ActivityType>("Note");
+
+  const { mutate: changeStatus } = useChangeActivityStatus();
 
   // Only fetch from API if no inline data provided
-  const { data: apiResponse, isLoading } = useEntityActivities(
+  const { data: apiResponse, isLoading, refetch } = useEntityActivities(
     entityType,
     entityId,
-    { pageSize: compact ? 5 : 10 }
+    { pageSize: compact ? 5 : 20 }
   );
 
   const activities = useMemo(() => {
-    // Prefer inline data if fresh enough
-    if (recentActivities && recentActivities.length > 0) {
-      return recentActivities;
-    }
+    if (recentActivities && recentActivities.length > 0) return recentActivities;
     if (!apiResponse) return [];
-    const paged = mapToStandardPagedResponse<ActivityListDto>(
-      apiResponse.data ?? apiResponse
-    );
+    const paged = mapToStandardPagedResponse<ActivityListDto>(apiResponse.data ?? apiResponse);
     return paged.items;
   }, [recentActivities, apiResponse]);
 
@@ -58,6 +79,28 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
 
   const displayItems = expanded ? activities : activities.slice(0, 3);
 
+  // Stats
+  const stats = useMemo(() => {
+    const total = activities.length;
+    const completed = activities.filter(a => a.strStatus === "Completed").length;
+    const overdue = activities.filter(a => a.bolIsOverdue).length;
+    const pending = activities.filter(a => a.strStatus === "Pending" || a.strStatus === "InProgress").length;
+    return { total, completed, overdue, pending };
+  }, [activities]);
+
+  const handleStatusChange = (id: string, status: string) => {
+    changeStatus({ id, dto: { strStatus: status } }, { onSuccess: () => refetch() });
+  };
+
+  const quickTypes: { type: ActivityType; emoji: string; label: string }[] = [
+    { type: "Call", emoji: "📞", label: "Call" },
+    { type: "Email", emoji: "📧", label: "Email" },
+    { type: "Meeting", emoji: "🤝", label: "Meeting" },
+    { type: "Task", emoji: "✅", label: "Task" },
+    { type: "Note", emoji: "📝", label: "Note" },
+    { type: "FollowUp", emoji: "🔄", label: "Follow-Up" },
+  ];
+
   return (
     <>
       <Card>
@@ -66,22 +109,50 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Clock className="h-4 w-4 text-muted-foreground" />
               Activities
-              {activities.length > 0 && (
+              {stats.total > 0 && (
                 <span className="text-xs text-muted-foreground font-normal">
-                  ({activities.length})
+                  ({stats.total})
                 </span>
               )}
+              {stats.overdue > 0 && (
+                <Badge variant="destructive" className="text-[10px] h-4">
+                  {stats.overdue} overdue
+                </Badge>
+              )}
             </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={() => setShowCreate(true)}
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Log
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 text-xs">
+                  <Plus className="h-3 w-3 mr-1" />
+                  Log
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {quickTypes.map((qt) => (
+                  <DropdownMenuItem
+                    key={qt.type}
+                    onClick={() => {
+                      setCreateType(qt.type);
+                      setEditTarget(null);
+                      setShowCreate(true);
+                    }}
+                  >
+                    <span className="mr-2">{qt.emoji}</span>
+                    {qt.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+
+          {/* Mini stat bar */}
+          {stats.total > 0 && (
+            <div className="flex items-center gap-3 mt-2 text-xs">
+              <span className="text-emerald-600">{stats.completed} completed</span>
+              <span className="text-yellow-600">{stats.pending} pending</span>
+              {stats.overdue > 0 && <span className="text-red-600">{stats.overdue} overdue</span>}
+            </div>
+          )}
         </CardHeader>
         <CardContent className="px-4 pb-4 pt-0">
           {isLoading && !recentActivities ? (
@@ -98,7 +169,7 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
             </div>
           ) : activities.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              No activities yet
+              No activities yet. Log a call, email, or task.
             </p>
           ) : (
             <div className="space-y-0">
@@ -107,6 +178,11 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
                   key={activity.strActivityGUID}
                   activity={activity}
                   isLast={index === displayItems.length - 1}
+                  onEdit={() => {
+                    setEditTarget(activity);
+                    setShowCreate(true);
+                  }}
+                  onStatusChange={handleStatusChange}
                 />
               ))}
 
@@ -137,8 +213,14 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
 
       <ActivityForm
         open={showCreate}
-        onOpenChange={setShowCreate}
+        onOpenChange={(open) => {
+          setShowCreate(open);
+          if (!open) setEditTarget(null);
+        }}
         defaultLinks={defaultLinks}
+        defaultActivityType={createType}
+        editActivity={editTarget}
+        onSuccess={() => refetch()}
       />
     </>
   );
@@ -149,12 +231,16 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
 interface ActivityTimelineItemProps {
   activity: ActivityListDto;
   isLast: boolean;
+  onEdit: () => void;
+  onStatusChange: (id: string, status: string) => void;
 }
 
 const ActivityTimelineItem: React.FC<ActivityTimelineItemProps> = memo(
-  ({ activity, isLast }) => {
+  ({ activity, isLast, onEdit, onStatusChange }) => {
+    const statusBadge = STATUS_BADGE[activity.strStatus];
+
     return (
-      <div className="flex gap-3 relative">
+      <div className="flex gap-3 relative group">
         {/* Vertical connector line */}
         {!isLast && (
           <div className="absolute left-[13px] top-7 bottom-0 w-px bg-border" />
@@ -164,25 +250,38 @@ const ActivityTimelineItem: React.FC<ActivityTimelineItemProps> = memo(
 
         <div className="flex-1 min-w-0 pb-4">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-foreground leading-tight truncate">
                 {activity.strSubject}
               </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {getActivityTypeLabel(activity.strActivityType)}
-                {activity.strOutcome && (
-                  <span className="mx-1">·</span>
+              <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                <span className="text-xs text-muted-foreground">
+                  {getActivityTypeLabel(activity.strActivityType)}
+                </span>
+                <Badge variant="outline" className={`text-[10px] h-4 ${statusBadge?.className || ""}`}>
+                  {statusBadge?.label || activity.strStatus}
+                </Badge>
+                {activity.bolIsOverdue && (
+                  <Badge variant="destructive" className="text-[10px] h-4">
+                    <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
+                    Overdue
+                  </Badge>
                 )}
-                {activity.strOutcome && (
-                  <span>{activity.strOutcome}</span>
-                )}
-              </p>
+              </div>
             </div>
-            <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
-              {formatDistanceToNow(new Date(activity.dtCreatedOn), {
-                addSuffix: true,
-              })}
-            </span>
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {formatDistanceToNow(new Date(activity.dtCreatedOn), { addSuffix: true })}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={onEdit}
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
 
           {activity.strDescription && (
@@ -191,10 +290,13 @@ const ActivityTimelineItem: React.FC<ActivityTimelineItemProps> = memo(
             </p>
           )}
 
-          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
             <span>{activity.strCreatedByName}</span>
-            {activity.intDurationMinutes && (
-              <span>{activity.intDurationMinutes} min</span>
+            {activity.strAssignedToName && (
+              <span className="text-primary">→ {activity.strAssignedToName}</span>
+            )}
+            {activity.strOutcome && (
+              <span className="italic">"{activity.strOutcome}"</span>
             )}
             {activity.dtScheduledOn && !activity.dtCompletedOn && (
               <span className="text-amber-600 dark:text-amber-400">
@@ -202,11 +304,29 @@ const ActivityTimelineItem: React.FC<ActivityTimelineItemProps> = memo(
               </span>
             )}
             {activity.dtCompletedOn && (
-              <span className="text-emerald-600 dark:text-emerald-400">
+              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5">
+                <CheckCircle2 className="h-3 w-3" />
                 Completed
               </span>
             )}
           </div>
+
+          {/* Quick status change (only if not completed/cancelled) */}
+          {activity.strStatus !== "Completed" && activity.strStatus !== "Cancelled" && (
+            <div className="flex items-center gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              {ACTIVITY_STATUSES.filter(s => s !== activity.strStatus).slice(0, 3).map(s => (
+                <Button
+                  key={s}
+                  variant="outline"
+                  size="sm"
+                  className={`h-5 text-[10px] px-2 ${STATUS_BADGE[s]?.className || ""}`}
+                  onClick={() => onStatusChange(activity.strActivityGUID, s)}
+                >
+                  {STATUS_BADGE[s]?.label || s}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );

@@ -4,6 +4,9 @@ import { activityExtendedService } from "@/services/CRM/activity-extended.servic
 import type {
   ActivityFilterParams,
   CreateActivityDto,
+  UpdateActivityDto,
+  ActivityStatusChangeDto,
+  ActivityAssignDto,
 } from "@/types/CRM/activity";
 
 export const useActivitiesExtended = (params?: ActivityFilterParams) => {
@@ -63,6 +66,10 @@ export const useCreateActivity = () => {
       activityExtendedService.createActivity(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-entity-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-upcoming-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming-activities"] });
       toast.success("Activity created successfully");
     },
     onError: (error: any) => {
@@ -77,10 +84,13 @@ export const useUpdateActivity = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: CreateActivityDto }) =>
+    mutationFn: ({ id, dto }: { id: string; dto: UpdateActivityDto }) =>
       activityExtendedService.updateActivity(id, dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-entity-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming-activities"] });
       toast.success("Activity updated successfully");
     },
     onError: (error: any) => {
@@ -98,6 +108,8 @@ export const useDeleteActivity = () => {
     mutationFn: (id: string) => activityExtendedService.deleteActivity(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-entity-activities"] });
       toast.success("Activity deleted successfully");
     },
     onError: (error: any) => {
@@ -112,15 +124,38 @@ export const useChangeActivityStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      activityExtendedService.changeStatus(id, status),
+    mutationFn: ({ id, dto }: { id: string; dto: ActivityStatusChangeDto }) =>
+      activityExtendedService.changeStatus(id, dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-entity-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming-activities"] });
       toast.success("Activity status updated");
     },
     onError: (error: any) => {
       toast.error(
         error?.message || "Failed to update activity status"
+      );
+    },
+  });
+};
+
+export const useAssignActivity = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: string; dto: ActivityAssignDto }) =>
+      activityExtendedService.assignActivity(id, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming-activities"] });
+      toast.success("Activity assigned successfully");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.message || "Failed to assign activity"
       );
     },
   });

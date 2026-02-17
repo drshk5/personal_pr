@@ -142,10 +142,10 @@ const OpportunityList: React.FC = () => {
   const filterParams: OpportunityFilterParams = useMemo(
     () => ({
       search: debouncedSearch || undefined,
-      strStatus: filterStatus || undefined,
-      strPipelineGUID: filterPipeline || undefined,
+      strStatus: filterStatus === "all" ? undefined : filterStatus || undefined,
+      strPipelineGUID: filterPipeline === "all" ? undefined : filterPipeline || undefined,
       bolIsRotting:
-        filterIsRotting === "" ? undefined : filterIsRotting === "true",
+        filterIsRotting === "all" || filterIsRotting === "" ? undefined : filterIsRotting === "true",
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize,
       sortBy,
@@ -558,7 +558,7 @@ const OpportunityList: React.FC = () => {
                       <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Statuses</SelectItem>
+                      <SelectItem value="all">All Statuses</SelectItem>
                       {OPPORTUNITY_STATUSES.map((status) => (
                         <SelectItem key={status} value={status}>
                           {status}
@@ -580,7 +580,7 @@ const OpportunityList: React.FC = () => {
                       <SelectValue placeholder="All Pipelines" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Pipelines</SelectItem>
+                      <SelectItem value="all">All Pipelines</SelectItem>
                       {pipelines?.map((p) => (
                         <SelectItem
                           key={p.strPipelineGUID}
@@ -605,7 +605,7 @@ const OpportunityList: React.FC = () => {
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
                       <SelectItem value="true">Rotting</SelectItem>
                       <SelectItem value="false">Healthy</SelectItem>
                     </SelectContent>

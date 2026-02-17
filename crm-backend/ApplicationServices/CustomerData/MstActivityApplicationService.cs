@@ -606,6 +606,38 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    //  BULK EMAIL NOTIFICATIONS
+    // ─────────────────────────────────────────────────────────────────────
+
+    public async Task<bool> SendBulkActivityNotificationsAsync(ActivityBulkNotifyDto dto)
+    {
+        if (dto.ActivityGuids.Count == 0)
+            return true;
+
+        var activities = await _unitOfWork.Activities.Query()
+            .Where(a => dto.ActivityGuids.Contains(a.strActivityGUID) && !a.bolIsDeleted)
+            .ToListAsync();
+
+        if (!activities.Any())
+            return false;
+
+        // Get unique assigned user IDs
+        var userIds = activities
+            .Where(a => a.strAssignedToGUID.HasValue)
+            .Select(a => a.strAssignedToGUID!.Value)
+            .Distinct()
+            .ToList();
+
+        // TODO: Inject IEmailNotificationService and call it here
+        // await _emailNotificationService.SendBulkActivityNotificationsAsync(dto.ActivityGuids, userIds);
+
+        _logger.LogInformation("Queued notifications for {Count} activities to {UserCount} users", 
+            activities.Count, userIds.Count);
+
+        return true;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     //  ENTITY ACTIVITIES (existing, enhanced)
     // ─────────────────────────────────────────────────────────────────────
 

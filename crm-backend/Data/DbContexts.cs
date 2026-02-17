@@ -462,10 +462,9 @@ namespace crm_backend.Data
                 entity.Property(e => e.strActivityType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.strSubject).HasMaxLength(300).IsRequired();
                 entity.Property(e => e.strOutcome).HasMaxLength(200);
-                // Backward-compat mapping for tenant DBs where activity columns use old names.
-                entity.Property(e => e.dtScheduledOn).HasColumnName("dtScheduledStart");
-                entity.Property(e => e.dtCompletedOn).HasColumnName("dtActualEnd");
-                entity.Ignore(e => e.intDurationMinutes);
+                entity.Property(e => e.dtScheduledOn);
+                entity.Property(e => e.dtCompletedOn);
+                entity.Property(e => e.intDurationMinutes);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
             });
@@ -496,8 +495,7 @@ namespace crm_backend.Data
                 entity.Property(e => e.strAuditLogGUID).HasDefaultValueSql("NEWID()");
                 entity.Property(e => e.strEntityType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.strAction).HasMaxLength(50).IsRequired();
-                // Tenant DB uses strNewValues/strOldValues columns; map legacy strChanges payload to strNewValues.
-                entity.Property(e => e.strChanges).HasColumnName("strNewValues");
+                entity.Property(e => e.strChanges);
                 entity.Property(e => e.dtPerformedOn).HasDefaultValueSql("GETUTCDATE()");
             });
         }
@@ -512,10 +510,9 @@ namespace crm_backend.Data
                 entity.Property(e => e.strConditionField).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.strConditionOperator).HasMaxLength(20).HasDefaultValue("Equals");
                 entity.Property(e => e.strConditionValue).HasMaxLength(500);
-                // Legacy tenant schema stores score delta as intScoreChange and does not have decay/sort columns.
-                entity.Property(e => e.intScorePoints).HasColumnName("intScoreChange");
-                entity.Ignore(e => e.intDecayDays);
-                entity.Ignore(e => e.intSortOrder);
+                entity.Property(e => e.intScorePoints);
+                entity.Property(e => e.intDecayDays);
+                entity.Property(e => e.intSortOrder);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
                 entity.Property(e => e.bolIsDeleted).HasDefaultValue(false);
@@ -554,9 +551,8 @@ namespace crm_backend.Data
                 entity.Property(e => e.strAssignmentRuleGUID).HasDefaultValueSql("NEWID()");
                 entity.Property(e => e.strRuleName).HasMaxLength(200).IsRequired();
                 entity.Property(e => e.strAssignmentType).HasMaxLength(50).IsRequired();
-                // Legacy tenant schema uses strCriteria and has no round-robin index column.
-                entity.Property(e => e.strConditionJson).HasColumnName("strCriteria");
-                entity.Ignore(e => e.intLastAssignedIndex);
+                entity.Property(e => e.strConditionJson);
+                entity.Property(e => e.intLastAssignedIndex);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
                 entity.Property(e => e.bolIsDeleted).HasDefaultValue(false);
@@ -570,8 +566,7 @@ namespace crm_backend.Data
             builder.Entity<MstLeadAssignmentMember>(entity =>
             {
                 entity.Property(e => e.strAssignmentMemberGUID).HasDefaultValueSql("NEWID()");
-                // Legacy schema stores percentage capacity instead of absolute max capacity.
-                entity.Property(e => e.intMaxCapacity).HasColumnName("intCapacityPercentage");
+                entity.Property(e => e.intMaxCapacity);
                 entity.Property(e => e.strSkillLevel).HasMaxLength(50);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
@@ -616,9 +611,8 @@ namespace crm_backend.Data
             builder.Entity<MstLeadMergeHistory>(entity =>
             {
                 entity.Property(e => e.strMergeHistoryGUID).HasDefaultValueSql("NEWID()");
-                // Legacy schema stores merged lead payload in strMergedLeadsJson and has no single merged lead GUID column.
-                entity.Property(e => e.strMergedDataJson).HasColumnName("strMergedLeadsJson");
-                entity.Ignore(e => e.strMergedLeadGUID);
+                entity.Property(e => e.strMergedDataJson);
+                entity.Property(e => e.strMergedLeadGUID);
                 entity.Property(e => e.dtMergedOn).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasOne(e => e.SurvivorLead)
@@ -637,10 +631,9 @@ namespace crm_backend.Data
                 entity.Property(e => e.strEntityType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.strTriggerEvent).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.strActionType).HasMaxLength(100).IsRequired();
-                // Legacy schema naming differences.
-                entity.Property(e => e.strTriggerConditionJson).HasColumnName("strConditions");
-                entity.Property(e => e.strActionConfigJson).HasColumnName("strActionConfig");
-                entity.Ignore(e => e.intDelayMinutes);
+                entity.Property(e => e.strTriggerConditionJson);
+                entity.Property(e => e.strActionConfigJson);
+                entity.Property(e => e.intDelayMinutes);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
                 entity.Property(e => e.bolIsDeleted).HasDefaultValue(false);
@@ -653,10 +646,9 @@ namespace crm_backend.Data
             {
                 entity.Property(e => e.strExecutionGUID).HasDefaultValueSql("NEWID()");
                 entity.Property(e => e.strStatus).HasMaxLength(30).IsRequired();
-                // Legacy schema has dtStartedOn/dtCompletedOn and no result payload column.
-                entity.Property(e => e.dtScheduledFor).HasColumnName("dtStartedOn");
-                entity.Property(e => e.dtExecutedOn).HasColumnName("dtCompletedOn");
-                entity.Ignore(e => e.strResultJson);
+                entity.Property(e => e.dtScheduledFor);
+                entity.Property(e => e.dtExecutedOn);
+                entity.Property(e => e.strResultJson);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasOne(e => e.WorkflowRule)
@@ -676,9 +668,8 @@ namespace crm_backend.Data
                 entity.Property(e => e.strRedirectUrl).HasMaxLength(500);
                 entity.Property(e => e.strThankYouMessage).HasMaxLength(500);
                 entity.Property(e => e.strDefaultSource).HasMaxLength(50).HasDefaultValue("Website");
-                // Legacy schema does not include default-assignee/custom CSS columns.
-                entity.Ignore(e => e.strDefaultAssignedToGUID);
-                entity.Ignore(e => e.strCustomCss);
+                entity.Property(e => e.strDefaultAssignedToGUID);
+                entity.Property(e => e.strCustomCss);
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
                 entity.Property(e => e.bolIsDeleted).HasDefaultValue(false);
                 entity.Property(e => e.bolCaptchaEnabled).HasDefaultValue(true);
@@ -695,9 +686,8 @@ namespace crm_backend.Data
                 entity.Property(e => e.strFieldType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.strMappedLeadField).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.strDefaultValue).HasMaxLength(500);
-                // Legacy schema uses intDisplayOrder and no options-json column.
-                entity.Property(e => e.intSortOrder).HasColumnName("intDisplayOrder");
-                entity.Ignore(e => e.strOptionsJson);
+                entity.Property(e => e.strOptionsJson);
+                entity.Property(e => e.intSortOrder);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasOne(e => e.WebForm)
@@ -744,12 +734,11 @@ namespace crm_backend.Data
                 entity.Property(e => e.strImportJobGUID).HasDefaultValueSql("NEWID()");
                 entity.Property(e => e.strFileName).HasMaxLength(300).IsRequired();
                 entity.Property(e => e.strStatus).HasMaxLength(30).HasDefaultValue("Pending");
-                // Legacy schema naming uses *Records fields and does not keep processed/duplicate counters separately.
-                entity.Property(e => e.intTotalRows).HasColumnName("intTotalRecords");
-                entity.Property(e => e.intSuccessRows).HasColumnName("intSuccessRecords");
-                entity.Property(e => e.intErrorRows).HasColumnName("intFailedRecords");
-                entity.Ignore(e => e.intProcessedRows);
-                entity.Ignore(e => e.intDuplicateRows);
+                entity.Property(e => e.intTotalRows);
+                entity.Property(e => e.intSuccessRows);
+                entity.Property(e => e.intErrorRows);
+                entity.Property(e => e.intProcessedRows);
+                entity.Property(e => e.intDuplicateRows);
                 entity.Property(e => e.strDuplicateHandling).HasMaxLength(30).HasDefaultValue("Skip");
                 entity.Property(e => e.strColumnMappingJson).IsRequired();
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
@@ -761,8 +750,7 @@ namespace crm_backend.Data
             builder.Entity<MstImportJobError>(entity =>
             {
                 entity.Property(e => e.strImportJobErrorGUID).HasDefaultValueSql("NEWID()");
-                // Legacy DB column is 'strRawData', not 'strRawDataJson'
-                entity.Property(e => e.strRawDataJson).HasColumnName("strRawData");
+                entity.Property(e => e.strRawDataJson);
                 entity.Property(e => e.strErrorMessage).HasMaxLength(500).IsRequired();
                 entity.Property(e => e.strErrorType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
@@ -789,8 +777,7 @@ namespace crm_backend.Data
                 entity.Property(e => e.bolIsOpened).HasDefaultValue(false);
                 entity.Property(e => e.intClickCount).HasDefaultValue(0);
                 entity.Property(e => e.strExternalMessageId).HasMaxLength(200);
-                // Legacy schema does not store creator GUID on communication rows.
-                entity.Ignore(e => e.strCreatedByGUID);
+                entity.Property(e => e.strCreatedByGUID);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasIndex(e => e.strLeadGUID).HasDatabaseName("IX_MstLeadCommunications_LeadGUID");

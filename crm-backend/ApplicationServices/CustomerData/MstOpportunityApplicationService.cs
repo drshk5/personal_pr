@@ -586,6 +586,10 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
         opportunity.dtUpdatedOn = DateTime.UtcNow;
 
         _unitOfWork.Opportunities.Update(opportunity);
+
+        // ── Auto-sync linked contact lifecycle stages ──────────────
+        await AutoSyncContactLifecycleStagesAsync(opportunity.strOpportunityGUID, targetStage);
+
         await _unitOfWork.SaveChangesAsync();
 
         await _auditLogService.LogAsync(
@@ -632,6 +636,14 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
         }
 
         _unitOfWork.Opportunities.Update(opportunity);
+
+        // ── Auto-sync linked contact lifecycle stages on close ──────
+        if (dto.strStatus == "Won")
+        {
+            // Won → move contacts to "Customer"
+            await AutoSyncContactLifecycleToCustomerAsync(opportunity.strOpportunityGUID);
+        }
+
         await _unitOfWork.SaveChangesAsync();
 
         await _auditLogService.LogAsync(
@@ -862,5 +874,89 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
 
         await _unitOfWork.SaveChangesAsync();
         return true;
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // AUTO-SYNC CONTACT LIFECYCLE STAGES
+    // Maps pipeline stage probability to contact lifecycle:
+    //   0-20%  → Lead,  21-40% → MQL,  41-60% → SQL,
+    //   61-80% → Opportunity,  81-100% → Customer
+    // Only advances forward (never demotes a contact)
+    // ────────────────────────────────────────────────────────────────
+
+    private async Task AutoSyncContactLifecycleStagesAsync(Guid opportunityId, MstPipelineStage targetStage)
+    {
+        var targetLifecycle = MapProbabilityToLifecycleStage(targetStage.intProbabilityPercent, targetStage.bolIsWonStage);
+
+        var linkedContactIds = await _unitOfWork.OpportunityContacts.Query()
+            .AsNoTracking()
+            .Where(oc => oc.strOpportunityGUID == opportunityId)
+            .Select(oc => oc.strContactGUID)
+            .ToListAsync();
+
+        if (linkedContactIds.Count == 0) return;
+
+        var contacts = await _unitOfWork.Contacts.Query()
+            .Where(c => linkedContactIds.Contains(c.strContactGUID))
+            .ToListAsync();
+
+        var allStages = ContactLifecycleStageConstants.AllStages;
+        var targetIdx = Array.IndexOf(allStages, targetLifecycle);
+
+        foreach (var contact in contacts)
+        {
+            var currentIdx = Array.IndexOf(allStages, contact.strLifecycleStage);
+            // Only advance forward, never demote
+            if (targetIdx > currentIdx)
+            {
+                contact.strLifecycleStage = targetLifecycle;
+                contact.dtUpdatedOn = DateTime.UtcNow;
+                contact.strUpdatedByGUID = GetCurrentUserId();
+                _unitOfWork.Contacts.Update(contact);
+            }
+        }
+    }
+
+    private async Task AutoSyncContactLifecycleToCustomerAsync(Guid opportunityId)
+    {
+        var linkedContactIds = await _unitOfWork.OpportunityContacts.Query()
+            .AsNoTracking()
+            .Where(oc => oc.strOpportunityGUID == opportunityId)
+            .Select(oc => oc.strContactGUID)
+            .ToListAsync();
+
+        if (linkedContactIds.Count == 0) return;
+
+        var contacts = await _unitOfWork.Contacts.Query()
+            .Where(c => linkedContactIds.Contains(c.strContactGUID))
+            .ToListAsync();
+
+        var allStages = ContactLifecycleStageConstants.AllStages;
+        var customerIdx = Array.IndexOf(allStages, ContactLifecycleStageConstants.Customer);
+
+        foreach (var contact in contacts)
+        {
+            var currentIdx = Array.IndexOf(allStages, contact.strLifecycleStage);
+            if (customerIdx > currentIdx)
+            {
+                contact.strLifecycleStage = ContactLifecycleStageConstants.Customer;
+                contact.dtUpdatedOn = DateTime.UtcNow;
+                contact.strUpdatedByGUID = GetCurrentUserId();
+                _unitOfWork.Contacts.Update(contact);
+            }
+        }
+    }
+
+    private static string MapProbabilityToLifecycleStage(int probability, bool isWonStage)
+    {
+        if (isWonStage) return ContactLifecycleStageConstants.Customer;
+        return probability switch
+        {
+            <= 20 => ContactLifecycleStageConstants.Lead,
+            <= 40 => ContactLifecycleStageConstants.MQL,
+            <= 60 => ContactLifecycleStageConstants.SQL,
+            <= 80 => ContactLifecycleStageConstants.Opportunity,
+            _     => ContactLifecycleStageConstants.Customer,
+        };
     }
 }

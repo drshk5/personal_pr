@@ -134,9 +134,9 @@ const ContactList: React.FC = () => {
   const filterParams: ContactFilterParams = useMemo(
     () => ({
       search: debouncedSearch || undefined,
-      strLifecycleStage: filterLifecycleStage || undefined,
+      strLifecycleStage: filterLifecycleStage === "all" ? undefined : filterLifecycleStage || undefined,
       bolIsActive:
-        filterIsActive === "" ? undefined : filterIsActive === "true",
+        filterIsActive === "all" || filterIsActive === "" ? undefined : filterIsActive === "true",
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize,
       sortBy,
@@ -518,7 +518,7 @@ const ContactList: React.FC = () => {
                       <SelectValue placeholder="All Stages" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Stages</SelectItem>
+                      <SelectItem value="all">All Stages</SelectItem>
                       {CONTACT_LIFECYCLE_STAGES.map((s) => (
                         <SelectItem key={s} value={s}>
                           {s}
@@ -540,7 +540,7 @@ const ContactList: React.FC = () => {
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
                       <SelectItem value="true">Active</SelectItem>
                       <SelectItem value="false">Inactive</SelectItem>
                     </SelectContent>

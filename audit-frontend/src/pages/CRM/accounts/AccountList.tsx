@@ -144,9 +144,9 @@ const AccountList: React.FC = () => {
   const filterParams: AccountFilterParams = useMemo(
     () => ({
       search: debouncedSearch || undefined,
-      strIndustry: filterIndustry || undefined,
+      strIndustry: filterIndustry === "all" ? undefined : filterIndustry || undefined,
       bolIsActive:
-        filterIsActive === "" ? undefined : filterIsActive === "true",
+        filterIsActive === "all" || filterIsActive === "" ? undefined : filterIsActive === "true",
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize,
       sortBy,
@@ -681,7 +681,7 @@ const AccountList: React.FC = () => {
                       <SelectValue placeholder="All Industries" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Industries</SelectItem>
+                      <SelectItem value="all">All Industries</SelectItem>
                       {ACCOUNT_INDUSTRIES.map((ind) => (
                         <SelectItem key={ind} value={ind}>
                           {ind}
@@ -703,7 +703,7 @@ const AccountList: React.FC = () => {
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
                       <SelectItem value="true">Active</SelectItem>
                       <SelectItem value="false">Inactive</SelectItem>
                     </SelectContent>

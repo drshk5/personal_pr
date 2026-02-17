@@ -17,6 +17,8 @@ import {
   MessageSquare,
   CalendarDays,
   Trophy,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,6 +44,7 @@ import {
 import { useAccounts } from "@/hooks/api/CRM/use-accounts";
 import { useContacts } from "@/hooks/api/CRM/use-contacts";
 import { usePipelines, usePipeline } from "@/hooks/api/CRM/use-pipelines";
+import { useActiveUsers } from "@/hooks/api/central/use-users";
 import { useMenuIcon } from "@/hooks/common/use-menu-icon";
 import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 import { opportunityService } from "@/services/CRM/opportunity.service";
@@ -77,6 +80,20 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import NotFound from "@/components/error-boundaries/entity-not-found";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 import OpportunityFormSkeleton from "./OpportunityFormSkeleton";
 import OpportunityCloseDialog from "./components/OpportunityCloseDialog";
@@ -115,6 +132,9 @@ const OpportunityForm: React.FC = () => {
   const { data: pipelineDetail } = usePipeline(
     selectedPipelineId || undefined
   );
+
+  // Users for assignment dropdown
+  const { data: activeUsers } = useActiveUsers();
 
   // Form
   const form = useForm<OpportunityFormValues>({
@@ -556,15 +576,77 @@ const OpportunityForm: React.FC = () => {
                           control={form.control}
                           name="strAssignedToGUID"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="flex flex-col">
                               <FormLabel>Assigned To</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Assigned user GUID"
-                                  {...field}
-                                  value={field.value || ""}
-                                />
-                              </FormControl>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      className={cn(
+                                        "w-full justify-between font-normal",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value
+                                        ? activeUsers?.find(
+                                            (u) => u.strUserGUID === field.value
+                                          )?.strName || "Select user"
+                                        : "Select user"}
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                                  <Command>
+                                    <CommandInput placeholder="Search users..." />
+                                    <CommandList>
+                                      <CommandEmpty>No users found.</CommandEmpty>
+                                      <CommandGroup>
+                                        <CommandItem
+                                          value="__none__"
+                                          onSelect={() => {
+                                            field.onChange("");
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              !field.value ? "opacity-100" : "opacity-0"
+                                            )}
+                                          />
+                                          Unassigned
+                                        </CommandItem>
+                                        {activeUsers?.map((user) => (
+                                          <CommandItem
+                                            key={user.strUserGUID}
+                                            value={`${user.strName} ${user.strEmailId}`}
+                                            onSelect={() => {
+                                              field.onChange(user.strUserGUID);
+                                            }}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                field.value === user.strUserGUID
+                                                  ? "opacity-100"
+                                                  : "opacity-0"
+                                              )}
+                                            />
+                                            <div className="flex flex-col">
+                                              <span>{user.strName}</span>
+                                              <span className="text-xs text-muted-foreground">
+                                                {user.strEmailId}
+                                              </span>
+                                            </div>
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               <FormMessage />
                             </FormItem>
                           )}

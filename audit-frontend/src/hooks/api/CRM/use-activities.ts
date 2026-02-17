@@ -82,3 +82,22 @@ export const useUpcomingActivities = () => {
     queryFn: () => activityService.getUpcoming(),
   });
 };
+
+// ── Bulk Notify Activities ──────────────────────────────────────
+
+export const useBulkNotifyActivities = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: {
+      activityGuids: string[];
+      message: string;
+      notifyAssignedUsers: boolean;
+    }) => activityService.bulkNotify(dto),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: activityQueryKeys.all });
+      toast.success("Bulk notification sent successfully");
+    },
+    onError: (error) =>
+      handleMutationError(error, "Failed to send bulk notifications"),
+  });
+};

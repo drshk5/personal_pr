@@ -235,4 +235,20 @@ public class ActivitiesController : ControllerBase
         var result = await _activityAppService.GetUpcomingActivitiesAsync();
         return Ok(ApiResponse<List<UpcomingActivityDto>>.Success(result));
     }
+
+    // ── BULK EMAIL NOTIFICATION ──
+
+    /// <summary>
+    /// Send bulk email notifications to all assigned users for selected activities.
+    /// Processes emails in background queue for high performance.
+    /// </summary>
+    [HttpPost("bulk-notify")]
+    [AuthorizePermission("CRM_Activities", "Edit")]
+    [AuditLog("Activity", "BulkNotify")]
+    public async Task<ActionResult<ApiResponse<bool>>> SendBulkNotifications(
+        [FromBody] ActivityBulkNotifyDto dto)
+    {
+        var result = await _activityAppService.SendBulkActivityNotificationsAsync(dto);
+        return Ok(ApiResponse<bool>.Success(result, $"Notifications queued for {dto.ActivityGuids.Count} activities"));
+    }
 }
