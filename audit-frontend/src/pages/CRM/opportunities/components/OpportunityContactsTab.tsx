@@ -38,6 +38,7 @@ import {
 import { useAddOpportunityContact, useRemoveOpportunityContact } from "@/hooks/api/CRM/use-opportunities";
 import { useContacts } from "@/hooks/api/CRM/use-contacts";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { OpportunityContactDto } from "@/types/CRM/opportunity";
 import { OPPORTUNITY_CONTACT_ROLES } from "@/types/CRM/opportunity";
 
@@ -289,12 +290,10 @@ function AddContactDialog({
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
+              <Checkbox
                 id="isPrimary"
                 checked={isPrimary}
-                onChange={(e) => setIsPrimary(e.target.checked)}
-                className="rounded"
+                onCheckedChange={(checked) => setIsPrimary(!!checked)}
               />
               <Label htmlFor="isPrimary">Primary Contact</Label>
             </div>

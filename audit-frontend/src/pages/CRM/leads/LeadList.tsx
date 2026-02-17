@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
@@ -58,6 +58,8 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { IndeterminateCheckbox } from "@/components/ui/IndeterminateCheckbox";
 
 import LeadStatusBadge from "./components/LeadStatusBadge";
 import LeadScoreBadge from "./components/LeadScoreBadge";
@@ -70,6 +72,7 @@ import LeadImportDialog from "./components/LeadImportDialog";
 import LeadAssignmentDialog from "./components/LeadAssignmentDialog";
 
 const defaultColumnOrder = [
+  "select",
   "actions",
   "strName",
   "strEmail",
@@ -117,7 +120,11 @@ const LeadList: React.FC = () => {
 
   // Assignment
   const [showAssignment, setShowAssignment] = useState(false);
-  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
+
+  // Selection state (modern pattern)
+  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+  const [selectAll, setSelectAll] = useState<boolean>(false);
+  const [indeterminate, setIndeterminate] = useState<boolean>(false);
 
   // Analytics mini-view
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -155,7 +162,7 @@ const LeadList: React.FC = () => {
     columnWidths,
     setColumnWidths,
     resetAll,
-  } = useTableLayout("crm-leads", defaultColumnOrder, ["actions"]);
+  } = useTableLayout("crm-leads", defaultColumnOrder, ["select", "actions"]);
 
   // Sort mapping
   const sortBy = sorting.columnKey || "dtCreatedOn";
@@ -282,18 +289,60 @@ const LeadList: React.FC = () => {
     );
   };
 
-  // Selection toggle
-  const toggleLeadSelection = useCallback((leadId: string) => {
-    setSelectedLeads((prev) => {
-      const next = new Set(prev);
-      if (next.has(leadId)) {
-        next.delete(leadId);
+  // Select all handler
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      setIndeterminate(false);
+      setSelectAll(checked);
+      if (checked) {
+        const newSelectedRows: Record<string, boolean> = {};
+        pagedData.items.forEach((lead) => {
+          newSelectedRows[lead.strLeadGUID] = true;
+        });
+        setSelectedRows(newSelectedRows);
       } else {
-        next.add(leadId);
+        setSelectedRows({});
       }
-      return next;
-    });
+    },
+    [pagedData.items]
+  );
+
+  // Single row toggle
+  const handleRowSelection = useCallback((leadId: string) => {
+    setSelectedRows((prev) => ({
+      ...prev,
+      [leadId]: !prev[leadId],
+    }));
   }, []);
+
+  // Sync indeterminate state
+  useEffect(() => {
+    const selectedCount = Object.keys(selectedRows).filter(
+      (id) => selectedRows[id]
+    ).length;
+    if (pagedData.items.length > 0) {
+      if (selectedCount === pagedData.items.length) {
+        setSelectAll(true);
+        setIndeterminate(false);
+      } else if (selectedCount > 0) {
+        setSelectAll(false);
+        setIndeterminate(true);
+      } else {
+        setSelectAll(false);
+        setIndeterminate(false);
+      }
+    }
+  }, [pagedData.items, selectedRows]);
+
+  // Selected items count
+  const selectedItemsCount = useMemo(() => {
+    return Object.keys(selectedRows).filter((id) => selectedRows[id]).length;
+  }, [selectedRows]);
+
+  // Selected lead IDs array (for bulk operations)
+  const selectedLeadIds = useMemo(() => {
+    return Object.keys(selectedRows).filter((id) => selectedRows[id]);
+  }, [selectedRows]);
 
   // Handle export
   const handleExport = (format: "csv" | "excel") => {
@@ -307,16 +356,30 @@ const LeadList: React.FC = () => {
         canAccess(menuItems, FormModules.CRM_LEAD, Actions.DELETE)
         ? [
           {
+            key: "select",
+            width: "50px",
+            header: (
+              <IndeterminateCheckbox
+                checked={selectAll}
+                indeterminate={indeterminate}
+                onCheckedChange={handleSelectAll}
+                aria-label="Select all"
+              />
+            ),
+            cell: (item: LeadListDto) => (
+              <Checkbox
+                checked={!!selectedRows[item.strLeadGUID]}
+                onCheckedChange={() => handleRowSelection(item.strLeadGUID)}
+                aria-label={`Select ${item.strFirstName} ${item.strLastName}`}
+              />
+            ),
+            sortable: false,
+          } as DataTableColumn<LeadListDto>,
+          {
             key: "actions",
             header: "Actions",
             cell: (item: LeadListDto) => (
               <div className="flex items-center gap-1">
-                <input
-                  type="checkbox"
-                  checked={selectedLeads.has(item.strLeadGUID)}
-                  onChange={() => toggleLeadSelection(item.strLeadGUID)}
-                  className="rounded border-gray-300"
-                />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -390,7 +453,7 @@ const LeadList: React.FC = () => {
               </div>
             ),
             sortable: false,
-            width: "90px",
+            width: "70px",
           } as DataTableColumn<LeadListDto>,
         ]
         : []),
@@ -530,8 +593,11 @@ const LeadList: React.FC = () => {
     [
       menuItems,
       openEditInNewTab,
-      selectedLeads,
-      toggleLeadSelection,
+      selectedRows,
+      selectAll,
+      indeterminate,
+      handleSelectAll,
+      handleRowSelection,
       userMap,
     ]
   );
@@ -605,10 +671,10 @@ const LeadList: React.FC = () => {
       )}
 
       {/* Bulk Action Bar */}
-      {selectedLeads.size > 0 && (
+      {selectedItemsCount > 0 && (
         <div className="flex items-center gap-2 mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
           <span className="text-sm font-medium text-foreground">
-            {selectedLeads.size} lead{selectedLeads.size !== 1 ? "s" : ""}{" "}
+            {selectedItemsCount} lead{selectedItemsCount !== 1 ? "s" : ""}{" "}
             selected
           </span>
           <div className="flex items-center gap-2 ml-auto">
@@ -625,7 +691,7 @@ const LeadList: React.FC = () => {
               variant="outline"
               size="sm"
               className="h-8 text-xs"
-              onClick={() => setSelectedLeads(new Set())}
+              onClick={() => setSelectedRows({})}
             >
               Clear
             </Button>
@@ -979,12 +1045,12 @@ const LeadList: React.FC = () => {
       />
 
       {/* Assignment Dialog */}
-      {showAssignment && selectedLeads.size > 0 && (
+      {showAssignment && selectedItemsCount > 0 && (
         <LeadAssignmentDialog
           open={showAssignment}
           onOpenChange={setShowAssignment}
-          selectedLeadIds={Array.from(selectedLeads)}
-          onSuccess={() => setSelectedLeads(new Set())}
+          selectedLeadIds={selectedLeadIds}
+          onSuccess={() => setSelectedRows({})}
         />
       )}
     </CustomContainer>

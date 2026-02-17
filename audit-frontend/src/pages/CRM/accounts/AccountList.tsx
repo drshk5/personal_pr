@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
@@ -57,9 +57,12 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { IndeterminateCheckbox } from "@/components/ui/IndeterminateCheckbox";
 import AccountImportDialog from "./components/AccountImportDialog";
 
 const defaultColumnOrder = [
+  "select",
   "actions",
   "strAccountName",
   "strIndustry",
@@ -91,9 +94,12 @@ const AccountList: React.FC = () => {
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<AccountListDto | null>(null);
   const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
-  const [selectedAccounts, setSelectedAccounts] = useState<Set<string>>(
-    new Set()
-  );
+
+  // Selection state (modern pattern)
+  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+  const [selectAll, setSelectAll] = useState<boolean>(false);
+  const [indeterminate, setIndeterminate] = useState<boolean>(false);
+
   const { mutate: bulkArchiveAccounts, isPending: isBulkArchiving } =
     useBulkArchiveAccounts();
   const { mutate: bulkRestoreAccounts, isPending: isBulkRestoring } =
@@ -135,7 +141,7 @@ const AccountList: React.FC = () => {
     columnWidths,
     setColumnWidths,
     resetAll,
-  } = useTableLayout("crm-accounts", defaultColumnOrder, ["actions"]);
+  } = useTableLayout("crm-accounts", defaultColumnOrder, ["select", "actions"]);
 
   // Sort mapping
   const sortBy = sorting.columnKey || "dtCreatedOn";
@@ -242,66 +248,80 @@ const AccountList: React.FC = () => {
   };
 
   const toggleAccountSelection = useCallback((accountId: string) => {
-    setSelectedAccounts((prev) => {
-      const next = new Set(prev);
-      if (next.has(accountId)) {
-        next.delete(accountId);
-      } else {
-        next.add(accountId);
-      }
-      return next;
-    });
+    setSelectedRows((prev) => ({
+      ...prev,
+      [accountId]: !prev[accountId],
+    }));
   }, []);
 
-  const toggleAllSelection = useCallback(() => {
-    const visibleIds = pagedData.items.map((item) => item.strAccountGUID);
-    const allVisibleSelected =
-      visibleIds.length > 0 && visibleIds.every((id) => selectedAccounts.has(id));
+  // Select all handler
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      setIndeterminate(false);
+      setSelectAll(checked);
+      if (checked) {
+        const newSelectedRows: Record<string, boolean> = {};
+        pagedData.items.forEach((account) => {
+          newSelectedRows[account.strAccountGUID] = true;
+        });
+        setSelectedRows(newSelectedRows);
+      } else {
+        setSelectedRows({});
+      }
+    },
+    [pagedData.items]
+  );
 
-    if (allVisibleSelected) {
-      setSelectedAccounts((prev) => {
-        const next = new Set(prev);
-        visibleIds.forEach((id) => next.delete(id));
-        return next;
-      });
-      return;
+  // Sync indeterminate state
+  useEffect(() => {
+    const selectedCount = Object.keys(selectedRows).filter(
+      (id) => selectedRows[id]
+    ).length;
+    if (pagedData.items.length > 0) {
+      if (selectedCount === pagedData.items.length) {
+        setSelectAll(true);
+        setIndeterminate(false);
+      } else if (selectedCount > 0) {
+        setSelectAll(false);
+        setIndeterminate(true);
+      } else {
+        setSelectAll(false);
+        setIndeterminate(false);
+      }
     }
+  }, [pagedData.items, selectedRows]);
 
-    setSelectedAccounts((prev) => {
-      const next = new Set(prev);
-      visibleIds.forEach((id) => next.add(id));
-      return next;
-    });
-  }, [pagedData.items, selectedAccounts]);
+  // Selected items count
+  const selectedItemsCount = useMemo(() => {
+    return Object.keys(selectedRows).filter((id) => selectedRows[id]).length;
+  }, [selectedRows]);
+
+  // Selected account IDs array
+  const selectedAccountIds = useMemo(() => {
+    return Object.keys(selectedRows).filter((id) => selectedRows[id]);
+  }, [selectedRows]);
 
   const handleBulkArchive = useCallback(() => {
-    if (selectedAccounts.size === 0) return;
+    if (selectedItemsCount === 0) return;
 
     bulkArchiveAccounts(
-      { guids: Array.from(selectedAccounts) },
+      { guids: selectedAccountIds },
       {
-        onSuccess: () => setSelectedAccounts(new Set()),
+        onSuccess: () => setSelectedRows({}),
       }
     );
-  }, [bulkArchiveAccounts, selectedAccounts]);
+  }, [bulkArchiveAccounts, selectedAccountIds, selectedItemsCount]);
 
   const handleBulkRestore = useCallback(() => {
-    if (selectedAccounts.size === 0) return;
+    if (selectedItemsCount === 0) return;
 
     bulkRestoreAccounts(
-      { guids: Array.from(selectedAccounts) },
+      { guids: selectedAccountIds },
       {
-        onSuccess: () => setSelectedAccounts(new Set()),
+        onSuccess: () => setSelectedRows({}),
       }
     );
-  }, [bulkRestoreAccounts, selectedAccounts]);
-
-  const allVisibleSelected = useMemo(() => {
-    if (pagedData.items.length === 0) return false;
-    return pagedData.items.every((item) =>
-      selectedAccounts.has(item.strAccountGUID)
-    );
-  }, [pagedData.items, selectedAccounts]);
+  }, [bulkRestoreAccounts, selectedAccountIds, selectedItemsCount]);
 
   // Format currency
   const formatCurrency = (value: number) => {
@@ -317,28 +337,30 @@ const AccountList: React.FC = () => {
         canAccess(menuItems, FormModules.CRM_ACCOUNT, Actions.DELETE)
         ? [
           {
-            key: "actions",
+            key: "select",
+            width: "50px",
             header: (
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={allVisibleSelected}
-                  onChange={toggleAllSelection}
-                  className="rounded border-gray-300"
-                  aria-label="Select all visible accounts"
-                />
-                <span>Actions</span>
-              </div>
+              <IndeterminateCheckbox
+                checked={selectAll}
+                indeterminate={indeterminate}
+                onCheckedChange={handleSelectAll}
+                aria-label="Select all"
+              />
             ),
             cell: (item: AccountListDto) => (
+              <Checkbox
+                checked={!!selectedRows[item.strAccountGUID]}
+                onCheckedChange={() => toggleAccountSelection(item.strAccountGUID)}
+                aria-label={`Select account ${item.strAccountName}`}
+              />
+            ),
+            sortable: false,
+          } as DataTableColumn<AccountListDto>,
+          {
+            key: "actions",
+            header: "Actions",
+            cell: (item: AccountListDto) => (
               <div className="flex items-center gap-1">
-                <input
-                  type="checkbox"
-                  checked={selectedAccounts.has(item.strAccountGUID)}
-                  onChange={() => toggleAccountSelection(item.strAccountGUID)}
-                  className="rounded border-gray-300"
-                  aria-label={`Select account ${item.strAccountName}`}
-                />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -387,7 +409,7 @@ const AccountList: React.FC = () => {
               </div>
             ),
             sortable: false,
-            width: "110px",
+            width: "70px",
           } as DataTableColumn<AccountListDto>,
         ]
         : []),
@@ -509,12 +531,13 @@ const AccountList: React.FC = () => {
       },
     ],
     [
-      allVisibleSelected,
       menuItems,
       openEditInNewTab,
-      selectedAccounts,
+      selectedRows,
+      selectAll,
+      indeterminate,
+      handleSelectAll,
       toggleAccountSelection,
-      toggleAllSelection,
       userMap,
     ]
   );
@@ -544,11 +567,11 @@ const AccountList: React.FC = () => {
         }
       />
 
-      {selectedAccounts.size > 0 && (
+      {selectedItemsCount > 0 && (
         <div className="flex items-center gap-2 mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
           <span className="text-sm font-medium text-foreground">
-            {selectedAccounts.size} account
-            {selectedAccounts.size !== 1 ? "s" : ""} selected
+            {selectedItemsCount} account
+            {selectedItemsCount !== 1 ? "s" : ""} selected
           </span>
           <div className="flex items-center gap-2 ml-auto">
             <Button
@@ -575,7 +598,7 @@ const AccountList: React.FC = () => {
               variant="outline"
               size="sm"
               className="h-8 text-xs"
-              onClick={() => setSelectedAccounts(new Set())}
+              onClick={() => setSelectedRows({})}
               disabled={isBulkArchiving || isBulkRestoring}
             >
               Clear

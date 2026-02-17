@@ -77,6 +77,7 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import NotFound from "@/components/error-boundaries/entity-not-found";
+import { Checkbox } from "@/components/ui/checkbox";
 import UserAssignSelect from "@/components/CRM/UserAssignSelect";
 
 import OpportunityFormSkeleton from "./OpportunityFormSkeleton";
@@ -602,11 +603,10 @@ const OpportunityForm: React.FC = () => {
                                   key={contact.strContactGUID}
                                   className="flex items-start gap-2 cursor-pointer"
                                 >
-                                  <input
-                                    type="checkbox"
-                                    className="mt-0.5 h-4 w-4 rounded border-input"
+                                  <Checkbox
+                                    className="mt-0.5"
                                     checked={isChecked}
-                                    onChange={() =>
+                                    onCheckedChange={() =>
                                       toggleContactSelection(
                                         contact.strContactGUID
                                       )
