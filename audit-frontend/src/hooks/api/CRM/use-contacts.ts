@@ -29,7 +29,9 @@ export const useContact = (id?: string) => {
     queryKey: contactQueryKeys.detail(id || ""),
     queryFn: () => contactService.getContact(id!),
     enabled: !!id,
-    staleTime: 60 * 1000, // 1 min — detail doesn't change frequently
+    // Always fetch fresh data on mount — status/lifecycle can change via activities or opportunities
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 };
 

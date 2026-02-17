@@ -28,12 +28,16 @@ import {
 } from "@/components/ui/select/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, DollarSign, Calendar, Eye, Edit, Search, TrendingUp } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
+import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useOpportunities, useCreateOpportunity } from "@/hooks/api/CRM/use-opportunities";
 import { usePipelines, usePipeline } from "@/hooks/api/CRM/use-pipelines";
+import { useContacts } from "@/hooks/api/CRM/use-contacts";
 import { toast } from "sonner";
-import type { CreateOpportunityDto } from "@/types/CRM/opportunity";
+import type { CreateOpportunityDto, OPPORTUNITY_CONTACT_ROLES } from "@/types/CRM/opportunity";
 import type { PipelineListDto, PipelineStageDto } from "@/types/CRM/pipeline";
+import type { ContactListDto } from "@/types/CRM/contact";
 
 interface AccountOpportunitiesTabProps {
   accountId: string;
@@ -299,6 +303,15 @@ function CreateOpportunityDialog({
   const { data: pipelinesData } = usePipelines();
   const pipelines = pipelinesData || [];
   
+  // Fetch contacts for this account
+  const { data: contactsData } = useContacts({ strAccountGUID: accountId, pageSize: 100 });
+  const accountContacts: ContactListDto[] = Array.isArray(contactsData?.data)
+    ? contactsData.data
+    : (contactsData?.data as any)?.items || (contactsData?.data as any)?.Items || [];
+
+  const [selectedContactGUID, setSelectedContactGUID] = useState<string>("");
+  const [selectedContactRole, setSelectedContactRole] = useState<string>("DecisionMaker");
+
   const [formData, setFormData] = useState<CreateOpportunityDto>({
     strOpportunityName: "",
     strPipelineGUID: "",
@@ -317,7 +330,13 @@ function CreateOpportunityDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createMutation.mutateAsync(formData);
+      const submitData: CreateOpportunityDto = {
+        ...formData,
+        contacts: selectedContactGUID
+          ? [{ strContactGUID: selectedContactGUID, strRole: selectedContactRole, bolIsPrimary: true }]
+          : undefined,
+      };
+      await createMutation.mutateAsync(submitData);
       toast.success("Opportunity created successfully");
       onClose();
       setFormData({
@@ -330,6 +349,8 @@ function CreateOpportunityDialog({
         strAccountGUID: accountId,
         strDescription: "",
       });
+      setSelectedContactGUID("");
+      setSelectedContactRole("DecisionMaker");
     } catch (error: any) {
       toast.error(error?.message || "Failed to create opportunity");
     }
@@ -399,6 +420,46 @@ function CreateOpportunityDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label htmlFor="contact">Contact</Label>
+                <Select
+                  value={selectedContactGUID}
+                  onValueChange={(value) => setSelectedContactGUID(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select contact..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accountContacts.map((contact: ContactListDto) => (
+                      <SelectItem key={contact.strContactGUID} value={contact.strContactGUID}>
+                        {contact.strFirstName} {contact.strLastName}{contact.strEmail ? ` (${contact.strEmail})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactRole">Contact Role</Label>
+                <Select
+                  value={selectedContactRole}
+                  onValueChange={(value) => setSelectedContactRole(value)}
+                  disabled={!selectedContactGUID}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DecisionMaker">Decision Maker</SelectItem>
+                    <SelectItem value="Influencer">Influencer</SelectItem>
+                    <SelectItem value="Champion">Champion</SelectItem>
+                    <SelectItem value="Stakeholder">Stakeholder</SelectItem>
+                    <SelectItem value="EndUser">End User</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="amount">Amount ($)</Label>
                 <Input
                   id="amount"
@@ -416,13 +477,12 @@ function CreateOpportunityDialog({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="closeDate">Expected Close Date</Label>
-                <Input
-                  id="closeDate"
-                  type="date"
-                  value={formData.dtExpectedCloseDate ?? ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, dtExpectedCloseDate: e.target.value })
+                <DatePicker
+                  value={formData.dtExpectedCloseDate ? new Date(formData.dtExpectedCloseDate + "T12:00:00") : undefined}
+                  onChange={(date) =>
+                    setFormData({ ...formData, dtExpectedCloseDate: date ? format(date, "yyyy-MM-dd") : "" })
                   }
+                  placeholder="Select expected close date"
                 />
               </div>
             </div>

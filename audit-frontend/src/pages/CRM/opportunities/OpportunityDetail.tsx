@@ -156,7 +156,7 @@ export default function OpportunityDetailPage() {
               {perms.canEdit && opportunity.strStatus === "Open" && (
                 <Button
                   variant="outline"
-                  onClick={() => setActiveTab("overview")}
+                  onClick={() => navigate(`/crm/opportunities/${id}?mode=edit`)}
                 >
                   <Edit className="mr-2 h-4 w-4" />
                   Edit

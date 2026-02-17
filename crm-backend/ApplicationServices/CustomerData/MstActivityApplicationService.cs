@@ -876,10 +876,8 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
 
             string? newStatus = null;
 
-            // Meeting/Call completed + lead is Contacted → Qualified
-            if ((activity.strActivityType == ActivityTypeConstants.Meeting
-                 || activity.strActivityType == ActivityTypeConstants.Call)
-                && lead.strStatus == LeadStatusConstants.Contacted)
+            // Any activity completed + lead is Contacted → Qualified
+            if (lead.strStatus == LeadStatusConstants.Contacted)
             {
                 newStatus = LeadStatusConstants.Qualified;
             }

@@ -68,6 +68,7 @@ import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 
 import ContactFormSkeleton from "./ContactFormSkeleton";
 import ContactLifecycleBadge from "./components/ContactLifecycleBadge";
+import UserAssignSelect from "@/components/CRM/UserAssignSelect";
 
 const activityIcons: Record<string, React.ElementType> = {
   Call: Phone,
@@ -592,6 +593,25 @@ const ContactForm: React.FC = () => {
                         </FormItem>
                       )}
                     />
+
+                    {/* Assignment */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-4">
+                        Assignment
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="strAssignedToGUID"
+                          render={({ field }) => (
+                            <UserAssignSelect
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </Form>
               </CardContent>
@@ -689,14 +709,14 @@ const ContactForm: React.FC = () => {
                     </span>
                   </div>
                 )}
-                {contact.strAssignedToName && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      Assigned To
-                    </span>
-                    <span className="text-xs text-foreground">{contact.strAssignedToName}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Assigned To
+                  </span>
+                  <span className="text-xs text-foreground">
+                    {contact.strAssignedToName || <span className="text-muted-foreground">Unassigned</span>}
+                  </span>
+                </div>
               </CardContent>
             </Card>
 

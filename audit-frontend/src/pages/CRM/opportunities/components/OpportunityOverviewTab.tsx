@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import type { OpportunityDetailDto } from "@/types/CRM/opportunity";
 import { OPPORTUNITY_CURRENCIES } from "@/types/CRM/opportunity";
 import { format } from "date-fns";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface OpportunityOverviewTabProps {
   opportunity: OpportunityDetailDto;
@@ -183,15 +184,15 @@ export default function OpportunityOverviewTab({
                 </div>
                 <div className="space-y-2">
                   <Label>Expected Close Date</Label>
-                  <Input
-                    type="date"
-                    value={formData.dtExpectedCloseDate}
-                    onChange={(e) =>
+                  <DatePicker
+                    value={formData.dtExpectedCloseDate ? new Date(formData.dtExpectedCloseDate + "T12:00:00") : undefined}
+                    onChange={(date) =>
                       setFormData({
                         ...formData,
-                        dtExpectedCloseDate: e.target.value,
+                        dtExpectedCloseDate: date ? format(date, "yyyy-MM-dd") : "",
                       })
                     }
+                    placeholder="Select expected close date"
                   />
                 </div>
                 <div className="space-y-2">

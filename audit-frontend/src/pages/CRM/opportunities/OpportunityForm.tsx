@@ -17,8 +17,6 @@ import {
   MessageSquare,
   CalendarDays,
   Trophy,
-  Check,
-  ChevronsUpDown,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,7 +42,6 @@ import {
 import { useAccounts } from "@/hooks/api/CRM/use-accounts";
 import { useContacts } from "@/hooks/api/CRM/use-contacts";
 import { usePipelines, usePipeline } from "@/hooks/api/CRM/use-pipelines";
-import { useActiveUsers } from "@/hooks/api/central/use-users";
 import { useMenuIcon } from "@/hooks/common/use-menu-icon";
 import { mapToStandardPagedResponse } from "@/lib/utils/pagination-utils";
 import { opportunityService } from "@/services/CRM/opportunity.service";
@@ -80,20 +77,7 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import NotFound from "@/components/error-boundaries/entity-not-found";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+import UserAssignSelect from "@/components/CRM/UserAssignSelect";
 
 import OpportunityFormSkeleton from "./OpportunityFormSkeleton";
 import OpportunityCloseDialog from "./components/OpportunityCloseDialog";
@@ -110,7 +94,6 @@ const OpportunityForm: React.FC = () => {
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [showCloseDialog, setShowCloseDialog] = React.useState(false);
-  const [assignedToOpen, setAssignedToOpen] = React.useState(false);
   const HeaderIcon = useMenuIcon(FormModules.CRM_OPPORTUNITY, TrendingUp);
   const isEditMode = !!id && id !== "create";
 
@@ -133,9 +116,6 @@ const OpportunityForm: React.FC = () => {
   const { data: pipelineDetail } = usePipeline(
     selectedPipelineId || undefined
   );
-
-  // Users for assignment dropdown
-  const { data: activeUsers } = useActiveUsers();
 
   // Form
   const form = useForm<OpportunityFormValues>({
@@ -577,82 +557,10 @@ const OpportunityForm: React.FC = () => {
                           control={form.control}
                           name="strAssignedToGUID"
                           render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>Assigned To</FormLabel>
-                              <Popover open={assignedToOpen} onOpenChange={setAssignedToOpen} modal={true}>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant="outline"
-                                      role="combobox"
-                                      aria-expanded={assignedToOpen}
-                                      className={cn(
-                                        "w-full justify-between font-normal",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                    >
-                                      {field.value
-                                        ? activeUsers?.find(
-                                            (u) => u.strUserGUID === field.value
-                                          )?.strName || "Select user"
-                                        : "Select user"}
-                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                                  <Command>
-                                    <CommandInput placeholder="Search users..." />
-                                    <CommandList>
-                                      <CommandEmpty>No users found.</CommandEmpty>
-                                      <CommandGroup>
-                                        <CommandItem
-                                          value="__none__"
-                                          onSelect={() => {
-                                            field.onChange("");
-                                            setAssignedToOpen(false);
-                                          }}
-                                        >
-                                          <Check
-                                            className={cn(
-                                              "mr-2 h-4 w-4",
-                                              !field.value ? "opacity-100" : "opacity-0"
-                                            )}
-                                          />
-                                          Unassigned
-                                        </CommandItem>
-                                        {activeUsers?.map((user) => (
-                                          <CommandItem
-                                            key={user.strUserGUID}
-                                            value={`${user.strName} ${user.strEmailId}`}
-                                            onSelect={() => {
-                                              field.onChange(user.strUserGUID);
-                                              setAssignedToOpen(false);
-                                            }}
-                                          >
-                                            <Check
-                                              className={cn(
-                                                "mr-2 h-4 w-4",
-                                                field.value === user.strUserGUID
-                                                  ? "opacity-100"
-                                                  : "opacity-0"
-                                              )}
-                                            />
-                                            <div className="flex flex-col">
-                                              <span>{user.strName}</span>
-                                              <span className="text-xs text-muted-foreground">
-                                                {user.strEmailId}
-                                              </span>
-                                            </div>
-                                          </CommandItem>
-                                        ))}
-                                      </CommandGroup>
-                                    </CommandList>
-                                  </Command>
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
+                            <UserAssignSelect
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                            />
                           )}
                         />
                       </div>
@@ -973,16 +881,14 @@ const OpportunityForm: React.FC = () => {
                     </span>
                   </div>
                 )}
-                {opportunity.strAssignedToName && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      Assigned To
-                    </span>
-                    <span className="text-xs text-foreground">
-                      {opportunity.strAssignedToName}
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Assigned To
+                  </span>
+                  <span className="text-xs text-foreground">
+                    {opportunity.strAssignedToName || <span className="text-muted-foreground">Unassigned</span>}
+                  </span>
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Created</span>
                   <span className="text-xs text-foreground">

@@ -28,6 +28,9 @@ export const useAccount = (id?: string) => {
     queryKey: accountQueryKeys.detail(id || ""),
     queryFn: () => accountService.getAccount(id!),
     enabled: !!id,
+    // Always fetch fresh data on mount — details can change externally
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 };
 

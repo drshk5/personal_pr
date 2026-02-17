@@ -102,6 +102,7 @@ const LeadList: React.FC = () => {
   const [filterHasDuplicates, setFilterHasDuplicates] = useState<string>("");
   const [filterMinScore, setFilterMinScore] = useState<string>("");
   const [filterMaxScore, setFilterMaxScore] = useState<string>("");
+  const [filterAssignedTo, setFilterAssignedTo] = useState<string>("");
 
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<LeadListDto | null>(null);
@@ -166,6 +167,7 @@ const LeadList: React.FC = () => {
       search: debouncedSearch || undefined,
       strStatus: filterStatus || undefined,
       strSource: filterSource || undefined,
+      strAssignedToGUID: filterAssignedTo === "" ? undefined : filterAssignedTo || undefined,
       bolIsActive:
         filterIsActive === "" ? undefined : filterIsActive === "true",
       bolIsSLABreached:
@@ -185,6 +187,7 @@ const LeadList: React.FC = () => {
       debouncedSearch,
       filterStatus,
       filterSource,
+      filterAssignedTo,
       filterIsActive,
       filterSLABreached,
       filterHasDuplicates,
@@ -234,6 +237,7 @@ const LeadList: React.FC = () => {
     filterHasDuplicates,
     filterMinScore,
     filterMaxScore,
+    filterAssignedTo,
   ].filter((v) => v !== "").length;
 
   // Clear filters
@@ -245,6 +249,7 @@ const LeadList: React.FC = () => {
     setFilterHasDuplicates("");
     setFilterMinScore("");
     setFilterMaxScore("");
+    setFilterAssignedTo("");
   }, []);
 
   // Handle sort
@@ -867,6 +872,28 @@ const LeadList: React.FC = () => {
                     placeholder="100"
                     className="h-9"
                   />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground/90">
+                    Assigned To
+                  </label>
+                  <Select
+                    value={filterAssignedTo || "__all__"}
+                    onValueChange={(v) => setFilterAssignedTo(v === "__all__" ? "" : v)}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="All Users" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">All Users</SelectItem>
+                      {users?.map((u) => (
+                        <SelectItem key={u.strUserGUID} value={u.strUserGUID}>
+                          {u.strName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex items-end">

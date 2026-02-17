@@ -39,6 +39,10 @@ export const useLead = (id?: string) => {
     queryKey: leadQueryKeys.detail(id || ""),
     queryFn: () => leadService.getLead(id!),
     enabled: !!id,
+    // Always fetch fresh data when navigating to edit page
+    // (overrides global refetchOnMount: false)
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 };
 

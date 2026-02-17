@@ -89,6 +89,7 @@ const OpportunityList: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filterPipeline, setFilterPipeline] = useState<string>("");
   const [filterIsRotting, setFilterIsRotting] = useState<string>("");
+  const [filterAssignedTo, setFilterAssignedTo] = useState<string>("");
 
   // Delete
   const [deleteTarget, setDeleteTarget] =
@@ -144,6 +145,7 @@ const OpportunityList: React.FC = () => {
       search: debouncedSearch || undefined,
       strStatus: filterStatus === "all" ? undefined : filterStatus || undefined,
       strPipelineGUID: filterPipeline === "all" ? undefined : filterPipeline || undefined,
+      strAssignedToGUID: filterAssignedTo === "all" ? undefined : filterAssignedTo || undefined,
       bolIsRotting:
         filterIsRotting === "all" || filterIsRotting === "" ? undefined : filterIsRotting === "true",
       pageNumber: pagination.pageNumber,
@@ -155,6 +157,7 @@ const OpportunityList: React.FC = () => {
       debouncedSearch,
       filterStatus,
       filterPipeline,
+      filterAssignedTo,
       filterIsRotting,
       pagination.pageNumber,
       pagination.pageSize,
@@ -201,6 +204,7 @@ const OpportunityList: React.FC = () => {
     filterStatus,
     filterPipeline,
     filterIsRotting,
+    filterAssignedTo,
   ].filter((v) => v !== "").length;
 
   // Clear filters
@@ -208,6 +212,7 @@ const OpportunityList: React.FC = () => {
     setFilterStatus("");
     setFilterPipeline("");
     setFilterIsRotting("");
+    setFilterAssignedTo("");
   }, []);
 
   // Handle sort
@@ -608,6 +613,28 @@ const OpportunityList: React.FC = () => {
                       <SelectItem value="all">All</SelectItem>
                       <SelectItem value="true">Rotting</SelectItem>
                       <SelectItem value="false">Healthy</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground/90">
+                    Assigned To
+                  </label>
+                  <Select
+                    value={filterAssignedTo}
+                    onValueChange={setFilterAssignedTo}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="All Users" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Users</SelectItem>
+                      {users?.map((u) => (
+                        <SelectItem key={u.strUserGUID} value={u.strUserGUID}>
+                          {u.strName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

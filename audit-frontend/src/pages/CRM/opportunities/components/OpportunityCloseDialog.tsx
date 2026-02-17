@@ -36,6 +36,7 @@ interface OpportunityCloseDialogProps {
   opportunityId: string;
   opportunityName: string;
   onSuccess?: () => void;
+  defaultStatus?: "Won" | "Lost";
 }
 
 const OpportunityCloseDialog: React.FC<OpportunityCloseDialogProps> = ({
@@ -44,17 +45,25 @@ const OpportunityCloseDialog: React.FC<OpportunityCloseDialogProps> = ({
   opportunityId,
   opportunityName,
   onSuccess,
+  defaultStatus,
 }) => {
   const { mutate: closeOpportunity, isPending } = useCloseOpportunity();
 
   const form = useForm<CloseOpportunityFormValues>({
     resolver: zodResolver(closeOpportunitySchema),
     defaultValues: {
-      strStatus: "Won",
+      strStatus: defaultStatus || "Won",
       strLossReason: "",
       dtActualCloseDate: new Date().toISOString().split("T")[0],
     },
   });
+
+  // Sync defaultStatus when dialog opens with a new status
+  React.useEffect(() => {
+    if (defaultStatus) {
+      form.setValue("strStatus", defaultStatus);
+    }
+  }, [defaultStatus, form]);
 
   const selectedStatus = form.watch("strStatus");
 

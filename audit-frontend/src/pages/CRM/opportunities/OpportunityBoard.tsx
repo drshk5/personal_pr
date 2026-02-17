@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
@@ -15,6 +15,7 @@ import type { OpportunityListDto, OpportunityBoardDto } from "@/types/CRM/opport
 import {
   useOpportunityBoard,
   useMoveStage,
+  useCloseOpportunity,
 } from "@/hooks/api/CRM/use-opportunities";
 import { usePipelines } from "@/hooks/api/CRM/use-pipelines";
 import { useMenuIcon } from "@/hooks/common/use-menu-icon";
@@ -33,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import OpportunityCloseDialog from "./components/OpportunityCloseDialog";
 
 // ── Kanban Card ─────────────────────────────────────────────────
 
@@ -207,6 +209,14 @@ const OpportunityBoard: React.FC = () => {
 
   const { mutate: moveStage } = useMoveStage();
 
+  // Close dialog state (for Lost stage drops)
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [closeDialogOpp, setCloseDialogOpp] = useState<{
+    id: string;
+    name: string;
+    status: "Won" | "Lost";
+  } | null>(null);
+
   // Sort columns by display order
   const sortedColumns = useMemo(() => {
     if (!boardData) return [];
@@ -225,6 +235,21 @@ const OpportunityBoard: React.FC = () => {
     [sortedColumns]
   );
 
+  // Helper: find opportunity by ID from board data
+  const findOpportunity = useCallback(
+    (oppId: string): OpportunityListDto | undefined => {
+      if (!boardData) return undefined;
+      for (const col of boardData) {
+        const found = col.opportunities.find(
+          (o) => o.strOpportunityGUID === oppId
+        );
+        if (found) return found;
+      }
+      return undefined;
+    },
+    [boardData]
+  );
+
   // Drag & drop
   const [draggedOppId, setDraggedOppId] = useState<string | null>(null);
 
@@ -240,13 +265,31 @@ const OpportunityBoard: React.FC = () => {
 
   const handleDrop = (e: React.DragEvent, stageGUID: string) => {
     e.preventDefault();
-    if (draggedOppId) {
-      moveStage({
+    if (!draggedOppId) return;
+
+    const targetStage = sortedColumns.find(
+      (col) => col.strStageGUID === stageGUID
+    );
+
+    // If dropping on a Lost stage, show close dialog so user can provide loss reason
+    if (targetStage?.bolIsLostStage) {
+      const opp = findOpportunity(draggedOppId);
+      setCloseDialogOpp({
         id: draggedOppId,
-        data: { strStageGUID: stageGUID },
+        name: opp?.strOpportunityName || "Opportunity",
+        status: "Lost",
       });
+      setCloseDialogOpen(true);
       setDraggedOppId(null);
+      return;
     }
+
+    // For Won stage and normal stages, use moveStage (backend auto-closes Won)
+    moveStage({
+      id: draggedOppId,
+      data: { strStageGUID: stageGUID },
+    });
+    setDraggedOppId(null);
   };
 
   const handleCardClick = (oppId: string) => {
@@ -370,6 +413,20 @@ const OpportunityBoard: React.FC = () => {
             Select a pipeline or create opportunities to see the board
           </p>
         </div>
+      )}
+
+      {/* Close Dialog — shown when dropping on a Lost stage */}
+      {closeDialogOpp && (
+        <OpportunityCloseDialog
+          open={closeDialogOpen}
+          onOpenChange={(open) => {
+            setCloseDialogOpen(open);
+            if (!open) setCloseDialogOpp(null);
+          }}
+          opportunityId={closeDialogOpp.id}
+          opportunityName={closeDialogOpp.name}
+          defaultStatus={closeDialogOpp.status}
+        />
       )}
     </CustomContainer>
   );

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createQueryKeys, handleMutationError } from "../common";
 import { activityService } from "@/services/CRM/activity.service";
+import { leadQueryKeys } from "./use-leads";
 import type {
   CreateActivityDto,
   ActivityFilterParams,
@@ -48,6 +49,8 @@ export const useCreateActivity = () => {
         queryClient.invalidateQueries({ queryKey: activityQueryKeys.all }),
         queryClient.invalidateQueries({ queryKey: entityActivityKeys.all }),
         queryClient.invalidateQueries({ queryKey: upcomingKeys }),
+        // Activity creation/completion can auto-change lead status, so refresh lead data
+        queryClient.invalidateQueries({ queryKey: leadQueryKeys.all }),
       ]);
       toast.success("Activity logged successfully");
     },

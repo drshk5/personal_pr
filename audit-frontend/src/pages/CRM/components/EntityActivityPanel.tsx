@@ -41,6 +41,7 @@ const STATUS_BADGE: Record<string, { className: string; label: string }> = {
 interface EntityActivityPanelProps {
   entityType: string;
   entityId: string;
+  entityName?: string;
   recentActivities?: ActivityListDto[];
   compact?: boolean;
 }
@@ -48,6 +49,7 @@ interface EntityActivityPanelProps {
 const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
   entityType,
   entityId,
+  entityName,
   recentActivities,
   compact = false,
 }) => {
@@ -221,6 +223,7 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
         defaultActivityType={createType}
         editActivity={editTarget}
         onSuccess={() => refetch()}
+        {...(entityName ? { entityContext: { entityType: entityType as import("@/types/CRM/activity").EntityType, entityName } } : {})}
       />
     </>
   );

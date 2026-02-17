@@ -30,6 +30,9 @@ export const useOpportunity = (id?: string) => {
     queryKey: opportunityQueryKeys.detail(id || ""),
     queryFn: () => opportunityService.getOpportunity(id!),
     enabled: !!id,
+    // Always fetch fresh data on mount — stage/status can change via pipeline moves
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 };
 

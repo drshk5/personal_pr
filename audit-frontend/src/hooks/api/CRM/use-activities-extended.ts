@@ -9,7 +9,9 @@ import type {
   ActivityAssignDto,
 } from "@/types/CRM/activity";
 
-/** Invalidate every activity-related query so all tabs/views refresh. */
+/** Invalidate every activity-related query so all tabs/views refresh.
+ *  Also invalidates lead queries because activity completion auto-changes lead status
+ *  (New → Contacted, Contacted → Qualified). */
 function invalidateAllActivityQueries(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ["activities"] });
   qc.invalidateQueries({ queryKey: ["activity"] });
@@ -20,6 +22,9 @@ function invalidateAllActivityQueries(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ["crm-activities"] });
   qc.invalidateQueries({ queryKey: ["crm-entity-activities"] });
   qc.invalidateQueries({ queryKey: ["crm-upcoming-activities"] });
+  // Lead/contact data may change when activity status changes
+  qc.invalidateQueries({ queryKey: ["crm-leads"] });
+  qc.invalidateQueries({ queryKey: ["crm-contacts"] });
 }
 
 export const useActivitiesExtended = (params?: ActivityFilterParams) => {

@@ -70,6 +70,7 @@ import {
 import NotFound from "@/components/error-boundaries/entity-not-found";
 
 import AccountFormSkeleton from "./AccountFormSkeleton";
+import UserAssignSelect from "@/components/CRM/UserAssignSelect";
 
 const activityIcons: Record<string, React.ElementType> = {
   Call: Phone,
@@ -533,6 +534,25 @@ const AccountForm: React.FC = () => {
                         </FormItem>
                       )}
                     />
+
+                    {/* Assignment */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-4">
+                        Assignment
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="strAssignedToGUID"
+                          render={({ field }) => (
+                            <UserAssignSelect
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </Form>
               </CardContent>
@@ -678,14 +698,14 @@ const AccountForm: React.FC = () => {
                     {format(new Date(account.dtCreatedOn), "MMM d, yyyy")}
                   </span>
                 </div>
-                {account.strAssignedToName && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      Assigned To
-                    </span>
-                    <span className="text-xs text-foreground">{account.strAssignedToName}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Assigned To
+                  </span>
+                  <span className="text-xs text-foreground">
+                    {account.strAssignedToName || <span className="text-muted-foreground">Unassigned</span>}
+                  </span>
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Status</span>
                   <span

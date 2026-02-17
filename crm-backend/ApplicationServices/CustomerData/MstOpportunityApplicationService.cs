@@ -629,18 +629,39 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
         opportunity.strUpdatedByGUID = GetCurrentUserId();
         opportunity.dtUpdatedOn = DateTime.UtcNow;
 
+        // ── Auto-close if target stage is Won or Lost ──────────────
+        if (targetStage.bolIsWonStage)
+        {
+            opportunity.strStatus = "Won";
+            opportunity.dtActualCloseDate = DateTime.UtcNow;
+        }
+        else if (targetStage.bolIsLostStage)
+        {
+            opportunity.strStatus = "Lost";
+            opportunity.dtActualCloseDate = DateTime.UtcNow;
+            opportunity.strLossReason = dto.strLossReason ?? "Moved to lost stage";
+        }
+
         _unitOfWork.Opportunities.Update(opportunity);
 
         // ── Auto-sync linked contact lifecycle stages ──────────────
-        await AutoSyncContactLifecycleStagesAsync(opportunity.strOpportunityGUID, targetStage);
+        if (targetStage.bolIsWonStage)
+        {
+            // Won → move contacts to "Customer"
+            await AutoSyncContactLifecycleToCustomerAsync(opportunity.strOpportunityGUID);
+        }
+        else
+        {
+            await AutoSyncContactLifecycleStagesAsync(opportunity.strOpportunityGUID, targetStage);
+        }
 
         await _unitOfWork.SaveChangesAsync();
 
         await _auditLogService.LogAsync(
             EntityTypeConstants.Opportunity,
             opportunity.strOpportunityGUID,
-            "MoveStage",
-            JsonSerializer.Serialize(new { OldStageGUID = oldStageGuid, NewStageGUID = dto.strStageGUID }),
+            targetStage.bolIsWonStage ? "CloseWon" : targetStage.bolIsLostStage ? "CloseLost" : "MoveStage",
+            JsonSerializer.Serialize(new { OldStageGUID = oldStageGuid, NewStageGUID = dto.strStageGUID, Status = opportunity.strStatus }),
             GetCurrentUserId());
 
         return await GetOpportunityByIdAsync(opportunity.strOpportunityGUID);
@@ -776,7 +797,9 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
                 s.strStageGUID,
                 s.strStageName,
                 s.intDisplayOrder,
-                s.intProbabilityPercent
+                s.intProbabilityPercent,
+                s.bolIsWonStage,
+                s.bolIsLostStage
             })
             .ToListAsync();
 
@@ -865,6 +888,8 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
                 strStageName = s.strStageName,
                 intDisplayOrder = s.intDisplayOrder,
                 intProbabilityPercent = s.intProbabilityPercent,
+                bolIsWonStage = s.bolIsWonStage,
+                bolIsLostStage = s.bolIsLostStage,
                 Opportunities = stageOpps,
                 dblTotalValue = stats.TotalValue,
                 intCount = stats.Count

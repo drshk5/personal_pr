@@ -127,7 +127,7 @@ export default function ContactDetailPage() {
 
             <div className="flex gap-2">
               {perms.canEdit && (
-                <Button variant="outline" onClick={() => setActiveTab("overview")}>
+                <Button variant="outline" onClick={() => navigate(`/crm/contacts/${id}?mode=edit`)}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </Button>
@@ -230,6 +230,9 @@ export default function ContactDetailPage() {
           <TabsContent value="opportunities" className="space-y-6">
             <ContactOpportunitiesTab
               contactId={contact.strContactGUID}
+              contactName={`${contact.strFirstName} ${contact.strLastName}`}
+              accountId={contact.strAccountGUID}
+              accountName={contact.strAccountName}
               opportunities={contact.opportunities || []}
               canEdit={perms.canEdit}
             />

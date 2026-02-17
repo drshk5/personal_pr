@@ -86,6 +86,7 @@ const AccountList: React.FC = () => {
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filterIndustry, setFilterIndustry] = useState<string>("");
   const [filterIsActive, setFilterIsActive] = useState<string>("");
+  const [filterAssignedTo, setFilterAssignedTo] = useState<string>("");
 
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<AccountListDto | null>(null);
@@ -145,6 +146,7 @@ const AccountList: React.FC = () => {
     () => ({
       search: debouncedSearch || undefined,
       strIndustry: filterIndustry === "all" ? undefined : filterIndustry || undefined,
+      strAssignedToGUID: filterAssignedTo === "all" ? undefined : filterAssignedTo || undefined,
       bolIsActive:
         filterIsActive === "all" || filterIsActive === "" ? undefined : filterIsActive === "true",
       pageNumber: pagination.pageNumber,
@@ -155,6 +157,7 @@ const AccountList: React.FC = () => {
     [
       debouncedSearch,
       filterIndustry,
+      filterAssignedTo,
       filterIsActive,
       pagination.pageNumber,
       pagination.pageSize,
@@ -193,7 +196,7 @@ const AccountList: React.FC = () => {
   }, [pagedData.totalCount, pagedData.totalPages, updateResponseData]);
 
   // Active filter count
-  const activeFilterCount = [filterIndustry, filterIsActive].filter(
+  const activeFilterCount = [filterIndustry, filterIsActive, filterAssignedTo].filter(
     (v) => v !== ""
   ).length;
 
@@ -201,6 +204,7 @@ const AccountList: React.FC = () => {
   const clearFilters = useCallback(() => {
     setFilterIndustry("");
     setFilterIsActive("");
+    setFilterAssignedTo("");
   }, []);
 
   // Handle sort
@@ -706,6 +710,28 @@ const AccountList: React.FC = () => {
                       <SelectItem value="all">All</SelectItem>
                       <SelectItem value="true">Active</SelectItem>
                       <SelectItem value="false">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground/90">
+                    Assigned To
+                  </label>
+                  <Select
+                    value={filterAssignedTo}
+                    onValueChange={setFilterAssignedTo}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="All Users" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Users</SelectItem>
+                      {users?.map((u) => (
+                        <SelectItem key={u.strUserGUID} value={u.strUserGUID}>
+                          {u.strName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

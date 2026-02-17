@@ -59,6 +59,7 @@ import LeadStatusBadge from "./components/LeadStatusBadge";
 import LeadConvertDialog from "./components/LeadConvertDialog";
 import LeadMergeDialog from "./components/LeadMergeDialog";
 import EntityActivityPanel from "../components/EntityActivityPanel";
+import UserAssignSelect from "@/components/CRM/UserAssignSelect";
 
 const LeadForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -637,6 +638,25 @@ const LeadForm: React.FC = () => {
                         </FormItem>
                       )}
                     />
+
+                    {/* Assignment */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-4">
+                        Assignment
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="strAssignedToGUID"
+                          render={({ field }) => (
+                            <UserAssignSelect
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </Form>
               </CardContent>
@@ -746,6 +766,7 @@ const LeadForm: React.FC = () => {
             <EntityActivityPanel
               entityType="Lead"
               entityId={id!}
+              entityName={`${watchedFirstName || ''} ${watchedLastName || ''}`.trim() || 'Lead'}
             />
           </div>
         )}

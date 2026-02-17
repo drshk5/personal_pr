@@ -95,6 +95,7 @@ public class OpportunityFilterParams : PagedRequestDto
 public class MoveStageDto
 {
     public Guid strStageGUID { get; set; }
+    public string? strLossReason { get; set; }
 }
 
 public class AddOpportunityContactDto
@@ -115,6 +116,8 @@ public class OpportunityBoardColumnDto
     public string strStageName { get; set; } = string.Empty;
     public int intDisplayOrder { get; set; }
     public int intProbabilityPercent { get; set; }
+    public bool bolIsWonStage { get; set; }
+    public bool bolIsLostStage { get; set; }
     [JsonPropertyName("opportunities")]
     public List<OpportunityListDto> Opportunities { get; set; } = new();
     public decimal dblTotalValue { get; set; }

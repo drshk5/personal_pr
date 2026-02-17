@@ -1,21 +1,25 @@
 import { lazy, Suspense } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { PageLoader } from "@/components/layout/page-loader";
 
 const ContactForm = lazy(() => import("./ContactForm"));
 const ContactDetail = lazy(() => import("./ContactDetail"));
 
 /**
- * Router wrapper that shows ContactDetail for edit mode (with :id param)
- * and ContactForm for create mode (/new or no id).
+ * Router wrapper:
+ * - /new or /create → ContactForm (create)
+ * - /:id?mode=edit  → ContactForm (edit)
+ * - /:id            → ContactDetail (read-only)
  */
 export default function ContactFormRouter() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const isCreateMode = !id || id === "new" || id === "create";
+  const isEditMode = !isCreateMode && searchParams.get("mode") === "edit";
 
   return (
     <Suspense fallback={<PageLoader />}>
-      {isCreateMode ? <ContactForm /> : <ContactDetail />}
+      {isCreateMode || isEditMode ? <ContactForm /> : <ContactDetail />}
     </Suspense>
   );
 }

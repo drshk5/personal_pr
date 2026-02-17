@@ -95,7 +95,7 @@ export default function AccountDetailPage() {
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setActiveTab("overview")}>
+              <Button variant="outline" onClick={() => navigate(`/crm/accounts/${id}?mode=edit`)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Button>

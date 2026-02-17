@@ -120,6 +120,7 @@ export interface CloseOpportunityDto {
 
 export interface MoveStageDto {
   strStageGUID: string;
+  strLossReason?: string | null;
 }
 
 export interface AddOpportunityContactDto {
@@ -154,6 +155,8 @@ export interface OpportunityBoardDto {
   strStageName: string;
   intDisplayOrder: number;
   intProbabilityPercent: number;
+  bolIsWonStage: boolean;
+  bolIsLostStage: boolean;
   opportunities: OpportunityListDto[];
   dblTotalValue: number;
   intCount: number;

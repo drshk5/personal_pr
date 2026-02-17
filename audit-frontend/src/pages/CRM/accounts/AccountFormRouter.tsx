@@ -1,21 +1,25 @@
 import { lazy, Suspense } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { PageLoader } from "@/components/layout/page-loader";
 
 const AccountForm = lazy(() => import("./AccountForm"));
 const AccountDetail = lazy(() => import("./AccountDetail"));
 
 /**
- * Router wrapper that shows AccountDetail for edit mode (with :id param)
- * and AccountForm for create mode (/new or no id).
+ * Router wrapper:
+ * - /new or /create → AccountForm (create)
+ * - /:id?mode=edit  → AccountForm (edit)
+ * - /:id            → AccountDetail (read-only)
  */
 export default function AccountFormRouter() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const isCreateMode = !id || id === "new" || id === "create";
+  const isEditMode = !isCreateMode && searchParams.get("mode") === "edit";
 
   return (
     <Suspense fallback={<PageLoader />}>
-      {isCreateMode ? <AccountForm /> : <AccountDetail />}
+      {isCreateMode || isEditMode ? <AccountForm /> : <AccountDetail />}
     </Suspense>
   );
 }

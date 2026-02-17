@@ -470,6 +470,37 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
             accountGuid = existingAccount.strAccountGUID;
         }
 
+        // ── Resolve pipeline & first stage BEFORE creating the contact ──
+        // so we can set the lifecycle stage based on the actual probability
+        MstPipeline? pipeline = null;
+        MstPipelineStage? firstStage = null;
+
+        if (dto.bolCreateOpportunity)
+        {
+            pipeline = dto.strPipelineGUID.HasValue
+                ? await _unitOfWork.Pipelines.Query()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.strPipelineGUID == dto.strPipelineGUID.Value && p.bolIsActive)
+                : await _unitOfWork.Pipelines.GetDefaultPipelineAsync();
+
+            pipeline ??= await _unitOfWork.Pipelines.Query()
+                .AsNoTracking()
+                .OrderByDescending(p => p.bolIsDefault)
+                .ThenByDescending(p => p.dtCreatedOn)
+                .FirstOrDefaultAsync(p => p.bolIsActive);
+
+            if (pipeline == null)
+                throw new NotFoundException("No active pipeline found", PipelineConstants.ErrorCodes.PipelineNotFound);
+
+            firstStage = await _unitOfWork.PipelineStages.GetFirstStageAsync(pipeline.strPipelineGUID);
+            if (firstStage == null)
+                throw new NotFoundException("No active stage found in selected pipeline", PipelineConstants.ErrorCodes.StageNotFound);
+        }
+
+        // Lead convert always starts contact at "Lead" lifecycle stage.
+        // Opportunity stage changes will auto-advance lifecycle via OpportunityApplicationService.
+        var initialLifecycleStage = ContactLifecycleStageConstants.Lead;
+
         var contact = new MstContact
         {
             strContactGUID = Guid.NewGuid(),
@@ -481,7 +512,7 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
             strPhone = lead.strPhone,
             strMobilePhone = lead.strPhone,
             strJobTitle = lead.strJobTitle,
-            strLifecycleStage = ContactLifecycleStageConstants.Opportunity,
+            strLifecycleStage = initialLifecycleStage,
             strAddress = lead.strAddress,
             strCity = lead.strCity,
             strState = lead.strState,
@@ -499,25 +530,6 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
 
         if (dto.bolCreateOpportunity)
         {
-            var pipeline = dto.strPipelineGUID.HasValue
-                ? await _unitOfWork.Pipelines.Query()
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.strPipelineGUID == dto.strPipelineGUID.Value && p.bolIsActive)
-                : await _unitOfWork.Pipelines.GetDefaultPipelineAsync();
-
-            pipeline ??= await _unitOfWork.Pipelines.Query()
-                .AsNoTracking()
-                .OrderByDescending(p => p.bolIsDefault)
-                .ThenByDescending(p => p.dtCreatedOn)
-                .FirstOrDefaultAsync(p => p.bolIsActive);
-
-            if (pipeline == null)
-                throw new NotFoundException("No active pipeline found", PipelineConstants.ErrorCodes.PipelineNotFound);
-
-            var firstStage = await _unitOfWork.PipelineStages.GetFirstStageAsync(pipeline.strPipelineGUID);
-            if (firstStage == null)
-                throw new NotFoundException("No active stage found in selected pipeline", PipelineConstants.ErrorCodes.StageNotFound);
-
             var opportunityName = !string.IsNullOrWhiteSpace(dto.strOpportunityName)
                 ? dto.strOpportunityName!.Trim()
                 : BuildDefaultOpportunityName(lead);
@@ -528,8 +540,8 @@ public class MstLeadApplicationService : ApplicationServiceBase, IMstLeadApplica
                 strGroupGUID = GetTenantId(),
                 strOpportunityName = opportunityName,
                 strAccountGUID = accountGuid,
-                strPipelineGUID = pipeline.strPipelineGUID,
-                strStageGUID = firstStage.strStageGUID,
+                strPipelineGUID = pipeline!.strPipelineGUID,
+                strStageGUID = firstStage!.strStageGUID,
                 strStatus = "Open",
                 dblAmount = dto.dblAmount,
                 strCurrency = "INR",
