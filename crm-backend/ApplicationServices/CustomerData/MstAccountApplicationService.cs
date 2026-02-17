@@ -107,6 +107,7 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
                 strEmail = a.strEmail,
                 intContactCount = a.Contacts.Count(),
                 intOpenOpportunityCount = a.Opportunities.Count(o => o.strStatus == "Open"),
+                intTotalOpportunityCount = a.Opportunities.Count(),
                 dblTotalOpportunityValue = a.Opportunities
                     .Where(o => o.strStatus == "Open")
                     .Sum(o => (decimal?)o.dblAmount ?? 0),
@@ -349,6 +350,7 @@ public class MstAccountApplicationService : ApplicationServiceBase, IMstAccountA
             strEmail = account.strEmail,
             intContactCount = contacts.Count,
             intOpenOpportunityCount = openOpps.Count,
+            intTotalOpportunityCount = opportunities.Count,
             dblTotalOpportunityValue = openOpps.Sum(o => o.dblAmount ?? 0),
             strAssignedToGUID = account.strAssignedToGUID,
             strAssignedToName = accountAssignedToName,

@@ -68,6 +68,7 @@ export interface AccountListDto {
   strEmail?: string | null;
   intContactCount: number;
   intOpenOpportunityCount: number;
+  intTotalOpportunityCount: number;
   dblTotalOpportunityValue: number;
   strAssignedToGUID?: string | null;
   strAssignedToName?: string | null;

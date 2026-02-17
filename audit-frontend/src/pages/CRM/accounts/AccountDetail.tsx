@@ -200,7 +200,7 @@ export default function AccountDetailPage() {
               <Target className="h-4 w-4" />
               Opportunities
               <Badge variant="secondary" className="ml-1">
-                {account.intOpenOpportunityCount}
+                {account.intTotalOpportunityCount}
               </Badge>
             </TabsTrigger>
             <TabsTrigger value="activities" className="flex items-center gap-2">

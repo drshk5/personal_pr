@@ -1,0 +1,2 @@
+2026-02-17 17:34:48.609 +05:30 [INF] CRM Backend starting on Development
+2026-02-17 17:34:48.720 +05:30 [WRN] Overriding address(es) 'http://localhost:5005'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.

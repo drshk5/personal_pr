@@ -31,6 +31,7 @@ public class AccountListDto
     public string? strEmail { get; set; }
     public int intContactCount { get; set; }
     public int intOpenOpportunityCount { get; set; }
+    public int intTotalOpportunityCount { get; set; }
     public decimal dblTotalOpportunityValue { get; set; }
     public Guid? strAssignedToGUID { get; set; }
     public string? strAssignedToName { get; set; }
