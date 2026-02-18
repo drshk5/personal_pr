@@ -32,4 +32,10 @@ public interface IMstActivityApplicationService : IApplicationService
 
     // ── New: Bulk Email Notifications ──
     Task<bool> SendBulkActivityNotificationsAsync(ActivityBulkNotifyDto dto);
+    
+    /// <summary>
+    /// Send bulk custom emails to activity participants with template support
+    /// Returns the number of emails queued for sending
+    /// </summary>
+    Task<int> SendBulkActivityEmailsAsync(ActivityBulkEmailDto dto);
 }

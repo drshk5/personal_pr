@@ -155,6 +155,10 @@ builder.Services.AddScoped<ILeadAnalyticsService, MstLeadAnalyticsService>();
 builder.Services.AddScoped<IOpportunityService, MstOpportunityService>();
 builder.Services.AddScoped<IPipelineService, MstPipelineService>();
 builder.Services.AddScoped<IDashboardService, MstDashboardService>();
+builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+
+// ===== CRM Real-time Notification Service =====
+builder.Services.AddSingleton<ICrmNotificationService, CrmNotificationService>();
 
 // ===== Application Services =====
 builder.Services.AddScoped<IMstLeadApplicationService, MstLeadApplicationService>();
@@ -233,6 +237,13 @@ builder.Services.AddSwaggerGen(options =>
         Title = "CRM Backend API",
         Version = "v1",
         Description = "CRM System - Phase 1 API"
+    });
+
+    // Map IFormFile to file upload in Swagger UI
+    options.MapType<IFormFile>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    {
+        Type = "string",
+        Format = "binary"
     });
 
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme

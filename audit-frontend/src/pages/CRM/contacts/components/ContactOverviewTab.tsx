@@ -56,6 +56,7 @@ export default function ContactOverviewTab({
     strPostalCode: contact.strPostalCode || "",
     strNotes: contact.strNotes || "",
     strAccountGUID: contact.strAccountGUID || "",
+    strAssignedToGUID: contact.strAssignedToGUID || "",
   });
 
   const updateMutation = useUpdateContact();
@@ -64,7 +65,11 @@ export default function ContactOverviewTab({
     try {
       await updateMutation.mutateAsync({
         id: contact.strContactGUID,
-        data: formData,
+        data: {
+          ...formData,
+          strAccountGUID: formData.strAccountGUID || null,
+          strAssignedToGUID: formData.strAssignedToGUID || null,
+        },
       });
       toast.success("Contact updated successfully");
       setIsEditing(false);
@@ -90,6 +95,7 @@ export default function ContactOverviewTab({
       strPostalCode: contact.strPostalCode || "",
       strNotes: contact.strNotes || "",
       strAccountGUID: contact.strAccountGUID || "",
+      strAssignedToGUID: contact.strAssignedToGUID || "",
     });
     setIsEditing(false);
   };

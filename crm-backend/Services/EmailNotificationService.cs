@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Mail;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using crm_backend.Data;
@@ -11,12 +12,14 @@ namespace crm_backend.Services;
 
 /// <summary>
 /// High-performance email notification service with queue-based bulk sending
+/// Production-ready with tenant isolation and optimized batch processing
 /// </summary>
 public class EmailNotificationService : IEmailNotificationService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<EmailNotificationService> _logger;
     private readonly CrmDbContext _context;
+    private readonly MasterDbContext _masterContext;
     private readonly string _smtpHost;
     private readonly int _smtpPort;
     private readonly string _smtpUsername;
@@ -24,8 +27,11 @@ public class EmailNotificationService : IEmailNotificationService
     private readonly string _fromEmail;
     private readonly string _fromName;
     private readonly bool _enableEmail;
+    private readonly int _batchSize;
+    private readonly int _delayBetweenBatches;
+    private readonly int _maxConcurrentEmails;
     
-    // Queue for bulk email processing
+    // Queue for bulk email processing (thread-safe)
     private static readonly ConcurrentQueue<EmailDto> _emailQueue = new();
     private static readonly SemaphoreSlim _queueSemaphore = new(1, 1);
     private static bool _isProcessing = false;
@@ -33,11 +39,13 @@ public class EmailNotificationService : IEmailNotificationService
     public EmailNotificationService(
         IConfiguration configuration,
         ILogger<EmailNotificationService> logger,
-        CrmDbContext context)
+        CrmDbContext context,
+        MasterDbContext masterContext)
     {
         _configuration = configuration;
         _logger = logger;
         _context = context;
+        _masterContext = masterContext;
 
         _enableEmail = _configuration.GetValue<bool>("Email:Enabled", false);
         _smtpHost = _configuration["Email:SmtpHost"] ?? "smtp.gmail.com";
@@ -46,6 +54,9 @@ public class EmailNotificationService : IEmailNotificationService
         _smtpPassword = _configuration["Email:SmtpPassword"] ?? "";
         _fromEmail = _configuration["Email:FromEmail"] ?? "";
         _fromName = _configuration["Email:FromName"] ?? "CRM System";
+        _batchSize = _configuration.GetValue<int>("Email:BatchSize", 50);
+        _delayBetweenBatches = _configuration.GetValue<int>("Email:DelayBetweenBatchesMs", 1000);
+        _maxConcurrentEmails = _configuration.GetValue<int>("Email:MaxConcurrentEmails", 10);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -196,6 +207,310 @@ public class EmailNotificationService : IEmailNotificationService
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Send bulk custom emails to activity participants with template support
+    /// High-performance implementation with tenant isolation
+    /// </summary>
+    public async Task<int> SendBulkActivityEmailsAsync(DTOs.CustomerData.ActivityBulkEmailDto dto, Guid tenantId)
+    {
+        if (dto.ActivityGuids.Count == 0)
+            return 0;
+
+        try
+        {
+            // Get activities from current tenant (tenant-isolated)
+            var activities = await _context.Set<Models.Core.CustomerData.MstActivity>()
+                .Where(a => dto.ActivityGuids.Contains(a.strActivityGUID) && 
+                           a.strGroupGUID == tenantId && 
+                           !a.bolIsDeleted)
+                .ToListAsync();
+
+            if (!activities.Any())
+            {
+                _logger.LogWarning("No activities found for bulk email send for tenant {TenantId}", tenantId);
+                return 0;
+            }
+
+            // Collect unique user IDs based on flags
+            var userIds = new HashSet<Guid>();
+            
+            if (dto.SendToAssignedUsers)
+            {
+                foreach (var activity in activities.Where(a => a.strAssignedToGUID.HasValue))
+                {
+                    userIds.Add(activity.strAssignedToGUID!.Value);
+                }
+            }
+            
+            if (dto.SendToCreators)
+            {
+                foreach (var activity in activities)
+                {
+                    userIds.Add(activity.strCreatedByGUID);
+                }
+            }
+
+            if (!userIds.Any() && dto.AdditionalRecipients.Count == 0)
+            {
+                _logger.LogWarning("No recipients found for bulk email send");
+                return 0;
+            }
+
+            // Fetch user details from master database (tenant-aware)
+            var users = await _masterContext.MstUsers
+                .Where(u => userIds.Contains(u.strUserGUID) && u.strGroupGUID == tenantId)
+                .ToListAsync();
+
+            // Create email dictionary for performance (O(1) lookup)
+            var userDictionary = users.ToDictionary(u => u.strUserGUID);
+
+            var emailCount = 0;
+
+            // Queue emails for each activity and its recipients
+            foreach (var activity in activities)
+            {
+                var recipientEmails = new List<(string Email, string Name)>();
+
+                // Add assigned user
+                if (dto.SendToAssignedUsers && activity.strAssignedToGUID.HasValue && 
+                    userDictionary.TryGetValue(activity.strAssignedToGUID.Value, out var assignedUser))
+                {
+                    recipientEmails.Add((assignedUser.strEmailId, assignedUser.strName));
+                }
+
+                // Add creator
+                if (dto.SendToCreators && userDictionary.TryGetValue(activity.strCreatedByGUID, out var creator))
+                {
+                    recipientEmails.Add((creator.strEmailId, creator.strName));
+                }
+
+                // Add additional recipients
+                foreach (var email in dto.AdditionalRecipients)
+                {
+                    if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        recipientEmails.Add((email.Trim(), "Recipient"));
+                    }
+                }
+
+                // Remove duplicates
+                var uniqueRecipients = recipientEmails
+                    .GroupBy(r => r.Email.ToLowerInvariant())
+                    .Select(g => g.First())
+                    .ToList();
+
+                // Apply template variables
+                var subject = ApplyTemplateVariables(dto.Subject, activity);
+                var bodyContent = ApplyTemplateVariables(dto.Body, activity);
+                
+                // Get logo URL from configuration (optional)
+                var logoUrl = _configuration["Email:LogoUrl"];
+                
+                // Wrap in professional HTML template
+                var body = WrapInHtmlTemplate(subject, bodyContent, logoUrl);
+
+                // Queue email for each unique recipient
+                foreach (var (email, name) in uniqueRecipients)
+                {
+                    var emailDto = new EmailDto
+                    {
+                        ToEmail = email,
+                        ToName = name,
+                        Subject = subject,
+                        Body = body,
+                        IsHtml = true
+                    };
+                    _emailQueue.Enqueue(emailDto);
+                    emailCount++;
+                }
+            }
+
+            // Start background processing
+            _ = ProcessEmailQueueAsync();
+
+            _logger.LogInformation(
+                "Queued {Count} bulk activity emails for {ActivityCount} activities, tenant {TenantId}", 
+                emailCount, activities.Count, tenantId);
+
+            return emailCount;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to queue bulk activity emails for tenant {TenantId}", tenantId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Apply template variables to subject/body
+    /// Supports: {ActivitySubject}, {ActivityType}, {DueDate}, {Status}, {Priority}
+    /// </summary>
+    private string ApplyTemplateVariables(string template, Models.Core.CustomerData.MstActivity activity)
+    {
+        if (string.IsNullOrEmpty(template))
+            return template;
+
+        var result = template;
+        result = result.Replace("{ActivitySubject}", activity.strSubject);
+        result = result.Replace("{ActivityType}", activity.strActivityType);
+        result = result.Replace("{DueDate}", activity.dtDueDate?.ToString("MMM dd, yyyy") ?? "Not set");
+        result = result.Replace("{Status}", activity.strStatus ?? "N/A");
+        result = result.Replace("{Priority}", activity.strPriority ?? "N/A");
+        result = result.Replace("{Description}", activity.strDescription ?? "");
+        
+        return result;
+    }
+
+    /// <summary>
+    /// Wrap content in professional HTML email template with logo and branding
+    /// </summary>
+    private string WrapInHtmlTemplate(string subject, string body, string? logoUrl = null)
+    {
+        // If body already contains HTML structure, return as-is
+        if (body.Contains("<!DOCTYPE") || body.Contains("<html"))
+            return body;
+
+        // Otherwise, wrap in professional template
+        var logo = string.IsNullOrEmpty(logoUrl) 
+            ? "<h1 style='margin: 0; font-size: 24px;'>CRM System</h1>"
+            : $"<img src='{logoUrl}' alt='Company Logo' style='max-width: 200px; height: auto;' />";
+
+        return $@"
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>{subject}</title>
+    <style>
+        body {{
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+        }}
+        .email-wrapper {{
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }}
+        .email-header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }}
+        .email-logo {{
+            margin-bottom: 15px;
+        }}
+        .email-content {{
+            padding: 40px 30px;
+            background-color: #ffffff;
+        }}
+        .email-content h1 {{
+            color: #1a202c;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }}
+        .email-content h2 {{
+            color: #2d3748;
+            font-size: 20px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }}
+        .email-content p {{
+            color: #4a5568;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }}
+        .email-content a {{
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }}
+        .email-content a:hover {{
+            text-decoration: underline;
+        }}
+        .email-button {{
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }}
+        .email-button:hover {{
+            transform: translateY(-2px);
+            text-decoration: none !important;
+        }}
+        .highlight-box {{
+            background-color: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        .email-footer {{
+            background-color: #f7fafc;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }}
+        .email-footer p {{
+            color: #718096;
+            font-size: 13px;
+            margin: 5px 0;
+        }}
+        .divider {{
+            height: 1px;
+            background-color: #e2e8f0;
+            margin: 25px 0;
+        }}
+        @media only screen and (max-width: 600px) {{
+            .email-wrapper {{
+                margin: 10px;
+            }}
+            .email-content {{
+                padding: 25px 20px;
+            }}
+            .email-header {{
+                padding: 25px 15px;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class='email-wrapper'>
+        <div class='email-header'>
+            <div class='email-logo'>
+                {logo}
+            </div>
+            <h1 style='margin: 0; font-size: 20px; font-weight: 500;'>{subject}</h1>
+        </div>
+        <div class='email-content'>
+            {body}
+        </div>
+        <div class='email-footer'>
+            <p><strong>This is an automated message from your CRM system.</strong></p>
+            <p>Please do not reply directly to this email.</p>
+            <p style='margin-top: 15px;'>© {DateTime.Now.Year} CRM System. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>";
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  CORE EMAIL SENDING
     // ═══════════════════════════════════════════════════════════════════════════
@@ -250,19 +565,16 @@ public class EmailNotificationService : IEmailNotificationService
             if (_isProcessing) return;
             _isProcessing = true;
 
-            var batchSize = _configuration.GetValue<int>("Email:BatchSize", 50);
-            var delayBetweenBatches = _configuration.GetValue<int>("Email:DelayBetweenBatchesMs", 1000);
-
             var batch = new List<EmailDto>();
             while (_emailQueue.TryDequeue(out var email))
             {
                 batch.Add(email);
 
-                if (batch.Count >= batchSize)
+                if (batch.Count >= _batchSize)
                 {
                     await SendBatchAsync(batch);
                     batch.Clear();
-                    await Task.Delay(delayBetweenBatches);
+                    await Task.Delay(_delayBetweenBatches);
                 }
             }
 
@@ -283,8 +595,12 @@ public class EmailNotificationService : IEmailNotificationService
 
     private async Task SendBatchAsync(List<EmailDto> batch)
     {
+        // Use SemaphoreSlim to limit concurrent email sends
+        var semaphore = new SemaphoreSlim(_maxConcurrentEmails, _maxConcurrentEmails);
+        
         var tasks = batch.Select(async email =>
         {
+            await semaphore.WaitAsync();
             try
             {
                 await SendEmailAsync(email.ToEmail, email.ToName, email.Subject, email.Body);
@@ -292,6 +608,10 @@ public class EmailNotificationService : IEmailNotificationService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send email in batch to {Email}", email.ToEmail);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         });
 

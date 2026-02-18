@@ -51,14 +51,14 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MstActivity_Status_Pri
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MstActivity_AssignedTo_Status' AND object_id = OBJECT_ID('[dbo].[MstActivity]'))
     CREATE NONCLUSTERED INDEX IX_MstActivity_AssignedTo_Status 
     ON MstActivity (strAssignedToGUID, strStatus)
-    INCLUDE (dtDueDate, dtScheduledOn, strActivityGUID, bolIsDeleted)
+    INCLUDE (dtDueDate, dtScheduledStart, strActivityGUID, bolIsDeleted)
     WHERE bolIsDeleted = 0 AND strAssignedToGUID IS NOT NULL;
 
 -- Index on tenant and active status for dashboard queries
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MstActivity_Tenant_Active' AND object_id = OBJECT_ID('[dbo].[MstActivity]'))
     CREATE NONCLUSTERED INDEX IX_MstActivity_Tenant_Active 
     ON MstActivity (strGroupGUID, bolIsActive)
-    INCLUDE (strActivityGUID, strStatus, dtScheduledOn, bolIsDeleted)
+    INCLUDE (strActivityGUID, strStatus, dtScheduledStart, bolIsDeleted)
     WHERE bolIsDeleted = 0;
 
 -- Index on created date for sorting

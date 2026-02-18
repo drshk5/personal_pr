@@ -392,8 +392,8 @@ BEGIN
         strActivityType         NVARCHAR(50)        NOT NULL,
         strSubject              NVARCHAR(300)       NOT NULL,
         strDescription          NVARCHAR(MAX)       NULL,
-        dtScheduledOn           DATETIME2           NULL,
-        dtCompletedOn           DATETIME2           NULL,
+        dtScheduledStart        DATETIME2           NULL,
+        dtActualEnd             DATETIME2           NULL,
         intDurationMinutes      INT                 NULL,
         strOutcome              NVARCHAR(200)       NULL,
         strStatus               NVARCHAR(50)        NOT NULL DEFAULT ''Pending'',
@@ -474,7 +474,7 @@ BEGIN
         strEntityType           NVARCHAR(50)        NOT NULL,
         strEntityGUID           UNIQUEIDENTIFIER    NOT NULL,
         strAction               NVARCHAR(50)        NOT NULL,
-        strChanges              NVARCHAR(MAX)       NULL,
+        strNewValues            NVARCHAR(MAX)       NULL,
         strPerformedByGUID      UNIQUEIDENTIFIER    NOT NULL,
         dtPerformedOn           DATETIME2           NOT NULL DEFAULT GETUTCDATE()
     );
@@ -511,7 +511,7 @@ BEGIN
         strConditionField       NVARCHAR(100)       NOT NULL,
         strConditionOperator    NVARCHAR(20)        DEFAULT ''Equals'',
         strConditionValue       NVARCHAR(500)       NULL,
-        intScorePoints          INT                 NOT NULL,
+        intScoreChange          INT                 NOT NULL,
         intDecayDays            INT                 NULL,
         intSortOrder            INT                 DEFAULT 0,
         strCreatedByGUID        UNIQUEIDENTIFIER    NOT NULL,
@@ -549,7 +549,7 @@ BEGIN
         strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
         strLeadGUID             UNIQUEIDENTIFIER    NOT NULL,
         strScoringRuleGUID      UNIQUEIDENTIFIER    NULL,
-        intPreviousScore        INT                 NOT NULL,
+        intOldScore             INT                 NOT NULL,
         intNewScore             INT                 NOT NULL,
         intScoreChange          INT                 NOT NULL,
         strChangeReason         NVARCHAR(500)       NOT NULL,
@@ -589,7 +589,7 @@ BEGIN
         strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
         strRuleName             NVARCHAR(200)       NOT NULL,
         strAssignmentType       NVARCHAR(50)        NOT NULL,
-        strConditionJson        NVARCHAR(MAX)       NULL,
+        strCriteria             NVARCHAR(MAX)       NULL,
         intPriority             INT                 DEFAULT 0,
         intLastAssignedIndex    INT                 DEFAULT 0,
         strCreatedByGUID        UNIQUEIDENTIFIER    NOT NULL,
@@ -627,7 +627,7 @@ BEGIN
         strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
         strAssignmentRuleGUID   UNIQUEIDENTIFIER    NOT NULL,
         strUserGUID             UNIQUEIDENTIFIER    NOT NULL,
-        intMaxCapacity          INT                 NULL,
+        intCapacityPercentage   INT                 NULL,
         strSkillLevel           NVARCHAR(50)        NULL,
         dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
         bolIsActive             BIT                 DEFAULT 1,
@@ -705,7 +705,7 @@ BEGIN
         strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
         strSurvivorLeadGUID     UNIQUEIDENTIFIER    NOT NULL,
         strMergedLeadGUID       UNIQUEIDENTIFIER    NOT NULL,
-        strMergedDataJson       NVARCHAR(MAX)       NULL,
+        strMergedLeadsJson      NVARCHAR(MAX)       NULL,
         strMergedByGUID         UNIQUEIDENTIFIER    NOT NULL,
         dtMergedOn              DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
 
@@ -741,10 +741,10 @@ BEGIN
         strRuleName             NVARCHAR(200)       NOT NULL,
         strEntityType           NVARCHAR(50)        NOT NULL,
         strTriggerEvent         NVARCHAR(100)       NOT NULL,
-        strTriggerConditionJson NVARCHAR(MAX)       NULL,
+        strConditions           NVARCHAR(MAX)       NULL,
         strActionType           NVARCHAR(100)       NOT NULL,
-        strActionConfigJson     NVARCHAR(MAX)       NULL,
-        intDelayMinutes         INT                 DEFAULT 0,
+        strActionConfig         NVARCHAR(MAX)       NULL,
+        intExecutionOrder       INT                 DEFAULT 0,
         strCreatedByGUID        UNIQUEIDENTIFIER    NOT NULL,
         strUpdatedByGUID        UNIQUEIDENTIFIER    NULL,
         dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
@@ -782,9 +782,9 @@ BEGIN
         strWorkflowRuleGUID     UNIQUEIDENTIFIER    NOT NULL,
         strEntityGUID           UNIQUEIDENTIFIER    NOT NULL,
         strStatus               NVARCHAR(30)        NOT NULL,
-        strResultJson           NVARCHAR(MAX)       NULL,
-        dtScheduledFor          DATETIME2           NOT NULL,
-        dtExecutedOn            DATETIME2           NULL,
+        strErrorMessage         NVARCHAR(MAX)       NULL,
+        dtStartedOn             DATETIME2           NOT NULL,
+        dtCompletedOn           DATETIME2           NULL,
         dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
 
         CONSTRAINT ' + QUOTENAME('FK_MstWorkflowExecutions_WorkflowRule_' + @sanitizedOrgGUID) + N' FOREIGN KEY (strWorkflowRuleGUID)
@@ -865,7 +865,7 @@ BEGIN
         bolIsRequired           BIT                 DEFAULT 0,
         strDefaultValue         NVARCHAR(500)       NULL,
         strOptionsJson          NVARCHAR(MAX)       NULL,
-        intSortOrder            INT                 DEFAULT 0,
+        intDisplayOrder         INT                 DEFAULT 0,
         dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
 
         CONSTRAINT ' + QUOTENAME('FK_MstWebFormFields_WebForm_' + @sanitizedOrgGUID) + N' FOREIGN KEY (strWebFormGUID)
@@ -946,10 +946,10 @@ BEGIN
         strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
         strFileName             NVARCHAR(300)       NOT NULL,
         strStatus               NVARCHAR(30)        DEFAULT ''Pending'',
-        intTotalRows            INT                 DEFAULT 0,
+        intTotalRecords         INT                 DEFAULT 0,
         intProcessedRows        INT                 DEFAULT 0,
-        intSuccessRows          INT                 DEFAULT 0,
-        intErrorRows            INT                 DEFAULT 0,
+        intSuccessRecords       INT                 DEFAULT 0,
+        intFailedRecords        INT                 DEFAULT 0,
         intDuplicateRows        INT                 DEFAULT 0,
         strDuplicateHandling    NVARCHAR(30)        DEFAULT ''Skip'',
         strColumnMappingJson    NVARCHAR(MAX)       NOT NULL,
@@ -986,7 +986,7 @@ BEGIN
         strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
         strImportJobGUID        UNIQUEIDENTIFIER    NOT NULL,
         intRowNumber            INT                 NOT NULL,
-        strRawDataJson          NVARCHAR(MAX)       NULL,
+        strRowDataJson          NVARCHAR(MAX)       NULL,
         strErrorMessage         NVARCHAR(500)       NOT NULL,
         strErrorType            NVARCHAR(50)        NOT NULL,
         dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
@@ -1056,10 +1056,267 @@ EXEC sp_executesql @sql;
 GO
 
 -- ========================================================================================================
+-- TABLE 25: MstNotifications (Real-time Notifications)
+-- ========================================================================================================
+DECLARE @sanitizedOrgGUID NVARCHAR(50) = REPLACE(CAST(@organizationGUID AS NVARCHAR(50)), '-', '');
+DECLARE @schemaName NVARCHAR(100) = 'ORG_' + @sanitizedOrgGUID;
+DECLARE @sql NVARCHAR(MAX);
+
+SET @sql = N'
+IF NOT EXISTS (SELECT * FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id
+               WHERE s.name = ''' + @schemaName + ''' AND t.name = ''MstNotifications'')
+BEGIN
+    CREATE TABLE ' + QUOTENAME(@schemaName) + N'.[MstNotifications] (
+        strNotificationGUID     UNIQUEIDENTIFIER    NOT NULL DEFAULT NEWID() PRIMARY KEY,
+        strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
+        strRecipientUserGUID    UNIQUEIDENTIFIER    NOT NULL,
+        strType                 NVARCHAR(50)        NOT NULL,
+        strCategory             NVARCHAR(50)        NOT NULL,
+        strTitle                NVARCHAR(200)       NOT NULL,
+        strMessage              NVARCHAR(MAX)       NOT NULL,
+        strEntityType           NVARCHAR(50)        NULL,
+        strEntityGUID           UNIQUEIDENTIFIER    NULL,
+        strActionUrl            NVARCHAR(500)       NULL,
+        strActorUserGUID        UNIQUEIDENTIFIER    NULL,
+        bolIsRead               BIT                 DEFAULT 0,
+        dtReadOn                DATETIME2           NULL,
+        bolIsArchived           BIT                 DEFAULT 0,
+        dtArchivedOn            DATETIME2           NULL,
+        dtExpiresOn             DATETIME2           NULL,
+        strMetadataJson         NVARCHAR(MAX)       NULL,
+        strCreatedByGUID        UNIQUEIDENTIFIER    NOT NULL,
+        dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
+        bolIsActive             BIT                 DEFAULT 1,
+        bolIsDeleted            BIT                 DEFAULT 0
+    );
+
+    CREATE INDEX IX_MstNotifications_GroupGUID ON ' + QUOTENAME(@schemaName) + N'.[MstNotifications](strGroupGUID);
+    CREATE INDEX IX_MstNotifications_Recipient ON ' + QUOTENAME(@schemaName) + N'.[MstNotifications](strRecipientUserGUID, bolIsRead, bolIsArchived) WHERE bolIsDeleted = 0;
+    CREATE INDEX IX_MstNotifications_Entity ON ' + QUOTENAME(@schemaName) + N'.[MstNotifications](strEntityType, strEntityGUID) WHERE strEntityGUID IS NOT NULL;
+    CREATE INDEX IX_MstNotifications_CreatedOn ON ' + QUOTENAME(@schemaName) + N'.[MstNotifications](dtCreatedOn DESC);
+
+    PRINT ''✓ Table created: MstNotifications'';
+END
+ELSE
+BEGIN
+    PRINT ''✓ Table already exists: MstNotifications'';
+END';
+EXEC sp_executesql @sql;
+GO
+
+-- ========================================================================================================
+-- TABLE 26: MstNotes (Internal Notes with @Mentions)
+-- ========================================================================================================
+DECLARE @sanitizedOrgGUID NVARCHAR(50) = REPLACE(CAST(@organizationGUID AS NVARCHAR(50)), '-', '');
+DECLARE @schemaName NVARCHAR(100) = 'ORG_' + @sanitizedOrgGUID;
+DECLARE @sql NVARCHAR(MAX);
+
+SET @sql = N'
+IF NOT EXISTS (SELECT * FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id
+               WHERE s.name = ''' + @schemaName + ''' AND t.name = ''MstNotes'')
+BEGIN
+    CREATE TABLE ' + QUOTENAME(@schemaName) + N'.[MstNotes] (
+        strNoteGUID             UNIQUEIDENTIFIER    NOT NULL DEFAULT NEWID() PRIMARY KEY,
+        strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
+        strEntityType           NVARCHAR(50)        NOT NULL,
+        strEntityGUID           UNIQUEIDENTIFIER    NOT NULL,
+        strContent              NVARCHAR(MAX)       NOT NULL,
+        strMentionedUsersJson   NVARCHAR(MAX)       NULL,
+        bolIsPrivate            BIT                 DEFAULT 0,
+        bolIsPinned             BIT                 DEFAULT 0,
+        strCreatedByGUID        UNIQUEIDENTIFIER    NOT NULL,
+        strUpdatedByGUID        UNIQUEIDENTIFIER    NULL,
+        dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
+        dtUpdatedOn             DATETIME2           NULL,
+        bolIsActive             BIT                 DEFAULT 1,
+        bolIsDeleted            BIT                 DEFAULT 0,
+        dtDeletedOn             DATETIME2           NULL
+    );
+
+    CREATE INDEX IX_MstNotes_GroupGUID ON ' + QUOTENAME(@schemaName) + N'.[MstNotes](strGroupGUID);
+    CREATE INDEX IX_MstNotes_Entity ON ' + QUOTENAME(@schemaName) + N'.[MstNotes](strEntityType, strEntityGUID) WHERE bolIsDeleted = 0;
+    CREATE INDEX IX_MstNotes_CreatedOn ON ' + QUOTENAME(@schemaName) + N'.[MstNotes](dtCreatedOn DESC);
+    CREATE INDEX IX_MstNotes_Pinned ON ' + QUOTENAME(@schemaName) + N'.[MstNotes](bolIsPinned) WHERE bolIsPinned = 1 AND bolIsDeleted = 0;
+
+    PRINT ''✓ Table created: MstNotes'';
+END
+ELSE
+BEGIN
+    PRINT ''✓ Table already exists: MstNotes'';
+END';
+EXEC sp_executesql @sql;
+GO
+
+-- ========================================================================================================
+-- TABLE 27: MstSavedViews (Filter Persistence)
+-- ========================================================================================================
+DECLARE @sanitizedOrgGUID NVARCHAR(50) = REPLACE(CAST(@organizationGUID AS NVARCHAR(50)), '-', '');
+DECLARE @schemaName NVARCHAR(100) = 'ORG_' + @sanitizedOrgGUID;
+DECLARE @sql NVARCHAR(MAX);
+
+SET @sql = N'
+IF NOT EXISTS (SELECT * FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id
+               WHERE s.name = ''' + @schemaName + ''' AND t.name = ''MstSavedViews'')
+BEGIN
+    CREATE TABLE ' + QUOTENAME(@schemaName) + N'.[MstSavedViews] (
+        strSavedViewGUID        UNIQUEIDENTIFIER    NOT NULL DEFAULT NEWID() PRIMARY KEY,
+        strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
+        strEntityType           NVARCHAR(50)        NOT NULL,
+        strName                 NVARCHAR(200)       NOT NULL,
+        strDescription          NVARCHAR(500)       NULL,
+        strFilterJson           NVARCHAR(MAX)       NOT NULL,
+        strIcon                 NVARCHAR(50)        NULL,
+        strColor                NVARCHAR(20)        NULL,
+        bolIsDefault            BIT                 DEFAULT 0,
+        bolIsShared             BIT                 DEFAULT 0,
+        intUsageCount           INT                 DEFAULT 0,
+        dtLastUsedOn            DATETIME2           NULL,
+        strCreatedByGUID        UNIQUEIDENTIFIER    NOT NULL,
+        strUpdatedByGUID        UNIQUEIDENTIFIER    NULL,
+        dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
+        dtUpdatedOn             DATETIME2           NULL,
+        bolIsActive             BIT                 DEFAULT 1,
+        bolIsDeleted            BIT                 DEFAULT 0
+    );
+
+    CREATE INDEX IX_MstSavedViews_GroupGUID ON ' + QUOTENAME(@schemaName) + N'.[MstSavedViews](strGroupGUID);
+    CREATE INDEX IX_MstSavedViews_EntityType ON ' + QUOTENAME(@schemaName) + N'.[MstSavedViews](strEntityType) WHERE bolIsDeleted = 0;
+    CREATE INDEX IX_MstSavedViews_Creator ON ' + QUOTENAME(@schemaName) + N'.[MstSavedViews](strCreatedByGUID) WHERE bolIsDeleted = 0;
+    CREATE INDEX IX_MstSavedViews_Shared ON ' + QUOTENAME(@schemaName) + N'.[MstSavedViews](bolIsShared) WHERE bolIsShared = 1 AND bolIsDeleted = 0;
+    CREATE INDEX IX_MstSavedViews_Default ON ' + QUOTENAME(@schemaName) + N'.[MstSavedViews](strEntityType, strCreatedByGUID, bolIsDefault) WHERE bolIsDefault = 1;
+
+    PRINT ''✓ Table created: MstSavedViews'';
+END
+ELSE
+BEGIN
+    PRINT ''✓ Table already exists: MstSavedViews'';
+END';
+EXEC sp_executesql @sql;
+GO
+
+-- ========================================================================================================
+-- TABLE 28: MstMeetings (Meeting Scheduler)
+-- ========================================================================================================
+DECLARE @sanitizedOrgGUID NVARCHAR(50) = REPLACE(CAST(@organizationGUID AS NVARCHAR(50)), '-', '');
+DECLARE @schemaName NVARCHAR(100) = 'ORG_' + @sanitizedOrgGUID;
+DECLARE @sql NVARCHAR(MAX);
+
+SET @sql = N'
+IF NOT EXISTS (SELECT * FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id
+               WHERE s.name = ''' + @schemaName + ''' AND t.name = ''MstMeetings'')
+BEGIN
+    CREATE TABLE ' + QUOTENAME(@schemaName) + N'.[MstMeetings] (
+        strMeetingGUID          UNIQUEIDENTIFIER    NOT NULL DEFAULT NEWID() PRIMARY KEY,
+        strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
+        strEntityType           NVARCHAR(50)        NULL,
+        strEntityGUID           UNIQUEIDENTIFIER    NULL,
+        strTitle                NVARCHAR(300)       NOT NULL,
+        strDescription          NVARCHAR(MAX)       NULL,
+        dtStartTime             DATETIME2           NOT NULL,
+        dtEndTime               DATETIME2           NOT NULL,
+        strLocation             NVARCHAR(300)       NULL,
+        strMeetingUrl           NVARCHAR(500)       NULL,
+        bolIsVirtualMeeting     BIT                 DEFAULT 0,
+        strAttendeesJson        NVARCHAR(MAX)       NULL,
+        strRequiredAttendeesJson NVARCHAR(MAX)      NULL,
+        strOptionalAttendeesJson NVARCHAR(MAX)      NULL,
+        strRecurrenceRule       NVARCHAR(500)       NULL,
+        strParentRecurrenceGUID UNIQUEIDENTIFIER    NULL,
+        strStatus               NVARCHAR(50)        NOT NULL DEFAULT ''Scheduled'',
+        strOutcome              NVARCHAR(MAX)       NULL,
+        strReminderConfigJson   NVARCHAR(MAX)       NULL,
+        strCalendarEventId      NVARCHAR(200)       NULL,
+        strCalendarType         NVARCHAR(50)        NULL,
+        strCreatedByGUID        UNIQUEIDENTIFIER    NOT NULL,
+        strUpdatedByGUID        UNIQUEIDENTIFIER    NULL,
+        dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
+        dtUpdatedOn             DATETIME2           NULL,
+        bolIsActive             BIT                 DEFAULT 1,
+        bolIsDeleted            BIT                 DEFAULT 0,
+        dtDeletedOn             DATETIME2           NULL
+    );
+
+    CREATE INDEX IX_MstMeetings_GroupGUID ON ' + QUOTENAME(@schemaName) + N'.[MstMeetings](strGroupGUID);
+    CREATE INDEX IX_MstMeetings_Entity ON ' + QUOTENAME(@schemaName) + N'.[MstMeetings](strEntityType, strEntityGUID) WHERE strEntityGUID IS NOT NULL;
+    CREATE INDEX IX_MstMeetings_StartTime ON ' + QUOTENAME(@schemaName) + N'.[MstMeetings](dtStartTime) WHERE bolIsDeleted = 0;
+    CREATE INDEX IX_MstMeetings_Status ON ' + QUOTENAME(@schemaName) + N'.[MstMeetings](strStatus) WHERE bolIsDeleted = 0;
+    CREATE INDEX IX_MstMeetings_Creator ON ' + QUOTENAME(@schemaName) + N'.[MstMeetings](strCreatedByGUID) WHERE bolIsDeleted = 0;
+
+    PRINT ''✓ Table created: MstMeetings'';
+END
+ELSE
+BEGIN
+    PRINT ''✓ Table already exists: MstMeetings'';
+END';
+EXEC sp_executesql @sql;
+GO
+
+-- ========================================================================================================
+-- TABLE 29: MstDocuments (Document Management)
+-- ========================================================================================================
+DECLARE @sanitizedOrgGUID NVARCHAR(50) = REPLACE(CAST(@organizationGUID AS NVARCHAR(50)), '-', '');
+DECLARE @schemaName NVARCHAR(100) = 'ORG_' + @sanitizedOrgGUID;
+DECLARE @sql NVARCHAR(MAX);
+
+SET @sql = N'
+IF NOT EXISTS (SELECT * FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id
+               WHERE s.name = ''' + @schemaName + ''' AND t.name = ''MstDocuments'')
+BEGIN
+    CREATE TABLE ' + QUOTENAME(@schemaName) + N'.[MstDocuments] (
+        strDocumentGUID         UNIQUEIDENTIFIER    NOT NULL DEFAULT NEWID() PRIMARY KEY,
+        strGroupGUID            UNIQUEIDENTIFIER    NOT NULL,
+        strEntityType           NVARCHAR(50)        NOT NULL,
+        strEntityGUID           UNIQUEIDENTIFIER    NOT NULL,
+        strFileName             NVARCHAR(255)       NOT NULL,
+        strOriginalFileName     NVARCHAR(255)       NOT NULL,
+        strFileExtension        NVARCHAR(20)        NOT NULL,
+        strMimeType             NVARCHAR(100)       NOT NULL,
+        bigFileSizeBytes        BIGINT              NOT NULL,
+        strStoragePath          NVARCHAR(500)       NOT NULL,
+        strCategory             NVARCHAR(50)        NULL,
+        strDescription          NVARCHAR(500)       NULL,
+        strTagsJson             NVARCHAR(MAX)       NULL,
+        intVersionNumber        INT                 DEFAULT 1,
+        strParentVersionGUID    UNIQUEIDENTIFIER    NULL,
+        strAccessLevel          NVARCHAR(50)        DEFAULT ''Private'',
+        bolRequiresSignature    BIT                 DEFAULT 0,
+        bolIsSignedElectronically BIT               DEFAULT 0,
+        strSignatureGUID        UNIQUEIDENTIFIER    NULL,
+        dtSignedOn              DATETIME2           NULL,
+        strShareLinkToken       NVARCHAR(100)       NULL,
+        dtShareLinkExpiresOn    DATETIME2           NULL,
+        intDownloadCount        INT                 DEFAULT 0,
+        dtLastDownloadedOn      DATETIME2           NULL,
+        strCreatedByGUID        UNIQUEIDENTIFIER    NOT NULL,
+        strUpdatedByGUID        UNIQUEIDENTIFIER    NULL,
+        dtCreatedOn             DATETIME2           NOT NULL DEFAULT GETUTCDATE(),
+        dtUpdatedOn             DATETIME2           NULL,
+        bolIsActive             BIT                 DEFAULT 1,
+        bolIsDeleted            BIT                 DEFAULT 0,
+        dtDeletedOn             DATETIME2           NULL
+    );
+
+    CREATE INDEX IX_MstDocuments_GroupGUID ON ' + QUOTENAME(@schemaName) + N'.[MstDocuments](strGroupGUID);
+    CREATE INDEX IX_MstDocuments_Entity ON ' + QUOTENAME(@schemaName) + N'.[MstDocuments](strEntityType, strEntityGUID) WHERE bolIsDeleted = 0;
+    CREATE INDEX IX_MstDocuments_Category ON ' + QUOTENAME(@schemaName) + N'.[MstDocuments](strCategory) WHERE bolIsDeleted = 0;
+    CREATE INDEX IX_MstDocuments_ParentVersion ON ' + QUOTENAME(@schemaName) + N'.[MstDocuments](strParentVersionGUID) WHERE strParentVersionGUID IS NOT NULL;
+    CREATE INDEX IX_MstDocuments_ShareLink ON ' + QUOTENAME(@schemaName) + N'.[MstDocuments](strShareLinkToken) WHERE strShareLinkToken IS NOT NULL;
+    CREATE INDEX IX_MstDocuments_CreatedOn ON ' + QUOTENAME(@schemaName) + N'.[MstDocuments](dtCreatedOn DESC);
+
+    PRINT ''✓ Table created: MstDocuments'';
+END
+ELSE
+BEGIN
+    PRINT ''✓ Table already exists: MstDocuments'';
+END';
+EXEC sp_executesql @sql;
+GO
+
+-- ========================================================================================================
 -- SCHEMA INITIALIZATION COMPLETE
 -- ========================================================================================================
 PRINT '========================================================================================================';
 PRINT 'CRM Schema Initialization Completed Successfully!';
-PRINT 'Total Tables Created/Verified: 24';
+PRINT 'Total Tables Created/Verified: 29';
 PRINT 'Schema: ' + 'ORG_' + REPLACE(CAST(@organizationGUID AS NVARCHAR(50)), '-', '');
 PRINT '========================================================================================================';

@@ -29,14 +29,23 @@ public class MstWorkflowService : IWorkflowService
     public async Task TriggerWorkflowsAsync(string entityType, Guid entityGuid, string triggerEvent,
         Guid tenantId, Guid performedByGuid, string? contextJson = null)
     {
-        var matchingRules = await _unitOfWork.WorkflowRules.Query()
-            .Where(r => r.strGroupGUID == tenantId
-                        && r.strEntityType == entityType
-                        && r.strTriggerEvent == triggerEvent
-                        && r.bolIsActive
-                        && !r.bolIsDeleted)
-            .OrderBy(r => r.dtCreatedOn)
-            .ToListAsync();
+        List<MstWorkflowRule> matchingRules;
+        try
+        {
+            matchingRules = await _unitOfWork.WorkflowRules.Query()
+                .Where(r => r.strGroupGUID == tenantId
+                            && r.strEntityType == entityType
+                            && r.strTriggerEvent == triggerEvent
+                            && r.bolIsActive
+                            && !r.bolIsDeleted)
+                .OrderBy(r => r.dtCreatedOn)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to query workflow rules for {EntityType}/{TriggerEvent}. Skipping workflow triggers.", entityType, triggerEvent);
+            return;
+        }
 
         foreach (var rule in matchingRules)
         {

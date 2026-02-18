@@ -61,4 +61,28 @@ export const activityService = {
       Message: dto.message,
       NotifyAssignedUsers: dto.notifyAssignedUsers,
     });
-  },};
+  },
+
+  // ── Bulk email activities ───────────────────────────────────────
+  bulkEmail: async (dto: {
+    activityGuids: string[];
+    subject: string;
+    body: string;
+    sendToAssignedUsers: boolean;
+    sendToCreators: boolean;
+    additionalRecipients: string[];
+  }): Promise<number> => {
+    const response = await ApiService.post<number>(
+      `${ACTIVITIES_PREFIX}/bulk-email`,
+      {
+        ActivityGuids: dto.activityGuids,
+        Subject: dto.subject,
+        Body: dto.body,
+        SendToAssignedUsers: dto.sendToAssignedUsers,
+        SendToCreators: dto.sendToCreators,
+        AdditionalRecipients: dto.additionalRecipients,
+      }
+    );
+    return response;
+  },
+};

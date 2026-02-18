@@ -46,12 +46,12 @@ const NotImplementedWrapper: React.FC<NotImplementedWrapperProps> = ({
           <CardTitle>{menuItem?.strName || defaultMenuItem.strName}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-500 mb-4">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
             This page has not been implemented yet.
           </p>
           <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md overflow-auto">
-            <h2 className="text-md font-semibold mb-2">Menu Item Details:</h2>
-            <pre className="text-sm">
+            <h2 className="text-md font-semibold mb-2 text-foreground">Menu Item Details:</h2>
+            <pre className="text-sm text-foreground">
               {JSON.stringify(menuItem || defaultMenuItem, null, 2)}
             </pre>
           </div>

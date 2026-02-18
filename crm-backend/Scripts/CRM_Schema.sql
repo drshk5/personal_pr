@@ -231,8 +231,8 @@ BEGIN
         strActivityType         NVARCHAR(50)        NOT NULL,
         strSubject              NVARCHAR(300)       NOT NULL,
         strDescription          NVARCHAR(MAX)       NULL,
-        dtScheduledOn           DATETIME2           NULL,
-        dtCompletedOn           DATETIME2           NULL,
+        dtScheduledStart        DATETIME2           NULL,
+        dtActualEnd             DATETIME2           NULL,
         intDurationMinutes      INT                 NULL,
         strOutcome              NVARCHAR(200)       NULL,
         strAssignedToGUID       UNIQUEIDENTIFIER    NULL,
@@ -270,7 +270,7 @@ BEGIN
         strEntityType           NVARCHAR(50)        NOT NULL,
         strEntityGUID           UNIQUEIDENTIFIER    NOT NULL,
         strAction               NVARCHAR(50)        NOT NULL,
-        strChanges              NVARCHAR(MAX)       NULL,
+        strNewValues            NVARCHAR(MAX)       NULL,
         strPerformedByGUID      UNIQUEIDENTIFIER    NOT NULL,
         dtPerformedOn           DATETIME2           NOT NULL DEFAULT GETUTCDATE()
     );

@@ -119,6 +119,43 @@ public class ActivityBulkNotifyDto
     public bool NotifyAssignedUsers { get; set; } = true;
 }
 
+/// <summary>
+/// DTO for sending bulk custom emails to activity participants
+/// High-performance bulk email sending for CRM activities
+/// </summary>
+public class ActivityBulkEmailDto
+{
+    /// <summary>
+    /// Activity GUIDs to send emails for
+    /// </summary>
+    public List<Guid> ActivityGuids { get; set; } = new();
+    
+    /// <summary>
+    /// Email subject (supports template variables: {ActivitySubject}, {ActivityType}, {DueDate})
+    /// </summary>
+    public string Subject { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Email body in HTML format (supports same template variables)
+    /// </summary>
+    public string Body { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Send to assigned users of activities (default: true)
+    /// </summary>
+    public bool SendToAssignedUsers { get; set; } = true;
+    
+    /// <summary>
+    /// Send to activity creators (default: false)
+    /// </summary>
+    public bool SendToCreators { get; set; } = false;
+    
+    /// <summary>
+    /// Additional recipient email addresses (optional)
+    /// </summary>
+    public List<string> AdditionalRecipients { get; set; } = new();
+}
+
 public class UpcomingActivityDto
 {
     public Guid strActivityGUID { get; set; }

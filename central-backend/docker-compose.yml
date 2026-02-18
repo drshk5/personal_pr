@@ -13,14 +13,17 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
       # Database connection - Update with your SQL Server details
-      - ConnectionStrings__DefaultConnection=Server=host.docker.internal\\SQLEXPRESS;Database=MasterDB;User Id=sa;Password=De$$ktop;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MasterDB;User Id=sa;Password=Darshak@5804;TrustServerCertificate=True;MultipleActiveResultSets=true;
       # JWT Settings
       - Jwt__Key=YourSuperSecretKey123!@#$$%^&*()_+QWERTY987654321
+      - Jwt__EncryptionKey=AES256EncryptionKey!@#$$%^&*()
+      - Jwt__TokenHmacKey=RefreshTokenHashingSecretKey!@#$$%^&*()_+1234567890
       - Jwt__Issuer=EasyAudit
       - Jwt__Audience=EasyAuditUsers
       # API Gateway URLs - Update these if needed
       - ApiGateway__TaskServiceBaseUrl=http://task-backend:8080
       - ApiGateway__AccountingServiceBaseUrl=http://accounting-backend:8080
+      - ApiGateway__CrmServiceBaseUrl=http://host.docker.internal:5005
     volumes:
       # Persist uploaded files
       - ./Uploads:/app/Uploads

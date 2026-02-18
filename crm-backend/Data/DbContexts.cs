@@ -112,6 +112,13 @@ namespace crm_backend.Data
         public DbSet<MstImportJobError> MstImportJobErrors { get; set; } = null!;
         public DbSet<MstLeadCommunication> MstLeadCommunications { get; set; } = null!;
 
+        // CRM Enhancement Features
+        public DbSet<MstNotification> MstNotifications { get; set; } = null!;
+        public DbSet<MstNote> MstNotes { get; set; } = null!;
+        public DbSet<MstSavedView> MstSavedViews { get; set; } = null!;
+        public DbSet<MstMeeting> MstMeetings { get; set; } = null!;
+        public DbSet<MstDocument> MstDocuments { get; set; } = null!;
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!_modelConfigured && !string.IsNullOrEmpty(_connectionString))
@@ -501,7 +508,7 @@ namespace crm_backend.Data
                 entity.Property(e => e.strAuditLogGUID).HasDefaultValueSql("NEWID()");
                 entity.Property(e => e.strEntityType).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.strAction).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.strChanges).HasColumnName("strChanges");
+                entity.Property(e => e.strChanges).HasColumnName("strNewValues");
                 entity.Property(e => e.dtPerformedOn).HasDefaultValueSql("GETUTCDATE()");
             });
         }
@@ -640,7 +647,7 @@ namespace crm_backend.Data
                 entity.Property(e => e.strActionType).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.strTriggerConditionJson).HasColumnName("strConditions");
                 entity.Property(e => e.strActionConfigJson).HasColumnName("strActionConfig");
-                entity.Property(e => e.intDelayMinutes).HasColumnName("intExecutionOrder");
+                entity.Property(e => e.intDelayMinutes).HasColumnName("intDelayMinutes").HasDefaultValue(0);
                 entity.Property(e => e.dtCreatedOn).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.bolIsActive).HasDefaultValue(true);
                 entity.Property(e => e.bolIsDeleted).HasDefaultValue(false);

@@ -19,6 +19,9 @@ namespace AuditSoftware.Config
             configuration.GetSection("ApiGateway").Bind(apiGatewayConfig);
             services.AddSingleton(apiGatewayConfig);
 
+            // Log the loaded CRM service URL for debugging
+            Console.WriteLine($"🔧 [CONFIG LOADED] CrmServiceBaseUrl: {apiGatewayConfig.CrmServiceBaseUrl}");
+
             // Configure HttpClient with SSL certificate validation bypass for development
             services.AddHttpClient("ApiGatewayClient", client =>
             {

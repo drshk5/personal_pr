@@ -20,6 +20,7 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
     private readonly IActivityService _activityService;
     private readonly IAuditLogService _auditLogService;
     private readonly IWorkflowService _workflowService;
+    private readonly IEmailNotificationService _emailNotificationService;
 
     public MstActivityApplicationService(
         IUnitOfWork unitOfWork,
@@ -28,6 +29,7 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
         IActivityService activityService,
         IAuditLogService auditLogService,
         IWorkflowService workflowService,
+        IEmailNotificationService emailNotificationService,
         ILogger<MstActivityApplicationService> logger)
         : base(unitOfWork, tenantContextProvider, logger)
     {
@@ -35,6 +37,7 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
         _activityService = activityService;
         _auditLogService = auditLogService;
         _workflowService = workflowService;
+        _emailNotificationService = emailNotificationService;
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -224,12 +227,19 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
         if (leadLinks.Count > 0)
             await _unitOfWork.SaveChangesAsync();
 
-        // Trigger workflows
-        await _workflowService.TriggerWorkflowsAsync(
-            EntityTypeConstants.Activity, activityId,
-            WorkflowTriggerConstants.ActivityCreated,
-            GetTenantId(), userId,
-            JsonSerializer.Serialize(new { dto.strActivityType, dto.strSubject, dto.strAssignedToGUID }));
+        // Trigger workflows (non-fatal — don't let workflow errors block activity creation)
+        try
+        {
+            await _workflowService.TriggerWorkflowsAsync(
+                EntityTypeConstants.Activity, activityId,
+                WorkflowTriggerConstants.ActivityCreated,
+                GetTenantId(), userId,
+                JsonSerializer.Serialize(new { dto.strActivityType, dto.strSubject, dto.strAssignedToGUID }));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Workflow trigger failed for activity {ActivityId}, continuing", activityId);
+        }
 
         // If created as Completed, also trigger the Completed workflow
         if (activity.strStatus == ActivityStatusConstants.Completed)
@@ -647,13 +657,53 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
             .Distinct()
             .ToList();
 
-        // TODO: Inject IEmailNotificationService and call it here
-        // await _emailNotificationService.SendBulkActivityNotificationsAsync(dto.ActivityGuids, userIds);
+        // Use email notification service for sending
+        await _emailNotificationService.SendBulkActivityNotificationsAsync(dto.ActivityGuids, userIds);
 
         _logger.LogInformation("Queued notifications for {Count} activities to {UserCount} users", 
             activities.Count, userIds.Count);
 
         return true;
+    }
+
+    /// <summary>
+    /// Send bulk custom emails to activity participants
+    /// High-performance implementation with template support and tenant isolation
+    /// </summary>
+    public async Task<int> SendBulkActivityEmailsAsync(ActivityBulkEmailDto dto)
+    {
+        if (dto.ActivityGuids.Count == 0)
+            throw new BusinessException("At least one activity must be selected");
+
+        if (string.IsNullOrWhiteSpace(dto.Subject))
+            throw new BusinessException("Email subject is required");
+
+        if (string.IsNullOrWhiteSpace(dto.Body))
+            throw new BusinessException("Email body is required");
+
+        var tenantId = GetTenantId();
+        var userId = GetCurrentUserId();
+
+        // Send bulk emails using the email service
+        var emailCount = await _emailNotificationService.SendBulkActivityEmailsAsync(dto, tenantId);
+
+        // Log audit trail
+        await _auditLogService.LogAsync(
+            "Activity",
+            Guid.Empty,
+            "BulkEmail",
+            JsonSerializer.Serialize(new { 
+                ActivityCount = dto.ActivityGuids.Count, 
+                EmailCount = emailCount,
+                Subject = dto.Subject 
+            }),
+            userId);
+
+        _logger.LogInformation(
+            "Bulk email sent: {EmailCount} emails for {ActivityCount} activities by user {UserGUID}", 
+            emailCount, dto.ActivityGuids.Count, userId);
+
+        return emailCount;
     }
 
     // ─────────────────────────────────────────────────────────────────────

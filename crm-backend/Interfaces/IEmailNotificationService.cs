@@ -37,6 +37,13 @@ public interface IEmailNotificationService
     /// Send bulk custom emails (for marketing/announcements)
     /// </summary>
     Task SendBulkCustomEmailsAsync(List<EmailDto> emails);
+
+    /// <summary>
+    /// Send bulk custom emails to activity participants with template support
+    /// High-performance implementation with tenant isolation
+    /// Returns the number of emails queued for sending
+    /// </summary>
+    Task<int> SendBulkActivityEmailsAsync(DTOs.CustomerData.ActivityBulkEmailDto dto, Guid tenantId);
 }
 
 /// <summary>

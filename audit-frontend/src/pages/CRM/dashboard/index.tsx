@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { motion } from "framer-motion";
 import type { DashboardData } from "@/types/crm/dashboard.types";
+import { EnhancementToolbar } from "@/components/CRM/EnhancementToolbar";
 
 export default function CrmDashboard() {
   const {
@@ -274,6 +275,9 @@ export default function CrmDashboard() {
           </div>
         </motion.div>
       ) : null}
+
+      {/* Enhancement Toolbar - Floating UI */}
+      <EnhancementToolbar />
     </div>
   );
 }

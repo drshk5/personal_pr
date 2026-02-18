@@ -10,7 +10,12 @@ import {
   Trash2,
   Edit,
   AlertCircle,
+  Mail,
+  X,
 } from "lucide-react";
+import { toast } from "sonner";
+import { activityService } from "@/services/CRM/activity.service";
+import { BulkEmailModal } from "@/components/CRM/BulkEmailModal";
 
 import type {
   ActivityListDto,
@@ -89,6 +94,10 @@ export const ActivityList: React.FC = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<ActivityListDto | null>(null);
+  
+  // Selection state for bulk actions
+  const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
+  const [showBulkEmail, setShowBulkEmail] = useState(false);
 
   // List preferences
   const { pagination, setPagination } =
@@ -147,8 +156,73 @@ export const ActivityList: React.FC = () => {
     [deleteActivity]
   );
 
+  // Selection handlers
+  const handleSelectAll = useCallback(() => {
+    if (selectedActivities.size === activities.length) {
+      setSelectedActivities(new Set());
+    } else {
+      setSelectedActivities(new Set(activities.map(a => a.strActivityGUID)));
+    }
+  }, [activities, selectedActivities]);
+
+  const handleSelectActivity = useCallback((id: string) => {
+    setSelectedActivities(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedActivities(new Set());
+  }, []);
+
+  // Bulk email handler
+  const handleBulkEmail = useCallback(async (emailData: {
+    activityGuids: string[];
+    subject: string;
+    body: string;
+    sendToAssignedUsers: boolean;
+    sendToCreators: boolean;
+    additionalRecipients: string[];
+  }) => {
+    try {
+      const emailCount = await activityService.bulkEmail(emailData);
+      toast.success(`Successfully queued ${emailCount} emails for sending`);
+      handleClearSelection();
+    } catch (error) {
+      toast.error("Failed to send bulk emails");
+      console.error(error);
+    }
+  }, [handleClearSelection]);
+
   // Columns definition
   const columns: DataTableColumn<ActivityListDto>[] = [
+    {
+      key: "_select",
+      header: (
+        <input
+          type="checkbox"
+          checked={selectedActivities.size === activities.length && activities.length > 0}
+          onChange={handleSelectAll}
+          className="w-4 h-4 text-primary border-input rounded focus:ring-2 focus:ring-primary"
+        />
+      ),
+      width: "50px",
+      cell: (row: ActivityListDto) => (
+        <input
+          type="checkbox"
+          checked={selectedActivities.has(row.strActivityGUID)}
+          onChange={() => handleSelectActivity(row.strActivityGUID)}
+          className="w-4 h-4 text-primary border-input rounded focus:ring-2 focus:ring-primary"
+          onClick={(e) => e.stopPropagation()}
+        />
+      ),
+    },
     {
       key: "strActivityType",
       header: "Type",
@@ -359,6 +433,37 @@ export const ActivityList: React.FC = () => {
       {/* Data Table */}
       <Card className="dark:bg-slate-900 dark:border-slate-800">
         <CardContent className="pt-4">
+          {/* Bulk Actions Bar */}
+          {selectedActivities.size > 0 && (
+            <div className="mb-4 p-3 bg-primary/10 dark:bg-primary/20 rounded-lg border border-primary/20 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-foreground">
+                  {selectedActivities.size} {selectedActivities.size === 1 ? 'activity' : 'activities'} selected
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearSelection}
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Clear
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setShowBulkEmail(true)}
+                  className="gap-2"
+                >
+                  <Mail className="h-4 w-4" />
+                  Send Email
+                </Button>
+              </div>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-muted-foreground dark:text-slate-400">
@@ -469,6 +574,14 @@ export const ActivityList: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Bulk Email Modal */}
+      <BulkEmailModal
+        isOpen={showBulkEmail}
+        onClose={() => setShowBulkEmail(false)}
+        selectedActivities={Array.from(selectedActivities)}
+        onSend={handleBulkEmail}
+      />
     </CustomContainer>
   );
 };

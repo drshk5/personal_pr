@@ -251,4 +251,20 @@ public class ActivitiesController : ControllerBase
         var result = await _activityAppService.SendBulkActivityNotificationsAsync(dto);
         return Ok(ApiResponse<bool>.Success(result, $"Notifications queued for {dto.ActivityGuids.Count} activities"));
     }
+
+    /// <summary>
+    /// Send bulk custom emails to activity participants with template support.
+    /// High-performance implementation with tenant isolation.
+    /// Template variables: {ActivitySubject}, {ActivityType}, {DueDate}, {Status}, {Priority}
+    /// </summary>
+    [HttpPost("bulk-email")]
+    [AuthorizePermission("CRM_Activities", "Edit")]
+    [AuditLog("Activity", "BulkEmail")]
+    public async Task<ActionResult<ApiResponse<int>>> SendBulkEmails(
+        [FromBody] ActivityBulkEmailDto dto)
+    {
+        var emailCount = await _activityAppService.SendBulkActivityEmailsAsync(dto);
+        return Ok(ApiResponse<int>.Success(emailCount, 
+            $"Successfully queued {emailCount} emails for {dto.ActivityGuids.Count} activities"));
+    }
 }
