@@ -10,7 +10,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-import type { ActivityListDto, ActivityLinkDto, ActivityType } from "@/types/CRM/activity";
+import type { ActivityListDto, ActivityType } from "@/types/CRM/activity";
 import { ACTIVITY_STATUSES } from "@/types/CRM/activity";
 import { useEntityActivities } from "@/hooks/api/CRM/use-activities";
 import { useChangeActivityStatus } from "@/hooks/api/CRM/use-activities-extended";
@@ -30,13 +30,10 @@ import ActivityTypeIcon, {
   getActivityTypeLabel,
 } from "../activities/components/ActivityTypeIcon";
 import ActivityForm from "../activities/components/ActivityForm";
-
-const STATUS_BADGE: Record<string, { className: string; label: string }> = {
-  Pending: { className: "border-yellow-500/50 text-yellow-600 bg-yellow-500/10", label: "Pending" },
-  InProgress: { className: "border-blue-500/50 text-blue-600 bg-blue-500/10", label: "In Progress" },
-  Completed: { className: "border-emerald-500/50 text-emerald-600 bg-emerald-500/10", label: "Completed" },
-  Cancelled: { className: "border-red-500/50 text-red-600 bg-red-500/10", label: "Cancelled" },
-};
+import {
+  ActivityStatusBadge,
+  getActivityStatusLabel,
+} from "@/components/CRM/activity-presenters";
 
 interface EntityActivityPanelProps {
   entityType: string;
@@ -74,8 +71,13 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
     return paged.items;
   }, [recentActivities, apiResponse]);
 
-  const defaultLinks: ActivityLinkDto[] = useMemo(
-    () => [{ strEntityType: entityType, strEntityGUID: entityId }],
+  const defaultLinks = useMemo(
+    () => [
+      {
+        strEntityType: entityType as "Lead" | "Contact" | "Account" | "Opportunity",
+        strEntityGUID: entityId,
+      },
+    ],
     [entityType, entityId]
   );
 
@@ -94,13 +96,13 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
     changeStatus({ id, dto: { strStatus: status } }, { onSuccess: () => refetch() });
   };
 
-  const quickTypes: { type: ActivityType; emoji: string; label: string }[] = [
-    { type: "Call", emoji: "📞", label: "Call" },
-    { type: "Email", emoji: "📧", label: "Email" },
-    { type: "Meeting", emoji: "🤝", label: "Meeting" },
-    { type: "Task", emoji: "✅", label: "Task" },
-    { type: "Note", emoji: "📝", label: "Note" },
-    { type: "FollowUp", emoji: "🔄", label: "Follow-Up" },
+  const quickTypes: { type: ActivityType; label: string }[] = [
+    { type: "Call", label: "Call" },
+    { type: "Email", label: "Email" },
+    { type: "Meeting", label: "Meeting" },
+    { type: "Task", label: "Task" },
+    { type: "Note", label: "Note" },
+    { type: "FollowUp", label: "Follow-Up" },
   ];
 
   return (
@@ -139,7 +141,6 @@ const EntityActivityPanel: React.FC<EntityActivityPanelProps> = ({
                       setShowCreate(true);
                     }}
                   >
-                    <span className="mr-2">{qt.emoji}</span>
                     {qt.label}
                   </DropdownMenuItem>
                 ))}
@@ -240,8 +241,6 @@ interface ActivityTimelineItemProps {
 
 const ActivityTimelineItem: React.FC<ActivityTimelineItemProps> = memo(
   ({ activity, isLast, onEdit, onStatusChange }) => {
-    const statusBadge = STATUS_BADGE[activity.strStatus];
-
     return (
       <div className="flex gap-3 relative group">
         {/* Vertical connector line */}
@@ -261,9 +260,7 @@ const ActivityTimelineItem: React.FC<ActivityTimelineItemProps> = memo(
                 <span className="text-xs text-muted-foreground">
                   {getActivityTypeLabel(activity.strActivityType)}
                 </span>
-                <Badge variant="outline" className={`text-[10px] h-4 ${statusBadge?.className || ""}`}>
-                  {statusBadge?.label || activity.strStatus}
-                </Badge>
+                <ActivityStatusBadge status={activity.strStatus} />
                 {activity.bolIsOverdue && (
                   <Badge variant="destructive" className="text-[10px] h-4">
                     <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
@@ -302,12 +299,12 @@ const ActivityTimelineItem: React.FC<ActivityTimelineItemProps> = memo(
               <span className="italic">"{activity.strOutcome}"</span>
             )}
             {activity.dtScheduledOn && !activity.dtCompletedOn && (
-              <span className="text-amber-600 dark:text-amber-400">
+              <span className="text-amber-600 dark:text-amber-300">
                 Scheduled {format(new Date(activity.dtScheduledOn), "MMM d")}
               </span>
             )}
             {activity.dtCompletedOn && (
-              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5">
+              <span className="text-emerald-600 dark:text-emerald-300 flex items-center gap-0.5">
                 <CheckCircle2 className="h-3 w-3" />
                 Completed
               </span>
@@ -322,10 +319,10 @@ const ActivityTimelineItem: React.FC<ActivityTimelineItemProps> = memo(
                   key={s}
                   variant="outline"
                   size="sm"
-                  className={`h-5 text-[10px] px-2 ${STATUS_BADGE[s]?.className || ""}`}
+                  className="h-5 text-[10px] px-2"
                   onClick={() => onStatusChange(activity.strActivityGUID, s)}
                 >
-                  {STATUS_BADGE[s]?.label || s}
+                  {getActivityStatusLabel(s)}
                 </Button>
               ))}
             </div>

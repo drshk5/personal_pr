@@ -55,6 +55,19 @@ namespace AuditSoftware.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        private string GetJwtSigningKey()
+        {
+            var jwtKey = _configuration["Jwt:Key"];
+            if (!string.IsNullOrWhiteSpace(jwtKey))
+                return jwtKey;
+
+            var secretKey = _configuration["Jwt:SecretKey"];
+            if (!string.IsNullOrWhiteSpace(secretKey))
+                return secretKey;
+
+            throw new InvalidOperationException("JWT signing key not configured. Set Jwt:Key or Jwt:SecretKey.");
+        }
+
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequest)
         {
             _logger.LogInformation($"Login attempt for email: {loginRequest.strEmailId}");
@@ -698,7 +711,7 @@ namespace AuditSoftware.Services
                 return false;
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"));
+            var key = Encoding.UTF8.GetBytes(GetJwtSigningKey());
 
             try
             {
@@ -797,7 +810,7 @@ namespace AuditSoftware.Services
             if (string.IsNullOrEmpty(emailId)) throw new ArgumentNullException(nameof(emailId));
             if (userGUID == Guid.Empty) throw new ArgumentNullException(nameof(userGUID));
 
-            var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
+            var jwtKey = GetJwtSigningKey();
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             
@@ -940,9 +953,9 @@ namespace AuditSoftware.Services
             var jwtSecurityToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
             var tokenExpiration = jwtSecurityToken.ValidTo - jwtSecurityToken.ValidFrom;
 
-            var hmacKey = _configuration["Jwt:TokenHmacKey"] ?? _configuration["Jwt:Key"];
+            var hmacKey = _configuration["Jwt:TokenHmacKey"] ?? _configuration["Jwt:Key"] ?? _configuration["Jwt:SecretKey"];
             if (string.IsNullOrEmpty(hmacKey))
-                throw new InvalidOperationException("Token HMAC key not configured. Set Jwt:TokenHmacKey or Jwt:Key in configuration.");
+                throw new InvalidOperationException("Token HMAC key not configured. Set Jwt:TokenHmacKey, Jwt:Key, or Jwt:SecretKey in configuration.");
 
             string tokenHash;
             var keyBytes = System.Text.Encoding.UTF8.GetBytes(hmacKey);
@@ -1036,7 +1049,7 @@ namespace AuditSoftware.Services
                 ValidateAudience = true,
                 ValidateIssuer = true,
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"))),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(GetJwtSigningKey())),
                 ValidateLifetime = false,
                 ValidIssuer = _configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer not configured"),
                 ValidAudience = _configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience not configured")

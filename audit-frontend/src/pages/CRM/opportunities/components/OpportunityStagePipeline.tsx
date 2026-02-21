@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { useMoveStage } from "@/hooks/api/CRM/use-opportunities";
 import { usePipeline } from "@/hooks/api/CRM/use-pipelines";
-import { toast } from "sonner";
 import type { OpportunityDetailDto } from "@/types/CRM/opportunity";
 import type { PipelineListDto } from "@/types/CRM/pipeline";
 
@@ -42,9 +41,8 @@ export default function OpportunityStagePipeline({
         id: opportunity.strOpportunityGUID,
         data: { strStageGUID: stageGUID },
       });
-      toast.success("Stage updated! Linked contacts lifecycle stages auto-synced.");
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to move stage");
+    } catch {
+      // Error notification is handled centrally in the mutation hook.
     }
   };
 

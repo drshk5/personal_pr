@@ -30,7 +30,10 @@ public static class AuthenticationExtensions
                 ValidIssuer = configuration["Jwt:Issuer"],
                 ValidAudience = configuration["Jwt:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured"))),
+                    Encoding.UTF8.GetBytes(
+                        configuration["Jwt:Key"]
+                        ?? configuration["Jwt:SecretKey"]
+                        ?? throw new InvalidOperationException("JWT key not configured. Set Jwt:Key or Jwt:SecretKey."))),
                 ClockSkew = TimeSpan.FromMinutes(1)
             };
 

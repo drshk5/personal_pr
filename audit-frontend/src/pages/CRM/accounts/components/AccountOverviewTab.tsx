@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { CountrySelect } from "@/components/ui/country-select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Save, X, Building2, Globe, Users2, DollarSign, Calendar, MapPin } from "lucide-react";
 import { useUpdateAccount } from "@/hooks/api/CRM/use-accounts";
-import { toast } from "sonner";
 import type { AccountDetailDto } from "@/types/CRM/account";
 
 interface AccountOverviewTabProps {
@@ -40,10 +41,9 @@ export default function AccountOverviewTab({ account }: AccountOverviewTabProps)
         id: account.strAccountGUID,
         data: formData,
       });
-      toast.success("Account updated successfully");
       setIsEditing(false);
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to update account");
+    } catch {
+      // Error notification is handled centrally in the mutation hook.
     }
   };
 
@@ -119,10 +119,10 @@ export default function AccountOverviewTab({ account }: AccountOverviewTabProps)
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      value={formData.strPhone}
-                      onChange={(e) => setFormData({ ...formData, strPhone: e.target.value })}
+                    <PhoneInput
+                      value={formData.strPhone || ""}
+                      onChange={(value) => setFormData({ ...formData, strPhone: value })}
+                      placeholder="Enter phone number"
                     />
                   </div>
                   <div className="space-y-2">
@@ -234,10 +234,10 @@ export default function AccountOverviewTab({ account }: AccountOverviewTabProps)
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      value={formData.strCountry}
-                      onChange={(e) => setFormData({ ...formData, strCountry: e.target.value })}
+                    <CountrySelect
+                      value={formData.strCountry || ""}
+                      onChange={(value) => setFormData({ ...formData, strCountry: value })}
+                      placeholder="Select country"
                     />
                   </div>
                 </div>

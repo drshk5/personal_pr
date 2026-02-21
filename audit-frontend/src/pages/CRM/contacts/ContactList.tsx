@@ -1,16 +1,19 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
   Plus,
   Search,
   Filter,
+  Mail,
   MoreHorizontal,
   Pencil,
   Trash2,
   Contact,
   Upload,
   Download,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 
 import type { ContactListDto, ContactFilterParams } from "@/types/CRM/contact";
@@ -19,6 +22,8 @@ import {
   useContacts,
   useDeleteContact,
   useExportContacts,
+  useBulkArchiveContacts,
+  useBulkRestoreContacts,
 } from "@/hooks/api/CRM/use-contacts";
 import { useListPreferences } from "@/hooks/common/use-list-preferences";
 import { useTableLayout } from "@/hooks/common/use-table-layout";
@@ -53,11 +58,17 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { IndeterminateCheckbox } from "@/components/ui/IndeterminateCheckbox";
+import { toast } from "sonner";
+import { communicationService } from "@/services/CRM/communication.service";
+import { BulkRecipientEmailModal } from "@/components/CRM/BulkRecipientEmailModal";
 
 import ContactLifecycleBadge from "./components/ContactLifecycleBadge";
 import ContactImportDialog from "./components/ContactImportDialog";
 
 const defaultColumnOrder = [
+  "select",
   "actions",
   "strName",
   "strEmail",
@@ -88,6 +99,14 @@ const ContactList: React.FC = () => {
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<ContactListDto | null>(null);
   const { mutate: deleteContact, isPending: isDeleting } = useDeleteContact();
+  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+  const [selectAll, setSelectAll] = useState<boolean>(false);
+  const [indeterminate, setIndeterminate] = useState<boolean>(false);
+  const { mutate: bulkArchiveContacts, isPending: isBulkArchiving } =
+    useBulkArchiveContacts();
+  const { mutate: bulkRestoreContacts, isPending: isBulkRestoring } =
+    useBulkRestoreContacts();
+  const [showBulkEmailModal, setShowBulkEmailModal] = useState(false);
 
   // Import / Export
   const [showImport, setShowImport] = useState(false);
@@ -125,7 +144,7 @@ const ContactList: React.FC = () => {
     columnWidths,
     setColumnWidths,
     resetAll,
-  } = useTableLayout("crm-contacts", defaultColumnOrder, ["actions"]);
+  } = useTableLayout("crm-contacts", defaultColumnOrder, ["select", "actions"]);
 
   // Sort mapping
   const sortBy = sorting.columnKey || "dtCreatedOn";
@@ -210,10 +229,10 @@ const ContactList: React.FC = () => {
     [sorting, setSorting]
   );
 
-  // Open edit in new tab
-  const openEditInNewTab = useCallback((path: string) => {
-    window.open(path, "_blank", "noopener,noreferrer");
-  }, []);
+  // Navigate in same tab
+  const openEditInSameTab = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
 
   // Handle delete
   const handleDelete = () => {
@@ -230,9 +249,130 @@ const ContactList: React.FC = () => {
     exportContacts({ params: filterParams });
   };
 
+  const toggleContactSelection = useCallback((contactId: string) => {
+    setSelectedRows((prev) => ({
+      ...prev,
+      [contactId]: !prev[contactId],
+    }));
+  }, []);
+
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      setIndeterminate(false);
+      setSelectAll(checked);
+      if (checked) {
+        const next: Record<string, boolean> = {};
+        pagedData.items.forEach((contact) => {
+          next[contact.strContactGUID] = true;
+        });
+        setSelectedRows(next);
+      } else {
+        setSelectedRows({});
+      }
+    },
+    [pagedData.items]
+  );
+
+  useEffect(() => {
+    const selectedCount = Object.keys(selectedRows).filter(
+      (id) => selectedRows[id]
+    ).length;
+    if (pagedData.items.length > 0) {
+      if (selectedCount === pagedData.items.length) {
+        setSelectAll(true);
+        setIndeterminate(false);
+      } else if (selectedCount > 0) {
+        setSelectAll(false);
+        setIndeterminate(true);
+      } else {
+        setSelectAll(false);
+        setIndeterminate(false);
+      }
+    }
+  }, [pagedData.items, selectedRows]);
+
+  const selectedContactIds = useMemo(
+    () => Object.keys(selectedRows).filter((id) => selectedRows[id]),
+    [selectedRows]
+  );
+  const selectedContactEmails = useMemo(() => {
+    const selectedSet = new Set(selectedContactIds);
+    return pagedData.items
+      .filter((contact) => selectedSet.has(contact.strContactGUID))
+      .map((contact) => contact.strEmail?.trim())
+      .filter((email): email is string => !!email);
+  }, [pagedData.items, selectedContactIds]);
+  const selectedItemsCount = selectedContactIds.length;
+
+  const handleBulkEmail = useCallback(async () => {
+    const recipients = Array.from(new Set(selectedContactEmails));
+    if (recipients.length === 0) {
+      toast.error("No valid email addresses found in selected contacts");
+      return;
+    }
+    setShowBulkEmailModal(true);
+  }, [selectedContactEmails]);
+
+  const handleSendBulkEmail = useCallback(async (payload: {
+    subject: string;
+    body: string;
+    isHtml: boolean;
+  }) => {
+    const recipients = Array.from(new Set(selectedContactEmails));
+    try {
+      await communicationService.sendBulkEmail({
+        recipients,
+        subject: payload.subject,
+        body: payload.body,
+        isHtml: payload.isHtml,
+      });
+      toast.success(`Sent ${recipients.length} emails`);
+      setShowBulkEmailModal(false);
+      setSelectedRows({});
+    } catch {
+      toast.error("Failed to send emails");
+    }
+  }, [selectedContactEmails]);
+
+  const handleBulkArchive = useCallback(() => {
+    if (selectedItemsCount === 0) return;
+    bulkArchiveContacts(
+      { guids: selectedContactIds },
+      { onSuccess: () => setSelectedRows({}) }
+    );
+  }, [bulkArchiveContacts, selectedContactIds, selectedItemsCount]);
+
+  const handleBulkRestore = useCallback(() => {
+    if (selectedItemsCount === 0) return;
+    bulkRestoreContacts(
+      { guids: selectedContactIds },
+      { onSuccess: () => setSelectedRows({}) }
+    );
+  }, [bulkRestoreContacts, selectedContactIds, selectedItemsCount]);
+
   // Columns
   const columns: DataTableColumn<ContactListDto>[] = useMemo(
     () => [
+      {
+        key: "select",
+        width: "50px",
+        header: (
+          <IndeterminateCheckbox
+            checked={selectAll}
+            indeterminate={indeterminate}
+            onCheckedChange={handleSelectAll}
+            aria-label="Select all"
+          />
+        ),
+        cell: (item: ContactListDto) => (
+          <Checkbox
+            checked={!!selectedRows[item.strContactGUID]}
+            onCheckedChange={() => toggleContactSelection(item.strContactGUID)}
+            aria-label={`Select contact ${item.strFirstName} ${item.strLastName}`}
+          />
+        ),
+        sortable: false,
+      } as DataTableColumn<ContactListDto>,
       ...(canAccess(menuItems, FormModules.CRM_CONTACT, Actions.EDIT) ||
         canAccess(menuItems, FormModules.CRM_CONTACT, Actions.DELETE)
         ? [
@@ -258,7 +398,7 @@ const ContactList: React.FC = () => {
                   ) && (
                       <DropdownMenuItem
                         onClick={() =>
-                          openEditInNewTab(
+                          openEditInSameTab(
                             `/crm/contacts/${item.strContactGUID}`
                           )
                         }
@@ -298,7 +438,7 @@ const ContactList: React.FC = () => {
           <div
             className="font-medium text-primary cursor-pointer hover:underline"
             onClick={() =>
-              openEditInNewTab(`/crm/contacts/${item.strContactGUID}`)
+              openEditInSameTab(`/crm/contacts/${item.strContactGUID}`)
             }
           >
             {item.strFirstName} {item.strLastName}
@@ -393,7 +533,16 @@ const ContactList: React.FC = () => {
         width: "100px",
       },
     ],
-    [menuItems, openEditInNewTab, userMap]
+    [
+      menuItems,
+      openEditInSameTab,
+      userMap,
+      selectAll,
+      indeterminate,
+      handleSelectAll,
+      selectedRows,
+      toggleContactSelection,
+    ]
   );
 
   return (
@@ -420,6 +569,54 @@ const ContactList: React.FC = () => {
           </div>
         }
       />
+
+      {selectedItemsCount > 0 && (
+        <div className="flex items-center gap-2 mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+          <span className="text-sm font-medium text-foreground">
+            {selectedItemsCount} contact{selectedItemsCount !== 1 ? "s" : ""} selected
+          </span>
+          <div className="flex items-center gap-2 ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleBulkEmail}
+            >
+              <Mail className="h-3.5 w-3.5 mr-1" />
+              Send Email
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleBulkArchive}
+              disabled={isBulkArchiving || isBulkRestoring}
+            >
+              <Archive className="h-3.5 w-3.5 mr-1" />
+              {isBulkArchiving ? "Archiving..." : "Archive"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleBulkRestore}
+              disabled={isBulkArchiving || isBulkRestoring}
+            >
+              <RotateCcw className="h-3.5 w-3.5 mr-1" />
+              {isBulkRestoring ? "Restoring..." : "Restore"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => setSelectedRows({})}
+              disabled={isBulkArchiving || isBulkRestoring}
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Search & Filter Bar */}
       <div className="flex flex-col gap-4 mb-4">
@@ -642,6 +839,15 @@ const ContactList: React.FC = () => {
       <ContactImportDialog
         open={showImport}
         onOpenChange={setShowImport}
+      />
+
+      <BulkRecipientEmailModal
+        open={showBulkEmailModal}
+        onClose={() => setShowBulkEmailModal(false)}
+        recipients={selectedContactEmails}
+        defaultSubject="CRM Contact Notification"
+        defaultBody="This is an automated notification for selected contact(s)."
+        onSend={handleSendBulkEmail}
       />
     </CustomContainer>
   );

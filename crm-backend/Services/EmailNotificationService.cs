@@ -54,9 +54,9 @@ public class EmailNotificationService : IEmailNotificationService
         _smtpPassword = _configuration["Email:SmtpPassword"] ?? "";
         _fromEmail = _configuration["Email:FromEmail"] ?? "";
         _fromName = _configuration["Email:FromName"] ?? "CRM System";
-        _batchSize = _configuration.GetValue<int>("Email:BatchSize", 50);
-        _delayBetweenBatches = _configuration.GetValue<int>("Email:DelayBetweenBatchesMs", 1000);
-        _maxConcurrentEmails = _configuration.GetValue<int>("Email:MaxConcurrentEmails", 10);
+        _batchSize = _configuration.GetValue<int>("Email:BatchSize", 200);
+        _delayBetweenBatches = _configuration.GetValue<int>("Email:DelayBetweenBatchesMs", 0);
+        _maxConcurrentEmails = _configuration.GetValue<int>("Email:MaxConcurrentEmails", 25);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -189,7 +189,13 @@ public class EmailNotificationService : IEmailNotificationService
 
     public async Task SendCustomEmailAsync(EmailDto emailDto)
     {
-        await SendEmailAsync(emailDto.ToEmail, emailDto.ToName, emailDto.Subject, emailDto.Body);
+        await SendEmailAsync(
+            emailDto.ToEmail,
+            emailDto.ToName,
+            emailDto.Subject,
+            emailDto.Body,
+            emailDto.IsHtml
+        );
     }
 
     public Task SendBulkCustomEmailsAsync(List<EmailDto> emails)
@@ -299,15 +305,9 @@ public class EmailNotificationService : IEmailNotificationService
                     .Select(g => g.First())
                     .ToList();
 
-                // Apply template variables
-                var subject = ApplyTemplateVariables(dto.Subject, activity);
-                var bodyContent = ApplyTemplateVariables(dto.Body, activity);
-                
-                // Get logo URL from configuration (optional)
-                var logoUrl = _configuration["Email:LogoUrl"];
-                
-                // Wrap in professional HTML template
-                var body = WrapInHtmlTemplate(subject, bodyContent, logoUrl);
+                // Send exactly the subject/body entered from UI as plain text.
+                var subject = dto.Subject;
+                var body = dto.Body;
 
                 // Queue email for each unique recipient
                 foreach (var (email, name) in uniqueRecipients)
@@ -318,7 +318,7 @@ public class EmailNotificationService : IEmailNotificationService
                         ToName = name,
                         Subject = subject,
                         Body = body,
-                        IsHtml = true
+                        IsHtml = false
                     };
                     _emailQueue.Enqueue(emailDto);
                     emailCount++;
@@ -515,7 +515,12 @@ public class EmailNotificationService : IEmailNotificationService
     //  CORE EMAIL SENDING
     // ═══════════════════════════════════════════════════════════════════════════
 
-    private async Task SendEmailAsync(string toEmail, string toName, string subject, string body)
+    private async Task SendEmailAsync(
+        string toEmail,
+        string toName,
+        string subject,
+        string body,
+        bool isHtml = true)
     {
         if (!_enableEmail)
         {
@@ -530,7 +535,7 @@ public class EmailNotificationService : IEmailNotificationService
                 From = new MailAddress(_fromEmail, _fromName),
                 Subject = subject,
                 Body = body,
-                IsBodyHtml = true
+                IsBodyHtml = isHtml
             };
             message.To.Add(new MailAddress(toEmail, toName));
 
@@ -574,7 +579,10 @@ public class EmailNotificationService : IEmailNotificationService
                 {
                     await SendBatchAsync(batch);
                     batch.Clear();
-                    await Task.Delay(_delayBetweenBatches);
+                    if (_delayBetweenBatches > 0)
+                    {
+                        await Task.Delay(_delayBetweenBatches);
+                    }
                 }
             }
 
@@ -603,7 +611,13 @@ public class EmailNotificationService : IEmailNotificationService
             await semaphore.WaitAsync();
             try
             {
-                await SendEmailAsync(email.ToEmail, email.ToName, email.Subject, email.Body);
+                await SendEmailAsync(
+                    email.ToEmail,
+                    email.ToName,
+                    email.Subject,
+                    email.Body,
+                    email.IsHtml
+                );
             }
             catch (Exception ex)
             {

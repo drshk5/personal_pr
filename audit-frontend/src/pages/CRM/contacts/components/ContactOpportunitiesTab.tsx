@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,6 @@ import { useCreateOpportunity } from "@/hooks/api/CRM/use-opportunities";
 import { usePipelines, usePipeline } from "@/hooks/api/CRM/use-pipelines";
 import { useQueryClient } from "@tanstack/react-query";
 import { contactQueryKeys } from "@/hooks/api/CRM/use-contacts";
-import { toast } from "sonner";
 import type { CreateOpportunityDto } from "@/types/CRM/opportunity";
 import type { PipelineListDto, PipelineStageDto } from "@/types/CRM/pipeline";
 import type { OpportunityListDtoForContact } from "@/types/CRM/contact";
@@ -70,10 +69,10 @@ export default function ContactOpportunitiesTab({
   const wonOpps = opportunities.filter((o) => o.strStatus === "Won");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rounded-xl border border-border/60 bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-5">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card className="border-border/70 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -82,11 +81,13 @@ export default function ContactOpportunitiesTab({
                 </p>
                 <h3 className="text-2xl font-bold text-foreground">{opportunities.length}</h3>
               </div>
-              <Target className="h-8 w-8 text-blue-500" />
+              <div className="rounded-md bg-blue-500/15 p-2 text-blue-600">
+                <Target className="h-6 w-6" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-border/70 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -97,11 +98,13 @@ export default function ContactOpportunitiesTab({
                   ${totalValue.toLocaleString()}
                 </h3>
               </div>
-              <DollarSign className="h-8 w-8 text-amber-500" />
+              <div className="rounded-md bg-amber-500/15 p-2 text-amber-600">
+                <DollarSign className="h-6 w-6" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-border/70 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -121,19 +124,21 @@ export default function ContactOpportunitiesTab({
                   %
                 </h3>
               </div>
-              <TrendingUp className="h-8 w-8 text-green-500" />
+              <div className="rounded-md bg-emerald-500/15 p-2 text-emerald-600">
+                <TrendingUp className="h-6 w-6" />
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Opportunities Table */}
-      <Card>
+      <Card className="border-border/70 shadow-sm">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Linked Opportunities ({opportunities.length})</CardTitle>
             {canEdit && (
-              <Button onClick={() => setShowCreateDialog(true)}>
+              <Button className="shadow-sm" onClick={() => setShowCreateDialog(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 New Opportunity
               </Button>
@@ -159,7 +164,7 @@ export default function ContactOpportunitiesTab({
               </TableHeader>
               <TableBody>
                 {opportunities.map((opp) => (
-                  <TableRow key={opp.strOpportunityGUID}>
+                  <TableRow key={opp.strOpportunityGUID} className="hover:bg-muted/40">
                     <TableCell className="font-medium">
                       {opp.strOpportunityName}
                     </TableCell>
@@ -237,19 +242,33 @@ function CreateOpportunityForContactDialog({
   const queryClient = useQueryClient();
   const { data: pipelinesData } = usePipelines();
   const pipelines = pipelinesData || [];
+  const normalizedAccountId = useMemo(() => {
+    if (!accountId) return null;
+    const guidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return guidRegex.test(accountId) ? accountId : null;
+  }, [accountId]);
 
   const [formData, setFormData] = useState<CreateOpportunityDto>({
     strOpportunityName: "",
     strPipelineGUID: "",
     strStageGUID: "",
     dblAmount: 0,
-    strCurrency: "USD",
+    strCurrency: "INR",
     dtExpectedCloseDate: "",
-    strAccountGUID: accountId || "",
+    strAccountGUID: normalizedAccountId,
     strDescription: "",
   });
 
   const [contactRole, setContactRole] = useState<string>("DecisionMaker");
+
+  useEffect(() => {
+    if (!open) return;
+    setFormData((prev) => ({
+      ...prev,
+      strAccountGUID: normalizedAccountId,
+    }));
+  }, [open, normalizedAccountId]);
 
   // Fetch stages when pipeline is selected
   const { data: pipelineDetail } = usePipeline(formData.strPipelineGUID || undefined);
@@ -257,41 +276,37 @@ function CreateOpportunityForContactDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const submitData: CreateOpportunityDto = {
-        ...formData,
-        contacts: [
-          {
-            strContactGUID: contactId,
-            strRole: contactRole,
-            bolIsPrimary: true,
-          },
-        ],
-      };
-      await createMutation.mutateAsync(submitData);
-      toast.success("Opportunity created successfully");
-      // Refresh contact detail to show new opportunity
-      await queryClient.invalidateQueries({ queryKey: contactQueryKeys.detail(contactId) });
-      onClose();
-      setFormData({
-        strOpportunityName: "",
-        strPipelineGUID: "",
-        strStageGUID: "",
-        dblAmount: 0,
-        strCurrency: "USD",
-        dtExpectedCloseDate: "",
-        strAccountGUID: accountId || "",
-        strDescription: "",
-      });
-      setContactRole("DecisionMaker");
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to create opportunity");
-    }
+    const submitData: CreateOpportunityDto = {
+      ...formData,
+      strAccountGUID: normalizedAccountId,
+      contacts: [
+        {
+          strContactGUID: contactId,
+          strRole: contactRole,
+          bolIsPrimary: true,
+        },
+      ],
+    };
+    await createMutation.mutateAsync(submitData);
+    // Refresh contact detail to show new opportunity
+    await queryClient.invalidateQueries({ queryKey: contactQueryKeys.detail(contactId) });
+    onClose();
+    setFormData({
+      strOpportunityName: "",
+      strPipelineGUID: "",
+      strStageGUID: "",
+      dblAmount: 0,
+      strCurrency: "INR",
+      dtExpectedCloseDate: "",
+      strAccountGUID: normalizedAccountId,
+      strDescription: "",
+    });
+    setContactRole("DecisionMaker");
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl border-border/70 bg-card/95 shadow-xl backdrop-blur">
         <DialogHeader>
           <DialogTitle>Create New Opportunity for {contactName}</DialogTitle>
         </DialogHeader>
@@ -321,7 +336,7 @@ function CreateOpportunityForContactDialog({
                   value={contactRole}
                   onValueChange={(value) => setContactRole(value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-border/70 bg-background/70">
                     <SelectValue placeholder="Select role..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -352,7 +367,7 @@ function CreateOpportunityForContactDialog({
                     setFormData({ ...formData, strPipelineGUID: value, strStageGUID: "" })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-border/70 bg-background/70">
                     <SelectValue placeholder="Select pipeline..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -371,7 +386,7 @@ function CreateOpportunityForContactDialog({
                   onValueChange={(value) => setFormData({ ...formData, strStageGUID: value })}
                   disabled={!formData.strPipelineGUID}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-border/70 bg-background/70">
                     <SelectValue placeholder={formData.strPipelineGUID ? "Select stage..." : "Select pipeline first"} />
                   </SelectTrigger>
                   <SelectContent>

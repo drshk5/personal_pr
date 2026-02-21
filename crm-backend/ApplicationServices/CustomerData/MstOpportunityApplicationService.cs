@@ -418,6 +418,29 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
     public async Task<OpportunityDetailDto> CreateOpportunityAsync(CreateOpportunityDto dto)
     {
         _opportunityService.ValidateOpportunityName(dto.strOpportunityName);
+        var tenantId = GetTenantId();
+        var normalizedAccountGuid = dto.strAccountGUID.HasValue && dto.strAccountGUID.Value != Guid.Empty
+            ? dto.strAccountGUID
+            : null;
+
+        if (normalizedAccountGuid.HasValue)
+        {
+            var accountExists = await _unitOfWork.Accounts.Query()
+                .AsNoTracking()
+                .AnyAsync(a =>
+                    a.strAccountGUID == normalizedAccountGuid.Value &&
+                    a.strGroupGUID == tenantId &&
+                    !a.bolIsDeleted);
+
+            if (!accountExists)
+            {
+                _logger.LogWarning(
+                    "Ignoring invalid account GUID {AccountGuid} on opportunity create for tenant {TenantId}",
+                    normalizedAccountGuid.Value,
+                    tenantId);
+                normalizedAccountGuid = null;
+            }
+        }
 
         // Validate pipeline + stage sequentially to avoid shared DbContext concurrency issues
         var pipelineExists = await _unitOfWork.Pipelines.Query()
@@ -441,9 +464,9 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
         var opportunity = new MstOpportunity
         {
             strOpportunityGUID = Guid.NewGuid(),
-            strGroupGUID = GetTenantId(),
+            strGroupGUID = tenantId,
             strOpportunityName = dto.strOpportunityName.Trim(),
-            strAccountGUID = dto.strAccountGUID,
+            strAccountGUID = normalizedAccountGuid,
             strPipelineGUID = dto.strPipelineGUID,
             strStageGUID = dto.strStageGUID,
             strStatus = "Open",
@@ -504,6 +527,30 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
         var opportunity = await _unitOfWork.Opportunities.GetByIdAsync(id);
         if (opportunity == null)
             throw new NotFoundException("Opportunity not found", OpportunityErrorCodes.OpportunityNotFound);
+        var tenantId = GetTenantId();
+        var normalizedAccountGuid = dto.strAccountGUID.HasValue && dto.strAccountGUID.Value != Guid.Empty
+            ? dto.strAccountGUID
+            : null;
+
+        if (normalizedAccountGuid.HasValue)
+        {
+            var accountExists = await _unitOfWork.Accounts.Query()
+                .AsNoTracking()
+                .AnyAsync(a =>
+                    a.strAccountGUID == normalizedAccountGuid.Value &&
+                    a.strGroupGUID == tenantId &&
+                    !a.bolIsDeleted);
+
+            if (!accountExists)
+            {
+                _logger.LogWarning(
+                    "Ignoring invalid account GUID {AccountGuid} on opportunity update {OpportunityId} for tenant {TenantId}",
+                    normalizedAccountGuid.Value,
+                    id,
+                    tenantId);
+                normalizedAccountGuid = null;
+            }
+        }
 
         _opportunityService.ValidateOpportunityName(dto.strOpportunityName);
 
@@ -529,7 +576,7 @@ public class MstOpportunityApplicationService : ApplicationServiceBase, IMstOppo
 
         // Update fields
         opportunity.strOpportunityName = dto.strOpportunityName.Trim();
-        opportunity.strAccountGUID = dto.strAccountGUID;
+        opportunity.strAccountGUID = normalizedAccountGuid;
         opportunity.strStageGUID = dto.strStageGUID;
         opportunity.dblAmount = dto.dblAmount;
         opportunity.strCurrency = dto.strCurrency ?? "INR";

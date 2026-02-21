@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -46,6 +45,13 @@ import type { ActivityListDto } from "@/types/CRM/activity";
 import { ACTIVITY_TYPES as TYPES, ACTIVITY_STATUSES as STATUSES } from "@/types/CRM/activity";
 import { format } from "date-fns";
 import ActivityForm from "@/pages/CRM/activities/components/ActivityForm";
+import {
+  ActivityDueMeta,
+  ActivityPriorityBadge,
+  ActivityStatusBadge,
+  ActivityTypeBadge,
+  getActivityStatusLabel,
+} from "@/components/CRM/activity-presenters";
 
 type EntityType = "Lead" | "Contact" | "Account" | "Opportunity";
 
@@ -77,13 +83,6 @@ const STATUS_COLORS: Record<string, string> = {
   InProgress: "bg-blue-500",
   Completed: "bg-green-500",
   Cancelled: "bg-red-500",
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  Low: "bg-gray-500",
-  Medium: "bg-blue-500",
-  High: "bg-orange-500",
-  Urgent: "bg-red-500",
 };
 
 export default function RelatedActivitiesTab({
@@ -216,7 +215,7 @@ export default function RelatedActivitiesTab({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">
               {completedActivities.length}
             </div>
           </CardContent>
@@ -228,7 +227,7 @@ export default function RelatedActivitiesTab({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-300">
               {upcomingActivities.length}
             </div>
           </CardContent>
@@ -240,7 +239,7 @@ export default function RelatedActivitiesTab({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+            <div className="text-2xl font-bold text-rose-600 dark:text-rose-300">
               {overdueActivities.length}
             </div>
           </CardContent>
@@ -355,16 +354,8 @@ export default function RelatedActivitiesTab({
                             <h4 className="font-medium truncate">
                               {activity.strSubject}
                             </h4>
-                            <Badge variant="outline" className="text-xs">
-                              {activity.strActivityType}
-                            </Badge>
-                            <Badge
-                              className={`${
-                                PRIORITY_COLORS[activity.strPriority] || "bg-gray-500"
-                              } text-white text-xs`}
-                            >
-                              {activity.strPriority}
-                            </Badge>
+                            <ActivityTypeBadge type={activity.strActivityType} />
+                            <ActivityPriorityBadge priority={activity.strPriority} />
                           </div>
                           {activity.strDescription && (
                             <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
@@ -374,7 +365,7 @@ export default function RelatedActivitiesTab({
                           <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
                             <span className="flex items-center gap-1">
                               <StatusIcon className="h-3 w-3" />
-                              {activity.strStatus === "InProgress" ? "In Progress" : activity.strStatus}
+                              {getActivityStatusLabel(activity.strStatus)}
                             </span>
                             {activity.dtScheduledOn && (
                               <span className="flex items-center gap-1">
@@ -383,15 +374,10 @@ export default function RelatedActivitiesTab({
                               </span>
                             )}
                             {activity.dtDueDate && (
-                              <span
-                                className={`flex items-center gap-1 ${
-                                  activity.bolIsOverdue ? "text-red-500 font-medium" : ""
-                                }`}
-                              >
-                                <Clock className="h-3 w-3" />
-                                Due: {format(new Date(activity.dtDueDate), "PP")}
-                                {activity.bolIsOverdue && " (Overdue)"}
-                              </span>
+                              <ActivityDueMeta
+                                dueDate={activity.dtDueDate}
+                                isOverdue={activity.bolIsOverdue}
+                              />
                             )}
                             {activity.strAssignedToName && (
                               <span className="flex items-center gap-1">
@@ -399,6 +385,7 @@ export default function RelatedActivitiesTab({
                                 {activity.strAssignedToName}
                               </span>
                             )}
+                            <ActivityStatusBadge status={activity.strStatus} />
                           </div>
                         </div>
 

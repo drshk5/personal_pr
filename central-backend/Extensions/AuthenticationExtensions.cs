@@ -9,6 +9,19 @@ namespace AuditSoftware.Extensions
 {
     public static class AuthenticationExtensions
     {
+        private static string GetJwtSigningKey(IConfiguration configuration)
+        {
+            var jwtKey = configuration["Jwt:Key"];
+            if (!string.IsNullOrWhiteSpace(jwtKey))
+                return jwtKey;
+
+            var secretKey = configuration["Jwt:SecretKey"];
+            if (!string.IsNullOrWhiteSpace(secretKey))
+                return secretKey;
+
+            throw new InvalidOperationException("JWT signing key not found. Set Jwt:Key or Jwt:SecretKey in configuration.");
+        }
+
         /// <summary>
         /// Adds custom JWT Bearer authentication with token extraction from Authorization header only.
         /// Tokens are decrypted if needed and validated via IAuthService.
@@ -24,6 +37,8 @@ namespace AuditSoftware.Extensions
             })
             .AddJwtBearer(options =>
             {
+                var signingKey = GetJwtSigningKey(configuration);
+
                 // Determine environment for security settings
                 var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
                     ?.Equals("Development", StringComparison.OrdinalIgnoreCase) ?? false;
@@ -40,8 +55,7 @@ namespace AuditSoftware.Extensions
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["Jwt:Key"]
-                            ?? throw new InvalidOperationException("JWT Key not found in configuration"))),
+                        Encoding.UTF8.GetBytes(signingKey)),
                     
                     // ✅ SECURITY: Tight clock tolerance (prevent token replay after expiry)
                     ClockSkew = TimeSpan.FromMinutes(1),

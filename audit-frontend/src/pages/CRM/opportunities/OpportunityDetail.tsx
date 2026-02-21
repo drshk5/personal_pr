@@ -153,7 +153,7 @@ export default function OpportunityDetailPage() {
             </div>
 
             <div className="flex gap-2">
-              {perms.canEdit && opportunity.strStatus === "Open" && (
+              {perms.canEdit && (
                 <Button
                   variant="outline"
                   onClick={() => navigate(`/crm/opportunities/${id}?mode=edit`)}

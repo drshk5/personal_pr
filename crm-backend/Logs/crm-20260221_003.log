@@ -1,0 +1,118 @@
+2026-02-21 10:43:36.165 +05:30 [INF] CRM Backend starting on Development
+2026-02-21 10:43:36.273 +05:30 [WRN] Overriding address(es) 'http://localhost:5005'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-02-21 10:58:39.462 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 10:58:39.462 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 10:58:39.474 +05:30 [INF] ← GET /api/crm/leads 401 (12ms)
+2026-02-21 10:58:39.474 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (12ms)
+2026-02-21 10:58:39.622 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 10:58:39.625 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (3ms)
+2026-02-21 10:58:39.622 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 10:58:39.660 +05:30 [INF] ← GET /api/crm/leads 401 (38ms)
+2026-02-21 10:58:39.735 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 10:58:39.738 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (3ms)
+2026-02-21 10:58:43.311 +05:30 [INF] → GET /api/crm/contacts
+2026-02-21 10:58:43.313 +05:30 [INF] ← GET /api/crm/contacts 401 (2ms)
+2026-02-21 10:58:43.372 +05:30 [INF] → GET /api/crm/contacts
+2026-02-21 10:58:43.375 +05:30 [INF] ← GET /api/crm/contacts 401 (2ms)
+2026-02-21 10:58:46.572 +05:30 [INF] → GET /api/crm/accounts
+2026-02-21 10:58:46.577 +05:30 [INF] ← GET /api/crm/accounts 401 (4ms)
+2026-02-21 10:58:46.642 +05:30 [INF] → GET /api/crm/accounts
+2026-02-21 10:58:46.646 +05:30 [INF] ← GET /api/crm/accounts 401 (3ms)
+2026-02-21 10:58:47.976 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-21 10:58:47.977 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-21 10:58:47.978 +05:30 [INF] ← GET /api/crm/pipelines 401 (2ms)
+2026-02-21 10:58:47.982 +05:30 [INF] ← GET /api/crm/opportunities 401 (5ms)
+2026-02-21 10:58:48.045 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-21 10:58:48.045 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-21 10:58:48.047 +05:30 [INF] ← GET /api/crm/pipelines 401 (2ms)
+2026-02-21 10:58:48.050 +05:30 [INF] ← GET /api/crm/opportunities 401 (4ms)
+2026-02-21 10:58:48.099 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-21 10:58:48.101 +05:30 [INF] ← GET /api/crm/opportunities 401 (2ms)
+2026-02-21 10:58:49.865 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 10:58:49.866 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 10:58:49.868 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (3ms)
+2026-02-21 10:58:49.869 +05:30 [INF] ← GET /api/crm/leads 401 (3ms)
+2026-02-21 10:58:49.939 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 10:58:49.942 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (2ms)
+2026-02-21 10:58:49.942 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 10:58:49.947 +05:30 [INF] ← GET /api/crm/leads 401 (5ms)
+2026-02-21 10:58:50.029 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 10:58:50.031 +05:30 [INF] ← GET /api/crm/leads 401 (2ms)
+2026-02-21 10:58:56.069 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 10:58:56.072 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 10:58:56.073 +05:30 [INF] ← GET /api/crm/leads 401 (3ms)
+2026-02-21 10:58:56.076 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (4ms)
+2026-02-21 10:58:56.193 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 10:58:56.194 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 10:58:56.197 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (3ms)
+2026-02-21 10:58:56.198 +05:30 [INF] ← GET /api/crm/leads 401 (4ms)
+2026-02-21 10:58:56.310 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 10:58:56.313 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (2ms)
+2026-02-21 10:59:12.458 +05:30 [INF] → GET /api/crm/leads/check-duplicates
+2026-02-21 10:59:12.461 +05:30 [INF] ← GET /api/crm/leads/check-duplicates 404 (3ms)
+2026-02-21 10:59:13.224 +05:30 [INF] → GET /api/crm/leads/check-duplicates
+2026-02-21 10:59:13.228 +05:30 [INF] ← GET /api/crm/leads/check-duplicates 404 (3ms)
+2026-02-21 10:59:14.444 +05:30 [INF] → GET /api/crm/leads/check-duplicates
+2026-02-21 10:59:14.449 +05:30 [INF] ← GET /api/crm/leads/check-duplicates 404 (5ms)
+2026-02-21 10:59:16.498 +05:30 [INF] → GET /api/crm/leads/check-duplicates
+2026-02-21 10:59:16.501 +05:30 [INF] ← GET /api/crm/leads/check-duplicates 404 (3ms)
+2026-02-21 11:04:09.550 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 11:04:09.554 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (4ms)
+2026-02-21 11:04:09.555 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 11:04:09.560 +05:30 [INF] ← GET /api/crm/leads 401 (4ms)
+2026-02-21 11:04:09.648 +05:30 [INF] → GET /api/crm/leads/analytics
+2026-02-21 11:04:09.651 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 11:04:09.650 +05:30 [INF] ← GET /api/crm/leads/analytics 401 (2ms)
+2026-02-21 11:04:09.656 +05:30 [INF] ← GET /api/crm/leads 401 (5ms)
+2026-02-21 11:04:09.738 +05:30 [INF] → GET /api/crm/leads
+2026-02-21 11:04:09.740 +05:30 [INF] ← GET /api/crm/leads 401 (2ms)
+2026-02-21 11:04:16.847 +05:30 [INF] → GET /api/crm/contacts
+2026-02-21 11:04:16.849 +05:30 [INF] ← GET /api/crm/contacts 401 (2ms)
+2026-02-21 11:04:16.902 +05:30 [INF] → GET /api/crm/contacts
+2026-02-21 11:04:16.904 +05:30 [INF] ← GET /api/crm/contacts 401 (2ms)
+2026-02-21 11:04:22.855 +05:30 [INF] → GET /api/crm/accounts
+2026-02-21 11:04:22.857 +05:30 [INF] ← GET /api/crm/accounts 401 (2ms)
+2026-02-21 11:04:22.939 +05:30 [INF] → GET /api/crm/accounts
+2026-02-21 11:04:22.943 +05:30 [INF] ← GET /api/crm/accounts 401 (3ms)
+2026-02-21 11:04:24.610 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-21 11:04:24.613 +05:30 [INF] ← GET /api/crm/pipelines 401 (3ms)
+2026-02-21 11:04:24.700 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-21 11:04:24.704 +05:30 [INF] ← GET /api/crm/pipelines 401 (4ms)
+2026-02-21 11:04:25.578 +05:30 [INF] → GET /api/crm/activities/overdue
+2026-02-21 11:04:25.582 +05:30 [INF] ← GET /api/crm/activities/overdue 401 (3ms)
+2026-02-21 11:04:25.589 +05:30 [INF] → GET /api/crm/activities
+2026-02-21 11:04:25.596 +05:30 [INF] → GET /api/crm/activities/my-activities
+2026-02-21 11:04:25.600 +05:30 [INF] ← GET /api/crm/activities/my-activities 401 (3ms)
+2026-02-21 11:04:25.614 +05:30 [INF] → GET /api/crm/activities/today
+2026-02-21 11:04:25.618 +05:30 [INF] ← GET /api/crm/activities/today 401 (3ms)
+2026-02-21 11:04:25.599 +05:30 [INF] ← GET /api/crm/activities 401 (9ms)
+2026-02-21 11:04:25.697 +05:30 [INF] → GET /api/crm/activities/overdue
+2026-02-21 11:04:25.700 +05:30 [INF] ← GET /api/crm/activities/overdue 401 (2ms)
+2026-02-21 11:04:25.703 +05:30 [INF] → GET /api/crm/activities/my-activities
+2026-02-21 11:04:25.704 +05:30 [INF] → GET /api/crm/activities
+2026-02-21 11:04:25.705 +05:30 [INF] ← GET /api/crm/activities/my-activities 401 (2ms)
+2026-02-21 11:04:25.710 +05:30 [INF] → GET /api/crm/activities/today
+2026-02-21 11:04:25.709 +05:30 [INF] ← GET /api/crm/activities 401 (4ms)
+2026-02-21 11:04:25.715 +05:30 [INF] ← GET /api/crm/activities/today 401 (5ms)
+2026-02-21 11:04:25.787 +05:30 [INF] → GET /api/crm/activities
+2026-02-21 11:04:25.785 +05:30 [INF] → GET /api/crm/activities/today
+2026-02-21 11:04:25.788 +05:30 [INF] → GET /api/crm/activities/overdue
+2026-02-21 11:04:25.788 +05:30 [INF] ← GET /api/crm/activities 401 (1ms)
+2026-02-21 11:04:25.789 +05:30 [INF] ← GET /api/crm/activities/today 401 (4ms)
+2026-02-21 11:04:25.794 +05:30 [INF] ← GET /api/crm/activities/overdue 401 (6ms)
+2026-02-21 11:04:25.853 +05:30 [INF] → GET /api/crm/activities
+2026-02-21 11:04:25.855 +05:30 [INF] → GET /api/crm/activities/today
+2026-02-21 11:04:25.855 +05:30 [INF] ← GET /api/crm/activities 401 (2ms)
+2026-02-21 11:04:25.859 +05:30 [INF] ← GET /api/crm/activities/today 401 (3ms)
+2026-02-21 11:04:25.925 +05:30 [INF] → GET /api/crm/activities/today
+2026-02-21 11:04:25.927 +05:30 [INF] ← GET /api/crm/activities/today 401 (2ms)
+2026-02-21 11:04:25.966 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-21 11:04:25.968 +05:30 [INF] ← GET /api/crm/opportunities 401 (2ms)
+2026-02-21 11:04:25.970 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-21 11:04:25.973 +05:30 [INF] ← GET /api/crm/pipelines 401 (2ms)
+2026-02-21 11:04:26.027 +05:30 [INF] → GET /api/crm/opportunities
+2026-02-21 11:04:26.029 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-21 11:04:26.029 +05:30 [INF] ← GET /api/crm/opportunities 401 (2ms)
+2026-02-21 11:04:26.032 +05:30 [INF] ← GET /api/crm/pipelines 401 (3ms)
+2026-02-21 11:04:26.134 +05:30 [INF] → GET /api/crm/pipelines
+2026-02-21 11:04:26.139 +05:30 [INF] ← GET /api/crm/pipelines 401 (5ms)

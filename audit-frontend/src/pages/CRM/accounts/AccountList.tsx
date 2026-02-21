@@ -5,6 +5,7 @@ import {
   Plus,
   Search,
   Filter,
+  Mail,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -59,6 +60,9 @@ import {
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IndeterminateCheckbox } from "@/components/ui/IndeterminateCheckbox";
+import { toast } from "sonner";
+import { communicationService } from "@/services/CRM/communication.service";
+import { BulkRecipientEmailModal } from "@/components/CRM/BulkRecipientEmailModal";
 import AccountImportDialog from "./components/AccountImportDialog";
 
 const defaultColumnOrder = [
@@ -104,6 +108,7 @@ const AccountList: React.FC = () => {
     useBulkArchiveAccounts();
   const { mutate: bulkRestoreAccounts, isPending: isBulkRestoring } =
     useBulkRestoreAccounts();
+  const [showBulkEmailModal, setShowBulkEmailModal] = useState(false);
 
   // Import / Export
   const [showImport, setShowImport] = useState(false);
@@ -227,10 +232,10 @@ const AccountList: React.FC = () => {
     [sorting, setSorting]
   );
 
-  // Open edit in new tab
-  const openEditInNewTab = useCallback((path: string) => {
-    window.open(path, "_blank", "noopener,noreferrer");
-  }, []);
+  // Navigate in same tab
+  const openEditInSameTab = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
 
   // Handle delete
   const handleDelete = () => {
@@ -300,6 +305,43 @@ const AccountList: React.FC = () => {
   const selectedAccountIds = useMemo(() => {
     return Object.keys(selectedRows).filter((id) => selectedRows[id]);
   }, [selectedRows]);
+  const selectedAccountEmails = useMemo(() => {
+    const selectedSet = new Set(selectedAccountIds);
+    return pagedData.items
+      .filter((account) => selectedSet.has(account.strAccountGUID))
+      .map((account) => account.strEmail?.trim())
+      .filter((email): email is string => !!email);
+  }, [pagedData.items, selectedAccountIds]);
+
+  const handleBulkEmail = useCallback(async () => {
+    const recipients = Array.from(new Set(selectedAccountEmails));
+    if (recipients.length === 0) {
+      toast.error("No valid email addresses found in selected accounts");
+      return;
+    }
+    setShowBulkEmailModal(true);
+  }, [selectedAccountEmails]);
+
+  const handleSendBulkEmail = useCallback(async (payload: {
+    subject: string;
+    body: string;
+    isHtml: boolean;
+  }) => {
+    const recipients = Array.from(new Set(selectedAccountEmails));
+    try {
+      await communicationService.sendBulkEmail({
+        recipients,
+        subject: payload.subject,
+        body: payload.body,
+        isHtml: payload.isHtml,
+      });
+      toast.success(`Sent ${recipients.length} emails`);
+      setShowBulkEmailModal(false);
+      setSelectedRows({});
+    } catch {
+      toast.error("Failed to send emails");
+    }
+  }, [selectedAccountEmails]);
 
   const handleBulkArchive = useCallback(() => {
     if (selectedItemsCount === 0) return;
@@ -333,30 +375,30 @@ const AccountList: React.FC = () => {
   // Columns
   const columns: DataTableColumn<AccountListDto>[] = useMemo(
     () => [
+      {
+        key: "select",
+        width: "50px",
+        header: (
+          <IndeterminateCheckbox
+            checked={selectAll}
+            indeterminate={indeterminate}
+            onCheckedChange={handleSelectAll}
+            aria-label="Select all"
+          />
+        ),
+        cell: (item: AccountListDto) => (
+          <Checkbox
+            checked={!!selectedRows[item.strAccountGUID]}
+            onCheckedChange={() => toggleAccountSelection(item.strAccountGUID)}
+            aria-label={`Select account ${item.strAccountName}`}
+          />
+        ),
+        sortable: false,
+      } as DataTableColumn<AccountListDto>,
       ...(canAccess(menuItems, FormModules.CRM_ACCOUNT, Actions.EDIT) ||
-        canAccess(menuItems, FormModules.CRM_ACCOUNT, Actions.DELETE)
+      canAccess(menuItems, FormModules.CRM_ACCOUNT, Actions.DELETE)
         ? [
-          {
-            key: "select",
-            width: "50px",
-            header: (
-              <IndeterminateCheckbox
-                checked={selectAll}
-                indeterminate={indeterminate}
-                onCheckedChange={handleSelectAll}
-                aria-label="Select all"
-              />
-            ),
-            cell: (item: AccountListDto) => (
-              <Checkbox
-                checked={!!selectedRows[item.strAccountGUID]}
-                onCheckedChange={() => toggleAccountSelection(item.strAccountGUID)}
-                aria-label={`Select account ${item.strAccountName}`}
-              />
-            ),
-            sortable: false,
-          } as DataTableColumn<AccountListDto>,
-          {
+            {
             key: "actions",
             header: "Actions",
             cell: (item: AccountListDto) => (
@@ -379,7 +421,7 @@ const AccountList: React.FC = () => {
                     ) && (
                         <DropdownMenuItem
                           onClick={() =>
-                            openEditInNewTab(
+                            openEditInSameTab(
                               `/crm/accounts/${item.strAccountGUID}`
                             )
                           }
@@ -411,7 +453,7 @@ const AccountList: React.FC = () => {
             sortable: false,
             width: "70px",
           } as DataTableColumn<AccountListDto>,
-        ]
+          ]
         : []),
       {
         key: "strAccountName",
@@ -420,7 +462,7 @@ const AccountList: React.FC = () => {
           <div
             className="font-medium text-primary cursor-pointer hover:underline"
             onClick={() =>
-              openEditInNewTab(`/crm/accounts/${item.strAccountGUID}`)
+              openEditInSameTab(`/crm/accounts/${item.strAccountGUID}`)
             }
           >
             {item.strAccountName}
@@ -532,7 +574,7 @@ const AccountList: React.FC = () => {
     ],
     [
       menuItems,
-      openEditInNewTab,
+      openEditInSameTab,
       selectedRows,
       selectAll,
       indeterminate,
@@ -574,6 +616,16 @@ const AccountList: React.FC = () => {
             {selectedItemsCount !== 1 ? "s" : ""} selected
           </span>
           <div className="flex items-center gap-2 ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleBulkEmail}
+              disabled={isBulkArchiving || isBulkRestoring}
+            >
+              <Mail className="h-3.5 w-3.5 mr-1" />
+              Send Email
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -828,6 +880,15 @@ const AccountList: React.FC = () => {
       <AccountImportDialog
         open={showImport}
         onOpenChange={setShowImport}
+      />
+
+      <BulkRecipientEmailModal
+        open={showBulkEmailModal}
+        onClose={() => setShowBulkEmailModal(false)}
+        recipients={selectedAccountEmails}
+        defaultSubject="CRM Account Notification"
+        defaultBody="This is an automated notification for selected account(s)."
+        onSend={handleSendBulkEmail}
       />
     </CustomContainer>
   );

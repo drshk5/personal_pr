@@ -16,9 +16,11 @@ import {
   ArrowLeft,
   Edit,
   Mail,
+  MessageSquare,
   Phone,
   DollarSign,
 } from "lucide-react";
+import { CommunicationComposerModal } from "@/components/CRM/CommunicationComposerModal";
 
 import AccountOverviewTab from "./components/AccountOverviewTab";
 import AccountContactsTab from "./components/AccountContactsTab";
@@ -30,8 +32,13 @@ export default function AccountDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showComms, setShowComms] = useState(false);
+  const [initialChannel, setInitialChannel] = useState<"email" | "call" | "message" | "whatsapp">("email");
 
   const { data: account, isLoading, error } = useAccount(id);
+
+  const hasEmail = !!account?.strEmail?.trim();
+  const hasPhone = !!account?.strPhone?.trim();
 
   if (isLoading) {
     return (
@@ -99,22 +106,50 @@ export default function AccountDetailPage() {
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Button>
-              {account.strEmail && (
-                <Button variant="outline" asChild>
-                  <a href={`mailto:${account.strEmail}`}>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Email
-                  </a>
-                </Button>
-              )}
-              {account.strPhone && (
-                <Button variant="outline" asChild>
-                  <a href={`tel:${account.strPhone}`}>
-                    <Phone className="mr-2 h-4 w-4" />
-                    Call
-                  </a>
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                disabled={!hasEmail}
+                onClick={() => {
+                  setInitialChannel("email");
+                  setShowComms(true);
+                }}
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                Email
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!hasPhone}
+                onClick={() => {
+                  setInitialChannel("call");
+                  setShowComms(true);
+                }}
+              >
+                <Phone className="mr-2 h-4 w-4" />
+                Call
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!hasPhone}
+                onClick={() => {
+                  setInitialChannel("message");
+                  setShowComms(true);
+                }}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Message
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!hasPhone}
+                onClick={() => {
+                  setInitialChannel("whatsapp");
+                  setShowComms(true);
+                }}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                WhatsApp
+              </Button>
             </div>
           </div>
         </div>
@@ -245,6 +280,18 @@ export default function AccountDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
+      {account && (
+        <CommunicationComposerModal
+          open={showComms}
+          onClose={() => setShowComms(false)}
+          entityType="Account"
+          entityId={account.strAccountGUID}
+          entityName={account.strAccountName}
+          recipientEmail={account.strEmail}
+          recipientPhone={account.strPhone}
+          initialChannel={initialChannel}
+        />
+      )}
     </CustomContainer>
   );
 }

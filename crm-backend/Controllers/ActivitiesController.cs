@@ -50,7 +50,7 @@ public class ActivitiesController : ControllerBase
     // ── CREATE ──
 
     /// <summary>
-    /// Create a new activity. Auto-updates linked lead status (New → Contacted).
+    /// Create a new activity.
     /// Triggers ActivityCreated workflow.
     /// </summary>
     [HttpPost]

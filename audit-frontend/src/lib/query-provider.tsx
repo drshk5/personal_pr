@@ -19,8 +19,8 @@ const createOptimizedQueryClient = () => {
       queries: {
         staleTime: 30 * 1000,
         gcTime: 1000 * 60 * 10,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
         refetchOnReconnect: true,
         retry: (failureCount, error: unknown) => {
           // Don't retry on 401 to prevent refresh token loops

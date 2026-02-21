@@ -5,6 +5,7 @@ import {
   Plus,
   Search,
   Filter,
+  Mail,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -24,6 +25,8 @@ import {
   useDeleteLead,
   useExportLeads,
   useLeadAnalytics,
+  useBulkArchiveLeads,
+  useBulkRestoreLeads,
 } from "@/hooks/api/CRM/use-leads";
 import { useListPreferences } from "@/hooks/common/use-list-preferences";
 import { useTableLayout } from "@/hooks/common/use-table-layout";
@@ -60,6 +63,9 @@ import {
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IndeterminateCheckbox } from "@/components/ui/IndeterminateCheckbox";
+import { toast } from "sonner";
+import { communicationService } from "@/services/CRM/communication.service";
+import { BulkRecipientEmailModal } from "@/components/CRM/BulkRecipientEmailModal";
 
 import LeadStatusBadge from "./components/LeadStatusBadge";
 import LeadScoreBadge from "./components/LeadScoreBadge";
@@ -125,6 +131,11 @@ const LeadList: React.FC = () => {
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState<boolean>(false);
   const [indeterminate, setIndeterminate] = useState<boolean>(false);
+  const { mutate: bulkArchiveLeads, isPending: isBulkArchiving } =
+    useBulkArchiveLeads();
+  const { mutate: bulkRestoreLeads, isPending: isBulkRestoring } =
+    useBulkRestoreLeads();
+  const [showBulkEmailModal, setShowBulkEmailModal] = useState(false);
 
   // Analytics mini-view
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -273,10 +284,10 @@ const LeadList: React.FC = () => {
     [sorting, setSorting]
   );
 
-  // Open edit in new tab
-  const openEditInNewTab = useCallback((path: string) => {
-    window.open(path, "_blank", "noopener,noreferrer");
-  }, []);
+  // Navigate in same tab
+  const openEditInSameTab = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
 
   // Handle delete
   const handleDelete = () => {
@@ -343,6 +354,59 @@ const LeadList: React.FC = () => {
   const selectedLeadIds = useMemo(() => {
     return Object.keys(selectedRows).filter((id) => selectedRows[id]);
   }, [selectedRows]);
+  const selectedLeadEmails = useMemo(() => {
+    const selectedSet = new Set(selectedLeadIds);
+    return pagedData.items
+      .filter((lead) => selectedSet.has(lead.strLeadGUID))
+      .map((lead) => lead.strEmail?.trim())
+      .filter((email): email is string => !!email);
+  }, [pagedData.items, selectedLeadIds]);
+
+  const handleBulkEmail = useCallback(async () => {
+    const recipients = Array.from(new Set(selectedLeadEmails));
+    if (recipients.length === 0) {
+      toast.error("No valid email addresses found in selected leads");
+      return;
+    }
+    setShowBulkEmailModal(true);
+  }, [selectedLeadEmails]);
+
+  const handleSendBulkEmail = useCallback(async (payload: {
+    subject: string;
+    body: string;
+    isHtml: boolean;
+  }) => {
+    const recipients = Array.from(new Set(selectedLeadEmails));
+    try {
+      await communicationService.sendBulkEmail({
+        recipients,
+        subject: payload.subject,
+        body: payload.body,
+        isHtml: payload.isHtml,
+      });
+      toast.success(`Sent ${recipients.length} emails`);
+      setShowBulkEmailModal(false);
+      setSelectedRows({});
+    } catch {
+      toast.error("Failed to send emails");
+    }
+  }, [selectedLeadEmails]);
+
+  const handleBulkArchive = useCallback(() => {
+    if (selectedItemsCount === 0) return;
+    bulkArchiveLeads(
+      { guids: selectedLeadIds },
+      { onSuccess: () => setSelectedRows({}) }
+    );
+  }, [bulkArchiveLeads, selectedLeadIds, selectedItemsCount]);
+
+  const handleBulkRestore = useCallback(() => {
+    if (selectedItemsCount === 0) return;
+    bulkRestoreLeads(
+      { guids: selectedLeadIds },
+      { onSuccess: () => setSelectedRows({}) }
+    );
+  }, [bulkRestoreLeads, selectedLeadIds, selectedItemsCount]);
 
   // Handle export
   const handleExport = (format: "csv" | "excel") => {
@@ -352,30 +416,30 @@ const LeadList: React.FC = () => {
   // Columns
   const columns: DataTableColumn<LeadListDto>[] = useMemo(
     () => [
+      {
+        key: "select",
+        width: "50px",
+        header: (
+          <IndeterminateCheckbox
+            checked={selectAll}
+            indeterminate={indeterminate}
+            onCheckedChange={handleSelectAll}
+            aria-label="Select all"
+          />
+        ),
+        cell: (item: LeadListDto) => (
+          <Checkbox
+            checked={!!selectedRows[item.strLeadGUID]}
+            onCheckedChange={() => handleRowSelection(item.strLeadGUID)}
+            aria-label={`Select ${item.strFirstName} ${item.strLastName}`}
+          />
+        ),
+        sortable: false,
+      } as DataTableColumn<LeadListDto>,
       ...(canAccess(menuItems, FormModules.CRM_LEAD, Actions.EDIT) ||
-        canAccess(menuItems, FormModules.CRM_LEAD, Actions.DELETE)
+      canAccess(menuItems, FormModules.CRM_LEAD, Actions.DELETE)
         ? [
-          {
-            key: "select",
-            width: "50px",
-            header: (
-              <IndeterminateCheckbox
-                checked={selectAll}
-                indeterminate={indeterminate}
-                onCheckedChange={handleSelectAll}
-                aria-label="Select all"
-              />
-            ),
-            cell: (item: LeadListDto) => (
-              <Checkbox
-                checked={!!selectedRows[item.strLeadGUID]}
-                onCheckedChange={() => handleRowSelection(item.strLeadGUID)}
-                aria-label={`Select ${item.strFirstName} ${item.strLastName}`}
-              />
-            ),
-            sortable: false,
-          } as DataTableColumn<LeadListDto>,
-          {
+            {
             key: "actions",
             header: "Actions",
             cell: (item: LeadListDto) => (
@@ -398,7 +462,7 @@ const LeadList: React.FC = () => {
                     ) && (
                         <DropdownMenuItem
                           onClick={() =>
-                            openEditInNewTab(
+                            openEditInSameTab(
                               `/crm/leads/${item.strLeadGUID}`
                             )
                           }
@@ -423,7 +487,7 @@ const LeadList: React.FC = () => {
                     {item.bolHasDuplicates && (
                       <DropdownMenuItem
                         onClick={() =>
-                          openEditInNewTab(
+                          openEditInSameTab(
                             `/crm/leads/${item.strLeadGUID}`
                           )
                         }
@@ -455,7 +519,7 @@ const LeadList: React.FC = () => {
             sortable: false,
             width: "70px",
           } as DataTableColumn<LeadListDto>,
-        ]
+          ]
         : []),
       {
         key: "strName",
@@ -464,7 +528,7 @@ const LeadList: React.FC = () => {
           <div
             className="font-medium text-primary cursor-pointer hover:underline"
             onClick={() =>
-              openEditInNewTab(`/crm/leads/${item.strLeadGUID}`)
+              openEditInSameTab(`/crm/leads/${item.strLeadGUID}`)
             }
           >
             {item.strFirstName} {item.strLastName}
@@ -592,7 +656,7 @@ const LeadList: React.FC = () => {
     ],
     [
       menuItems,
-      openEditInNewTab,
+      openEditInSameTab,
       selectedRows,
       selectAll,
       indeterminate,
@@ -678,6 +742,33 @@ const LeadList: React.FC = () => {
             selected
           </span>
           <div className="flex items-center gap-2 ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleBulkEmail}
+            >
+              <Mail className="h-3.5 w-3.5 mr-1" />
+              Send Email
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleBulkArchive}
+              disabled={isBulkArchiving || isBulkRestoring}
+            >
+              {isBulkArchiving ? "Archiving..." : "Archive"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleBulkRestore}
+              disabled={isBulkArchiving || isBulkRestoring}
+            >
+              {isBulkRestoring ? "Restoring..." : "Restore"}
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -1053,6 +1144,15 @@ const LeadList: React.FC = () => {
           onSuccess={() => setSelectedRows({})}
         />
       )}
+
+      <BulkRecipientEmailModal
+        open={showBulkEmailModal}
+        onClose={() => setShowBulkEmailModal(false)}
+        recipients={selectedLeadEmails}
+        defaultSubject="CRM Lead Notification"
+        defaultBody="This is an automated notification for selected lead(s)."
+        onSend={handleSendBulkEmail}
+      />
     </CustomContainer>
   );
 };

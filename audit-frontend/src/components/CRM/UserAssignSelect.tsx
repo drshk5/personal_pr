@@ -8,7 +8,6 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import {
-  FormControl,
   FormItem,
   FormLabel,
   FormMessage,
@@ -34,16 +33,14 @@ const UserAssignSelect: React.FC<UserAssignSelectProps> = ({
 }) => {
   const { data: activeUsers } = useActiveUsers();
 
-  const selectElement = (
+  const selectCore = (
     <Select
       value={value || "none"}
       onValueChange={(v) => onChange(v === "none" ? "" : v)}
     >
-      <FormControl>
-        <SelectTrigger>
-          <SelectValue placeholder="Select user" />
-        </SelectTrigger>
-      </FormControl>
+      <SelectTrigger>
+        <SelectValue placeholder="Select user" />
+      </SelectTrigger>
       <SelectContent>
         <SelectItem value="none">
           <span className="text-muted-foreground">Unassigned</span>
@@ -66,13 +63,13 @@ const UserAssignSelect: React.FC<UserAssignSelectProps> = ({
     return (
       <FormItem>
         <FormLabel>{label}</FormLabel>
-        {selectElement}
+        {selectCore}
         <FormMessage />
       </FormItem>
     );
   }
 
-  return selectElement;
+  return selectCore;
 };
 
 export default UserAssignSelect;

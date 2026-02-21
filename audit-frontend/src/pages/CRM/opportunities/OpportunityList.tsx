@@ -229,10 +229,10 @@ const OpportunityList: React.FC = () => {
     [sorting, setSorting]
   );
 
-  // Open edit in new tab
-  const openEditInNewTab = useCallback((path: string) => {
-    window.open(path, "_blank", "noopener,noreferrer");
-  }, []);
+  // Navigate in same tab
+  const openEditInSameTab = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
 
   // Handle delete
   const handleDelete = () => {
@@ -292,7 +292,7 @@ const OpportunityList: React.FC = () => {
                   ) && (
                       <DropdownMenuItem
                         onClick={() =>
-                          openEditInNewTab(
+                          openEditInSameTab(
                             `/crm/opportunities/${item.strOpportunityGUID}`
                           )
                         }
@@ -332,7 +332,7 @@ const OpportunityList: React.FC = () => {
           <div
             className="font-medium text-primary cursor-pointer hover:underline"
             onClick={() =>
-              openEditInNewTab(
+              openEditInSameTab(
                 `/crm/opportunities/${item.strOpportunityGUID}`
               )
             }
@@ -456,7 +456,7 @@ const OpportunityList: React.FC = () => {
         width: "180px",
       },
     ],
-    [menuItems, openEditInNewTab, userMap]
+    [menuItems, openEditInSameTab, userMap]
   );
 
   return (

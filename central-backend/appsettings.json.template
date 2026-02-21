@@ -7,10 +7,11 @@
   },
   "AllowedHosts": "*",
   "ConnectionStrings": {
-    "DefaultConnection": "Server=YOUR_SERVER;Database=YOUR_DB;User Id=YOUR_USER;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
+    "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=MasterDBtest;Trusted_Connection=True;TrustServerCertificate=True;"
   },
   "Jwt": {
     "Key": "GENERATE_SECURE_KEY_AT_LEAST_32_CHARS",
+    "SecretKey": "GENERATE_SECURE_KEY_AT_LEAST_32_CHARS",
     "EncryptionKey": "GENERATE_SECURE_ENCRYPTION_KEY_32_CHARS",
     "Issuer": "EasyAudit",
     "Audience": "EasyAuditUsers",
@@ -31,7 +32,8 @@
     "TaskServiceBaseUrl": "https://localhost:5006",
     "HrmServiceBaseUrl": "https://localhost:5003",
     "AuditServiceBaseUrl": "https://localhost:5001",
-    "AccountingServiceBaseUrl": "https://localhost:7089"
+    "AccountingServiceBaseUrl": "https://localhost:7089",
+    "CrmServiceBaseUrl": "http://localhost:5005"
   },
   "ThirdPartyApis": {
     "ExchangeRate": {
@@ -41,7 +43,9 @@
   "Cors": {
     "AllowedOrigins": [
       "http://localhost:5173",
-      "https://localhost:5173"
+      "https://localhost:5173",
+      "http://localhost:5005",
+      "https://localhost:5005"
     ]
   }
 }

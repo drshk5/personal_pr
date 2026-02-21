@@ -55,6 +55,8 @@ import {
   List,
   LayoutGrid,
   AlertTriangle,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import {
   useActivitiesExtended,
@@ -70,6 +72,7 @@ import { useUsers } from "@/hooks/api/central/use-users";
 import { useAuthContext } from "@/hooks/common/use-auth-context";
 import { useCrmPermissions } from "@/hooks/CRM/use-crm-permissions";
 import { toast } from "sonner";
+import { activityService } from "@/services/CRM/activity.service";
 import type { ActivityListDto } from "@/types/CRM/activity";
 import {
   ACTIVITY_TYPES,
@@ -78,6 +81,13 @@ import {
 } from "@/types/CRM/activity";
 import { format } from "date-fns";
 import ActivityForm from "@/pages/CRM/activities/components/ActivityForm";
+import { BulkEmailModal } from "@/components/CRM/BulkEmailModal";
+import {
+  ActivityDueMeta,
+  ActivityPriorityBadge,
+  ActivityStatusBadge,
+  ActivityTypeBadge,
+} from "@/components/CRM/activity-presenters";
 
 const ACTIVITY_TYPE_ICONS: Record<string, any> = {
   Call: Phone,
@@ -93,13 +103,6 @@ const STATUS_COLORS: Record<string, string> = {
   InProgress: "bg-blue-500",
   Completed: "bg-green-500",
   Cancelled: "bg-red-500",
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  Low: "bg-gray-500",
-  Medium: "bg-blue-500",
-  High: "bg-orange-500",
-  Urgent: "bg-red-500",
 };
 
 export default function ActivityManagement() {
@@ -118,6 +121,7 @@ export default function ActivityManagement() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingActivity, setEditingActivity] = useState<ActivityListDto | null>(null);
   const [showBulkAssignDialog, setShowBulkAssignDialog] = useState(false);
+  const [showBulkEmailDialog, setShowBulkEmailDialog] = useState(false);
 
   // Data queries based on active view
   const { data: allData, isLoading: allLoading } = useActivitiesExtended({
@@ -223,6 +227,27 @@ export default function ActivityManagement() {
       await bulkDelete.mutateAsync(Array.from(selectedIds));
       setSelectedIds(new Set());
     } catch {}
+  };
+
+  const handleBulkArchive = async () => {
+    await handleBulkStatusChange("Cancelled");
+  };
+
+  const handleBulkRestore = async () => {
+    await handleBulkStatusChange("Pending");
+  };
+
+  const handleBulkEmail = async (emailData: {
+    activityGuids: string[];
+    subject: string;
+    body: string;
+    sendToAssignedUsers: boolean;
+    sendToCreators: boolean;
+    additionalRecipients: string[];
+  }) => {
+    const emailCount = await activityService.bulkEmail(emailData);
+    toast.success(`Successfully queued ${emailCount} emails for sending`);
+    setSelectedIds(new Set());
   };
 
   const handleBulkStatusChange = async (status: string) => {
@@ -398,6 +423,18 @@ export default function ActivityManagement() {
                   Assign
                 </Button>
               )}
+              <Button size="sm" variant="outline" onClick={() => setShowBulkEmailDialog(true)}>
+                <Mail className="mr-1 h-3 w-3" />
+                Send Mail
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleBulkArchive}>
+                <Archive className="mr-1 h-3 w-3" />
+                Archive
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleBulkRestore}>
+                <RotateCcw className="mr-1 h-3 w-3" />
+                Restore
+              </Button>
               <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
                 <Trash2 className="mr-1 h-3 w-3" />
                 Delete
@@ -454,7 +491,7 @@ export default function ActivityManagement() {
                             key={activity.strActivityGUID}
                             className={
                               activity.bolIsOverdue
-                                ? "bg-red-50 dark:bg-red-900/10"
+                                ? "bg-rose-50/60 dark:bg-rose-950/20"
                                 : ""
                             }
                           >
@@ -471,9 +508,7 @@ export default function ActivityManagement() {
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <TypeIcon className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-xs">
-                                  {activity.strActivityType}
-                                </span>
+                                <ActivityTypeBadge type={activity.strActivityType} />
                               </div>
                             </TableCell>
                             <TableCell>
@@ -489,46 +524,16 @@ export default function ActivityManagement() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge
-                                className={`${
-                                  STATUS_COLORS[activity.strStatus] ||
-                                  "bg-gray-500"
-                                } text-white text-xs`}
-                              >
-                                {activity.strStatus}
-                              </Badge>
+                              <ActivityStatusBadge status={activity.strStatus} />
                             </TableCell>
                             <TableCell>
-                              <Badge
-                                variant="outline"
-                                className={`text-xs border-0 ${
-                                  PRIORITY_COLORS[activity.strPriority] ||
-                                  "bg-gray-500"
-                                } text-white`}
-                              >
-                                {activity.strPriority}
-                              </Badge>
+                              <ActivityPriorityBadge priority={activity.strPriority} />
                             </TableCell>
                             <TableCell>
-                              {activity.dtDueDate ? (
-                                <span
-                                  className={
-                                    activity.bolIsOverdue
-                                      ? "text-red-500 font-medium"
-                                      : ""
-                                  }
-                                >
-                                  {format(
-                                    new Date(activity.dtDueDate),
-                                    "PP"
-                                  )}
-                                  {activity.bolIsOverdue && " ⚠"}
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground">
-                                  —
-                                </span>
-                              )}
+                              <ActivityDueMeta
+                                dueDate={activity.dtDueDate}
+                                isOverdue={activity.bolIsOverdue}
+                              />
                             </TableCell>
                             <TableCell>
                               <span className="text-sm">
@@ -641,22 +646,8 @@ export default function ActivityManagement() {
                                 {activity.strSubject}
                               </h4>
                               <div className="flex items-center gap-2">
-                                <Badge
-                                  className={`${
-                                    PRIORITY_COLORS[activity.strPriority] ||
-                                    "bg-gray-500"
-                                  } text-white text-xs`}
-                                >
-                                  {activity.strPriority}
-                                </Badge>
-                                <Badge
-                                  className={`${
-                                    STATUS_COLORS[activity.strStatus] ||
-                                    "bg-gray-500"
-                                  } text-white text-xs`}
-                                >
-                                  {activity.strStatus}
-                                </Badge>
+                                <ActivityPriorityBadge priority={activity.strPriority} />
+                                <ActivityStatusBadge status={activity.strStatus} />
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="sm">
@@ -744,17 +735,10 @@ export default function ActivityManagement() {
                                 </span>
                               )}
                               {activity.dtDueDate && (
-                                <span
-                                  className={`flex items-center gap-1 ${
-                                    activity.bolIsOverdue
-                                      ? "text-red-500 font-medium"
-                                      : ""
-                                  }`}
-                                >
-                                  <Clock className="h-3 w-3" />
-                                  Due:{" "}
-                                  {format(new Date(activity.dtDueDate), "PP")}
-                                </span>
+                                <ActivityDueMeta
+                                  dueDate={activity.dtDueDate}
+                                  isOverdue={activity.bolIsOverdue}
+                                />
                               )}
                               <span className="flex items-center gap-1">
                                 <User className="h-3 w-3" />
@@ -798,6 +782,13 @@ export default function ActivityManagement() {
         selectedIds={selectedIds}
         users={users}
         onComplete={() => setSelectedIds(new Set())}
+      />
+
+      <BulkEmailModal
+        isOpen={showBulkEmailDialog}
+        onClose={() => setShowBulkEmailDialog(false)}
+        selectedActivities={Array.from(selectedIds)}
+        onSend={handleBulkEmail}
       />
     </CustomContainer>
   );

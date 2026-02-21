@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -29,8 +30,11 @@ import {
 import { Plus, Mail, Phone, Edit, Eye, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useContacts, useCreateContact } from "@/hooks/api/CRM/use-contacts";
-import { toast } from "sonner";
-import type { CreateContactDto, CONTACT_LIFECYCLE_STAGES } from "@/types/CRM/contact";
+import type {
+  CreateContactDto,
+  CONTACT_LIFECYCLE_STAGES,
+  ContactListDto,
+} from "@/types/CRM/contact";
 
 interface AccountContactsTabProps {
   accountId: string;
@@ -50,11 +54,11 @@ export default function AccountContactsTab({
     pageSize: 100,
   });
 
-  const contacts = Array.isArray(contactsData?.data)
+  const contacts: ContactListDto[] = Array.isArray(contactsData?.data)
     ? contactsData.data
     : (contactsData?.data as any)?.items || (contactsData?.data as any)?.Items || (contactsData as any)?.items || (contactsData as any)?.Items || [];
   const filteredContacts = contacts.filter(
-    (contact) =>
+    (contact: ContactListDto) =>
       contact.strFirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.strLastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.strEmail?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -105,7 +109,7 @@ export default function AccountContactsTab({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredContacts.map((contact) => (
+                {filteredContacts.map((contact: ContactListDto) => (
                   <TableRow key={contact.strContactGUID}>
                     <TableCell className="font-medium">
                       {contact.strFirstName} {contact.strLastName}
@@ -204,7 +208,6 @@ function CreateContactDialog({
     e.preventDefault();
     try {
       await createMutation.mutateAsync(formData);
-      toast.success("Contact created successfully");
       onClose();
       setFormData({
         strFirstName: "",
@@ -215,8 +218,8 @@ function CreateContactDialog({
         strLifecycleStage: "Lead",
         strAccountGUID: accountId,
       });
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to create contact");
+    } catch {
+      // Error notification is handled centrally in the mutation hook.
     }
   };
 
@@ -266,10 +269,10 @@ function CreateContactDialog({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
+                <PhoneInput
                   value={formData.strPhone || ""}
-                  onChange={(e) => setFormData({ ...formData, strPhone: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, strPhone: value })}
+                  placeholder="Enter phone number"
                 />
               </div>
             </div>
@@ -286,7 +289,7 @@ function CreateContactDialog({
               <div className="space-y-2">
                 <Label htmlFor="lifecycleStage">Lifecycle Stage</Label>
                 <Select
-                  value={formData.strLifecycleStage}
+                  value={formData.strLifecycleStage || "Lead"}
                   onValueChange={(value) =>
                     setFormData({
                       ...formData,

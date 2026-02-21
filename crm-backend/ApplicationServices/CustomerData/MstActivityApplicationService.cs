@@ -211,21 +211,7 @@ public class MstActivityApplicationService : ApplicationServiceBase, IMstActivit
 
         await _unitOfWork.SaveChangesAsync();
 
-        // Auto lead status: New → Contacted when any activity is logged
         var leadLinks = dto.Links.Where(l => l.strEntityType == EntityTypeConstants.Lead).ToList();
-        foreach (var leadLink in leadLinks)
-        {
-            var linkedLead = await _unitOfWork.Leads.GetByIdAsync(leadLink.strEntityGUID);
-            if (linkedLead != null && linkedLead.strStatus == LeadStatusConstants.New)
-            {
-                linkedLead.strStatus = LeadStatusConstants.Contacted;
-                linkedLead.strUpdatedByGUID = userId;
-                linkedLead.dtUpdatedOn = now;
-                _unitOfWork.Leads.Update(linkedLead);
-            }
-        }
-        if (leadLinks.Count > 0)
-            await _unitOfWork.SaveChangesAsync();
 
         // Trigger workflows (non-fatal — don't let workflow errors block activity creation)
         try

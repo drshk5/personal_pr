@@ -17,6 +17,7 @@ public class LeadsController : BaseController
     private readonly IMstLeadApplicationService _leadAppService;
     private readonly IMstLeadAnalyticsApplicationService _analyticsAppService;
     private readonly IMstLeadAssignmentApplicationService _assignmentAppService;
+    private readonly CrmDbContext _crmDbContext;
     private readonly MasterDbContext _masterDbContext;
     private readonly ILogger<LeadsController> _logger;
 
@@ -24,12 +25,14 @@ public class LeadsController : BaseController
         IMstLeadApplicationService leadAppService,
         IMstLeadAnalyticsApplicationService analyticsAppService,
         IMstLeadAssignmentApplicationService assignmentAppService,
+        CrmDbContext crmDbContext,
         MasterDbContext masterDbContext,
         ILogger<LeadsController> logger)
     {
         _leadAppService = leadAppService;
         _analyticsAppService = analyticsAppService;
         _assignmentAppService = assignmentAppService;
+        _crmDbContext = crmDbContext;
         _masterDbContext = masterDbContext;
         _logger = logger;
     }
@@ -264,6 +267,71 @@ public class LeadsController : BaseController
         };
 
         return OkResponse(dto);
+    }
+
+    /// <summary>
+    /// Backward-compatible duplicate check endpoint for lead-create flow.
+    /// </summary>
+    [HttpGet("check-duplicates")]
+    [AuthorizePermission("CRM_Leads", "View")]
+    public async Task<ActionResult<ApiResponse<DuplicateCheckResultDto>>> CheckDuplicates(
+        [FromQuery] string email,
+        [FromQuery] string? firstName,
+        [FromQuery] string? lastName)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return OkResponse(new DuplicateCheckResultDto
+            {
+                bolHasDuplicates = false,
+                duplicates = new List<LeadDuplicateDto>()
+            });
+        }
+
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var normalizedFirstName = firstName?.Trim().ToLowerInvariant();
+        var normalizedLastName = lastName?.Trim().ToLowerInvariant();
+
+        var candidates = await _crmDbContext.MstLeads
+            .AsNoTracking()
+            .Where(l => !l.bolIsDeleted && l.strEmail.ToLower() == normalizedEmail)
+            .Take(10)
+            .ToListAsync();
+
+        var duplicates = candidates.Select(l =>
+        {
+            var nameScore = 0d;
+            if (!string.IsNullOrWhiteSpace(normalizedFirstName) &&
+                l.strFirstName.Equals(normalizedFirstName, StringComparison.OrdinalIgnoreCase))
+            {
+                nameScore += 0.15d;
+            }
+
+            if (!string.IsNullOrWhiteSpace(normalizedLastName) &&
+                l.strLastName.Equals(normalizedLastName, StringComparison.OrdinalIgnoreCase))
+            {
+                nameScore += 0.15d;
+            }
+
+            var score = Math.Min(1d, 0.7d + nameScore);
+            return new LeadDuplicateDto
+            {
+                strLeadGUID = l.strLeadGUID,
+                strFirstName = l.strFirstName,
+                strLastName = l.strLastName,
+                strEmail = l.strEmail,
+                strCompanyName = l.strCompanyName,
+                strStatus = l.strStatus,
+                dblMatchScore = score,
+                strMatchReason = "Email match"
+            };
+        }).ToList();
+
+        return OkResponse(new DuplicateCheckResultDto
+        {
+            bolHasDuplicates = duplicates.Count > 0,
+            duplicates = duplicates
+        });
     }
 
     /// <summary>

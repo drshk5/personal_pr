@@ -33,11 +33,11 @@ import {
   XCircle,
 } from "lucide-react";
 import { useUpdateOpportunity, useCloseOpportunity } from "@/hooks/api/CRM/use-opportunities";
-import { toast } from "sonner";
 import type { OpportunityDetailDto } from "@/types/CRM/opportunity";
 import { OPPORTUNITY_CURRENCIES } from "@/types/CRM/opportunity";
 import { format } from "date-fns";
 import { DatePicker } from "@/components/ui/date-picker";
+import UserAssignSelect from "@/components/CRM/UserAssignSelect";
 
 interface OpportunityOverviewTabProps {
   opportunity: OpportunityDetailDto;
@@ -78,10 +78,9 @@ export default function OpportunityOverviewTab({
             : null,
         },
       });
-      toast.success("Opportunity updated successfully");
       setIsEditing(false);
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to update opportunity");
+    } catch {
+      // Error notification is handled centrally in the mutation hook.
     }
   };
 
@@ -109,7 +108,7 @@ export default function OpportunityOverviewTab({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Deal Information</CardTitle>
-              {canEdit && opportunity.strStatus === "Open" && !isEditing ? (
+              {canEdit && !isEditing ? (
                 <Button size="sm" onClick={() => setIsEditing(true)}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
@@ -206,6 +205,16 @@ export default function OpportunityOverviewTab({
                       })
                     }
                     rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Assigned To</Label>
+                  <UserAssignSelect
+                    withFormWrapper={false}
+                    value={formData.strAssignedToGUID || ""}
+                    onChange={(value) =>
+                      setFormData({ ...formData, strAssignedToGUID: value })
+                    }
                   />
                 </div>
               </>
@@ -456,8 +465,8 @@ function CloseOpportunityDialog({
         },
       });
       onClose();
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to close opportunity");
+    } catch {
+      // Error notification is handled centrally in the mutation hook.
     }
   };
 

@@ -2,6 +2,22 @@ import { api } from "@/lib/api/axios";
 import type { AxiosResponse } from "axios";
 import type { ApiResponse } from "@/types/common";
 
+const isCrmMutationUrl = (url: string): boolean => {
+  return /(^|\/)crm(\/|$)/i.test(url);
+};
+
+const invalidateAllCrmQueries = () => {
+  const queryClient = window.__QUERY_CLIENT__;
+  if (!queryClient) return;
+
+  void queryClient.invalidateQueries({
+    predicate: (query) => {
+      const first = query.queryKey?.[0];
+      return typeof first === "string" && first.startsWith("crm-");
+    },
+  });
+};
+
 export class ApiService {
   public static async get<T>(
     url: string,
@@ -36,11 +52,17 @@ export class ApiService {
 
   public static async post<T>(url: string, data: unknown): Promise<T> {
     const response = await api.post<ApiResponse<T>>(url, data);
+    if (isCrmMutationUrl(url)) {
+      invalidateAllCrmQueries();
+    }
     return response.data.data;
   }
 
   public static async postWithMeta<T>(url: string, data: unknown): Promise<T> {
     const response = await api.post<T>(url, data);
+    if (isCrmMutationUrl(url)) {
+      invalidateAllCrmQueries();
+    }
     return response.data;
   }
 
@@ -53,36 +75,57 @@ export class ApiService {
 
   public static async put<T>(url: string, data: unknown): Promise<T> {
     const response = await api.put<ApiResponse<T>>(url, data);
+    if (isCrmMutationUrl(url)) {
+      invalidateAllCrmQueries();
+    }
     return response.data.data;
   }
 
   public static async putWithMeta<T>(url: string, data: unknown): Promise<T> {
     const response = await api.put<T>(url, data);
+    if (isCrmMutationUrl(url)) {
+      invalidateAllCrmQueries();
+    }
     return response.data;
   }
 
   public static async patch<T>(url: string, data: unknown): Promise<T> {
     const response = await api.patch<ApiResponse<T>>(url, data);
+    if (isCrmMutationUrl(url)) {
+      invalidateAllCrmQueries();
+    }
     return response.data.data;
   }
 
   public static async patchWithMeta<T>(url: string, data: unknown): Promise<T> {
     const response = await api.patch<T>(url, data);
+    if (isCrmMutationUrl(url)) {
+      invalidateAllCrmQueries();
+    }
     return response.data;
   }
 
   public static async delete<T>(url: string): Promise<T> {
     const response = await api.delete<ApiResponse<T>>(url);
+    if (isCrmMutationUrl(url)) {
+      invalidateAllCrmQueries();
+    }
     return response.data.data;
   }
 
   public static async deleteWithBody<T>(url: string, data: unknown): Promise<T> {
     const response = await api.delete<ApiResponse<T>>(url, { data });
+    if (isCrmMutationUrl(url)) {
+      invalidateAllCrmQueries();
+    }
     return response.data.data;
   }
 
   public static async deleteWithMeta<T>(url: string): Promise<T> {
     const response = await api.delete<T>(url);
+    if (isCrmMutationUrl(url)) {
+      invalidateAllCrmQueries();
+    }
     return response.data;
   }
 

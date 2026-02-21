@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { CountrySelect } from "@/components/ui/country-select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +27,6 @@ import {
   Briefcase,
 } from "lucide-react";
 import { useUpdateContact } from "@/hooks/api/CRM/use-contacts";
-import { toast } from "sonner";
 import type { ContactDetailDto } from "@/types/CRM/contact";
 import { CONTACT_LIFECYCLE_STAGES } from "@/types/CRM/contact";
 import { format } from "date-fns";
@@ -71,10 +72,9 @@ export default function ContactOverviewTab({
           strAssignedToGUID: formData.strAssignedToGUID || null,
         },
       });
-      toast.success("Contact updated successfully");
       setIsEditing(false);
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to update contact");
+    } catch {
+      // Error notification is handled centrally in the mutation hook.
     }
   };
 
@@ -167,22 +167,24 @@ export default function ContactOverviewTab({
                   </div>
                   <div className="space-y-2">
                     <Label>Phone</Label>
-                    <Input
-                      value={formData.strPhone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, strPhone: e.target.value })
+                    <PhoneInput
+                      value={formData.strPhone || ""}
+                      onChange={(value) =>
+                        setFormData({ ...formData, strPhone: value })
                       }
+                      placeholder="Enter phone number"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Mobile Phone</Label>
-                    <Input
-                      value={formData.strMobilePhone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, strMobilePhone: e.target.value })
+                    <PhoneInput
+                      value={formData.strMobilePhone || ""}
+                      onChange={(value) =>
+                        setFormData({ ...formData, strMobilePhone: value })
                       }
+                      placeholder="Enter mobile number"
                     />
                   </div>
                   <div className="space-y-2">
@@ -302,11 +304,12 @@ export default function ContactOverviewTab({
                   </div>
                   <div className="space-y-2">
                     <Label>Country</Label>
-                    <Input
-                      value={formData.strCountry}
-                      onChange={(e) =>
-                        setFormData({ ...formData, strCountry: e.target.value })
+                    <CountrySelect
+                      value={formData.strCountry || ""}
+                      onChange={(value) =>
+                        setFormData({ ...formData, strCountry: value })
                       }
+                      placeholder="Select country"
                     />
                   </div>
                 </div>

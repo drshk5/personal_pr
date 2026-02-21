@@ -53,6 +53,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { CountrySelect } from "@/components/ui/country-select";
 import {
   Select,
   SelectContent,
@@ -351,10 +353,10 @@ const ContactForm: React.FC = () => {
                             <FormItem>
                               <FormLabel>Phone</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="Enter phone number"
-                                  {...field}
+                                <PhoneInput
                                   value={field.value || ""}
+                                  onChange={field.onChange}
+                                  placeholder="Enter phone number"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -369,10 +371,10 @@ const ContactForm: React.FC = () => {
                             <FormItem>
                               <FormLabel>Mobile Phone</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="Enter mobile number"
-                                  {...field}
+                                <PhoneInput
                                   value={field.value || ""}
+                                  onChange={field.onChange}
+                                  placeholder="Enter mobile number"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -543,10 +545,10 @@ const ContactForm: React.FC = () => {
                             <FormItem>
                               <FormLabel>Country</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="Enter country"
-                                  {...field}
+                                <CountrySelect
                                   value={field.value || ""}
+                                  onChange={field.onChange}
+                                  placeholder="Select country"
                                 />
                               </FormControl>
                               <FormMessage />

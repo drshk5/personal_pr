@@ -293,7 +293,7 @@ const OpportunityBoard: React.FC = () => {
   };
 
   const handleCardClick = (oppId: string) => {
-    window.open(`/crm/opportunities/${oppId}`, "_blank", "noopener,noreferrer");
+    navigate(`/crm/opportunities/${oppId}`);
   };
 
   return (
